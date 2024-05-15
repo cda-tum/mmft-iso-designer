@@ -1,0 +1,55 @@
+{
+  "name": "mmft-iso-designer",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@fontsource/inter": "^5.0.8",
+    "@mui/joy": "^5.0.0-beta.2",
+    "@reduxjs/toolkit": "^1.9.5",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.40",
+    "@types/react": "^18.2.19",
+    "@types/react-dom": "^18.2.7",
+    "coi-serviceworker": "^0.1.7",
+    "d3": "^7.8.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5",
+    "v4-uuid": "^1.1.0",
+    "web-vitals": "^2.1.4",
+    "z3-solver": "^4.12.2"
+  },
+  "scripts": {
+    "start": "cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts start",
+    "build": "cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.1"
+  }
+}

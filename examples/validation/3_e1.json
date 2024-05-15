@@ -1,0 +1,1215 @@
+{
+  "timing": 698214,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "building_blocks": [
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 40000,
+        "y": 5000
+      },
+      "fixed_rotation": 1
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 50000,
+        "y": 5000
+      },
+      "fixed_rotation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 90000,
+        "y": 5000
+      },
+      "fixed_rotation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 10000,
+        "y": 35000
+      },
+      "fixed_rotation": 3
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 50000,
+        "y": 35000
+      },
+      "fixed_rotation": 1
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 90000,
+        "y": 35000
+      },
+      "fixed_rotation": 2
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 10000,
+        "y": 65000
+      },
+      "fixed_rotation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 50000,
+        "y": 65000
+      },
+      "fixed_rotation": 3
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "fixed_position": {
+        "x": 90000,
+        "y": 65000
+      },
+      "fixed_rotation": 0
+    }
+  ],
+  "channels": [
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 1,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 13000,
+          "y": 17000
+        },
+        {
+          "x": 14500,
+          "y": 17000
+        },
+        {
+          "x": 14500,
+          "y": 47000
+        },
+        {
+          "x": 45500,
+          "y": 47000
+        },
+        {
+          "x": 45500,
+          "y": 8000
+        },
+        {
+          "x": 53000,
+          "y": 8000
+        }
+      ],
+      "actual_length": 101500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 1,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 13000,
+          "y": 14000
+        },
+        {
+          "x": 13000,
+          "y": 12500
+        },
+        {
+          "x": 19000,
+          "y": 12500
+        },
+        {
+          "x": 19000,
+          "y": 5000
+        },
+        {
+          "x": 56000,
+          "y": 5000
+        },
+        {
+          "x": 56000,
+          "y": 8000
+        }
+      ],
+      "actual_length": 52000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 1,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 13000,
+          "y": 11000
+        },
+        {
+          "x": 13000,
+          "y": 9500
+        },
+        {
+          "x": 17500,
+          "y": 9500
+        },
+        {
+          "x": 17500,
+          "y": 3500
+        },
+        {
+          "x": 59000,
+          "y": 3500
+        },
+        {
+          "x": 59000,
+          "y": 8000
+        }
+      ],
+      "actual_length": 53500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 1,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 13000,
+          "y": 8000
+        },
+        {
+          "x": 11500,
+          "y": 8000
+        },
+        {
+          "x": 11500,
+          "y": 80000
+        },
+        {
+          "x": 103500,
+          "y": 80000
+        },
+        {
+          "x": 103500,
+          "y": 8000
+        },
+        {
+          "x": 62000,
+          "y": 8000
+        }
+      ],
+      "actual_length": 237500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 5,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 53000,
+          "y": 47000
+        },
+        {
+          "x": 47000,
+          "y": 47000
+        },
+        {
+          "x": 47000,
+          "y": 32000
+        },
+        {
+          "x": 100500,
+          "y": 32000
+        },
+        {
+          "x": 100500,
+          "y": 47000
+        },
+        {
+          "x": 102000,
+          "y": 47000
+        }
+      ],
+      "actual_length": 89500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 5,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 53000,
+          "y": 44000
+        },
+        {
+          "x": 48500,
+          "y": 44000
+        },
+        {
+          "x": 48500,
+          "y": 33500
+        },
+        {
+          "x": 97500,
+          "y": 33500
+        },
+        {
+          "x": 97500,
+          "y": 47000
+        },
+        {
+          "x": 99000,
+          "y": 47000
+        }
+      ],
+      "actual_length": 77500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 5,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 53000,
+          "y": 41000
+        },
+        {
+          "x": 53000,
+          "y": 42500
+        },
+        {
+          "x": 50000,
+          "y": 42500
+        },
+        {
+          "x": 50000,
+          "y": 35000
+        },
+        {
+          "x": 96000,
+          "y": 35000
+        },
+        {
+          "x": 96000,
+          "y": 47000
+        }
+      ],
+      "actual_length": 58000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 5,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 53000,
+          "y": 38000
+        },
+        {
+          "x": 51500,
+          "y": 38000
+        },
+        {
+          "x": 51500,
+          "y": 39500
+        },
+        {
+          "x": 91500,
+          "y": 39500
+        },
+        {
+          "x": 91500,
+          "y": 47000
+        },
+        {
+          "x": 93000,
+          "y": 47000
+        }
+      ],
+      "actual_length": 50500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 6,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 7,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 13000,
+          "y": 68000
+        },
+        {
+          "x": 14500,
+          "y": 68000
+        },
+        {
+          "x": 14500,
+          "y": 78500
+        },
+        {
+          "x": 63500,
+          "y": 78500
+        },
+        {
+          "x": 63500,
+          "y": 68000
+        },
+        {
+          "x": 62000,
+          "y": 68000
+        }
+      ],
+      "actual_length": 71500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 6,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 7,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 16000,
+          "y": 68000
+        },
+        {
+          "x": 16000,
+          "y": 65000
+        },
+        {
+          "x": 47000,
+          "y": 65000
+        },
+        {
+          "x": 47000,
+          "y": 71000
+        },
+        {
+          "x": 62000,
+          "y": 71000
+        },
+        {
+          "x": 62000,
+          "y": 71000
+        }
+      ],
+      "actual_length": 55000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 6,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 7,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 19000,
+          "y": 68000
+        },
+        {
+          "x": 17500,
+          "y": 68000
+        },
+        {
+          "x": 17500,
+          "y": 66500
+        },
+        {
+          "x": 45500,
+          "y": 66500
+        },
+        {
+          "x": 45500,
+          "y": 74000
+        },
+        {
+          "x": 62000,
+          "y": 74000
+        }
+      ],
+      "actual_length": 38500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 6,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "building_block": 7,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 22000,
+          "y": 68000
+        },
+        {
+          "x": 44000,
+          "y": 68000
+        },
+        {
+          "x": 44000,
+          "y": 77000
+        },
+        {
+          "x": 62000,
+          "y": 77000
+        },
+        {
+          "x": 62000,
+          "y": 77000
+        },
+        {
+          "x": 62000,
+          "y": 77000
+        }
+      ],
+      "actual_length": 49000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 3,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 22000,
+          "y": 17000
+        },
+        {
+          "x": 20500,
+          "y": 17000
+        },
+        {
+          "x": 20500,
+          "y": 9500
+        },
+        {
+          "x": 26500,
+          "y": 9500
+        },
+        {
+          "x": 26500,
+          "y": 41000
+        },
+        {
+          "x": 19000,
+          "y": 41000
+        }
+      ],
+      "actual_length": 46500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 3,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 22000,
+          "y": 14000
+        },
+        {
+          "x": 23500,
+          "y": 14000
+        },
+        {
+          "x": 23500,
+          "y": 30500
+        },
+        {
+          "x": 16000,
+          "y": 30500
+        },
+        {
+          "x": 16000,
+          "y": 41000
+        },
+        {
+          "x": 16000,
+          "y": 41000
+        }
+      ],
+      "actual_length": 36000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 3,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 22000,
+          "y": 11000
+        },
+        {
+          "x": 25000,
+          "y": 11000
+        },
+        {
+          "x": 25000,
+          "y": 38000
+        },
+        {
+          "x": 17500,
+          "y": 38000
+        },
+        {
+          "x": 17500,
+          "y": 44000
+        },
+        {
+          "x": 16000,
+          "y": 44000
+        }
+      ],
+      "actual_length": 43500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 0,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 3,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 22000,
+          "y": 8000
+        },
+        {
+          "x": 22000,
+          "y": 6500
+        },
+        {
+          "x": 44000,
+          "y": 6500
+        },
+        {
+          "x": 44000,
+          "y": 42500
+        },
+        {
+          "x": 19000,
+          "y": 42500
+        },
+        {
+          "x": 19000,
+          "y": 44000
+        }
+      ],
+      "actual_length": 84500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 1,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 2,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 53000,
+          "y": 17000
+        },
+        {
+          "x": 53000,
+          "y": 9500
+        },
+        {
+          "x": 62000,
+          "y": 9500
+        },
+        {
+          "x": 62000,
+          "y": 12500
+        },
+        {
+          "x": 96000,
+          "y": 12500
+        },
+        {
+          "x": 96000,
+          "y": 11000
+        }
+      ],
+      "actual_length": 53500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 1,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 2,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 56000,
+          "y": 17000
+        },
+        {
+          "x": 57500,
+          "y": 17000
+        },
+        {
+          "x": 57500,
+          "y": 11000
+        },
+        {
+          "x": 60500,
+          "y": 11000
+        },
+        {
+          "x": 60500,
+          "y": 14000
+        },
+        {
+          "x": 96000,
+          "y": 14000
+        }
+      ],
+      "actual_length": 13500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 1,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 2,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 59000,
+          "y": 17000
+        },
+        {
+          "x": 60500,
+          "y": 17000
+        },
+        {
+          "x": 60500,
+          "y": 15500
+        },
+        {
+          "x": 100500,
+          "y": 15500
+        },
+        {
+          "x": 100500,
+          "y": 14000
+        },
+        {
+          "x": 99000,
+          "y": 14000
+        }
+      ],
+      "actual_length": 44500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 1,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 2,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 62000,
+          "y": 17000
+        },
+        {
+          "x": 102000,
+          "y": 17000
+        },
+        {
+          "x": 102000,
+          "y": 9500
+        },
+        {
+          "x": 100500,
+          "y": 9500
+        },
+        {
+          "x": 100500,
+          "y": 11000
+        },
+        {
+          "x": 99000,
+          "y": 11000
+        }
+      ],
+      "actual_length": 50500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 8,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 62000,
+          "y": 47000
+        },
+        {
+          "x": 57500,
+          "y": 47000
+        },
+        {
+          "x": 57500,
+          "y": 42500
+        },
+        {
+          "x": 88500,
+          "y": 42500
+        },
+        {
+          "x": 88500,
+          "y": 71000
+        },
+        {
+          "x": 96000,
+          "y": 71000
+        }
+      ],
+      "actual_length": 68500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 8,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 62000,
+          "y": 44000
+        },
+        {
+          "x": 65000,
+          "y": 44000
+        },
+        {
+          "x": 65000,
+          "y": 72500
+        },
+        {
+          "x": 96000,
+          "y": 72500
+        },
+        {
+          "x": 96000,
+          "y": 74000
+        },
+        {
+          "x": 96000,
+          "y": 74000
+        }
+      ],
+      "actual_length": 64000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 8,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 62000,
+          "y": 41000
+        },
+        {
+          "x": 90000,
+          "y": 41000
+        },
+        {
+          "x": 90000,
+          "y": 66500
+        },
+        {
+          "x": 97500,
+          "y": 66500
+        },
+        {
+          "x": 97500,
+          "y": 74000
+        },
+        {
+          "x": 99000,
+          "y": 74000
+        }
+      ],
+      "actual_length": 68500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "building_block": 4,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "building_block": 8,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "max_segments": 5,
+      "static_waypoints": [
+        {
+          "x": 62000,
+          "y": 38000
+        },
+        {
+          "x": 62000,
+          "y": 36500
+        },
+        {
+          "x": 94500,
+          "y": 36500
+        },
+        {
+          "x": 94500,
+          "y": 65000
+        },
+        {
+          "x": 99000,
+          "y": 65000
+        },
+        {
+          "x": 99000,
+          "y": 71000
+        }
+      ],
+      "actual_length": 67000
+    }
+  ],
+  "routing_exclusions": []
+}
