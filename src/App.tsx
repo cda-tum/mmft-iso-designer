@@ -17,6 +17,7 @@ import { Module, Rotation, generate_ports } from './gui/data/iso/module';
 import { pairwise_unique_indexed } from './da/utils';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
+import { Status, StatusProps, StatusType } from './gui/view/Status';
 
 function App() {
 
@@ -279,425 +280,47 @@ function App() {
   useEffect(() => {
     if (input) {
       console.log("Running...")
+      setStatus({
+        status: StatusType.Computing,
+        startTime: performance.now()
+      })
+      setOutput(undefined)
       design(input).then(r => {
-        setOutput(r)
+        if (!r) {
+          throw 'An unknown error has occurred.'
+        } else {
+          if (r.success) {
+            setStatus({
+              status: StatusType.Result,
+              success: true,
+              timing: r.timing!
+            })
+            setOutput(r)
+          } else {
+            setStatus({
+              status: StatusType.Result,
+              success: false,
+              timing: r.timing!
+            })
+            setOutput(undefined)
+          }
+        }
+
+      }).catch((e) => {
+        setStatus({
+          status: StatusType.Error,
+          message: e.toString()
+        })
       })
     } else {
       setOutput(undefined)
     }
   }, [input])
 
-  /*
-  useEffect(() => {
-    const input = new Input({
-      chip: Chip.from({
-        width: 127000,
-        height: 87000,
-        pitch: 3000
-      }),
-      building_blocks: [
-        new BuildingBlockInstance({
-          fixed_position: {
-            x: 20000,
-            y: 15000
-          },
-          fixed_rotation: Rotation.Up,
-          width: 30000,
-          height: 60000,
-          pitch: 3000,
-          active_ports: [
-            [0, 0], [2, 0], [4, 0], [6, 0], [8, 0],
-            [1, 1], [3, 1], [5, 1], [7, 1],
-            [1, 17], [3, 17], [5, 17], [7, 17],
-            [0, 18], [2, 18], [6, 18], [8, 18],
-          ]
-        }),
-        new BuildingBlockInstance({
-          fixed_position: {
-            x: 80000,
-            y: 15000
-          },
-          fixed_rotation: Rotation.Up,
-          width: 30000,
-          height: 60000,
-          pitch: 3000,
-          active_ports: [
-            [0, 0], [2, 0], [4, 0], [6, 0], [8, 0],
-            [1, 1], [3, 1], [5, 1], [7, 1],
-            [1, 17], [3, 17], [5, 17], [7, 17],
-            [0, 18], [2, 18], [6, 18], [8, 18],
-          ]
-        }),
-      ],
-      channels: [channel.create({
-        from: {
-          building_block: 0,
-          port: [0, 0]
-        },
-        to: {
-          building_block: 0,
-          port: [0, 18]
-        }
-      }), channel.create({
-        from: {
-          building_block: 0,
-          port: [1, 1]
-        },
-        to: {
-          building_block: 0,
-          port: [5, 17]
-        }
-      }), channel.create({
-        from: {
-          building_block: 0,
-          port: [8, 0]
-        },
-        to: {
-          building_block: 0,
-          port: [2, 18]
-        }
-      }), /*channel.create({
-        from: {
-          building_block: 0,
-          port: [4, 0]
-        },
-        to: {
-          building_block: 0,
-          port: [7, 17]
-        }
-      }), channel.create({
-        from: {
-          building_block: 0,
-          port: [3, 1]
-        },
-        to: {
-          building_block: 0,
-          port: [8, 18]
-        }
-      }), channel.create({
-        from: {
-          building_block: 0,
-          port: [6, 0]
-        },
-        to: {
-          building_block: 0,
-          port: [1, 17]
-        }
-      }),
-    
-      channel.create({
-        from: {
-          building_block: 1,
-          port: [0, 0]
-        },
-        to: {
-          building_block: 1,
-          port: [0, 18]
-        }
-      }), channel.create({
-        from: {
-          building_block: 1,
-          port: [1, 1]
-        },
-        to: {
-          building_block: 1,
-          port: [5, 17]
-        }
-      }), channel.create({
-        from: {
-          building_block: 1,
-          port: [8, 0]
-        },
-        to: {
-          building_block: 1,
-          port: [2, 18]
-        }
-      }), /*channel.create({
-        from: {
-          building_block: 1,
-          port: [4, 0]
-        },
-        to: {
-          building_block: 1,
-          port: [7, 17]
-        }
-      }), channel.create({
-        from: {
-          building_block: 1,
-          port: [3, 1]
-        },
-        to: {
-          building_block: 1,
-          port: [8, 18]
-        }
-      }), channel.create({
-        from: {
-          building_block: 1,
-          port: [6, 0]
-        },
-        to: {
-          building_block: 1,
-          port: [1, 17]
-        }
-      })
-    ],
-      routing_exclusions: [new StaticRoutingExclusion({
-        position_x: 19000,
-        position_y: 30000,
-        width: 32000,
-        height: 24000
-      }), new StaticRoutingExclusion({
-        position_x: 79000,
-        position_y: 30000,
-        width: 32000,
-        height: 24000
-      })]
-    })
-
-    design(input).then(r => {
-      setOutput(r)
-    })
-  }, [])*/
-
-  /*
-useEffect(() => {
-  const input = new Input({
-    chip: Chip.from({
-      width: 127000,
-      height: 87000,
-      pitch: 3000
-    }),
-    building_blocks: [
-      new BuildingBlockInstance({
-        fixed_position: {
-          x: 20000,
-          y: 15000
-        },
-        fixed_rotation: Rotation.Left,
-        width: 30000,
-        height: 60000,
-        pitch: 3000,
-        active_ports: [
-          [0, 0], [2, 0], [4, 0], [6, 0], [8, 0],
-          [1, 1], [3, 1], [5, 1], [7, 1],
-          [1, 17], [3, 17], [5, 17], [7, 17],
-          [0, 18], [2, 18], [6, 18], [8, 18],
-        ]
-      }),
-    ],
-    channels: [channel.create({
-      from: {
-        building_block: 0,
-        port: [0, 0]
-      },
-      to: {
-        building_block: 0,
-        port: [0, 18]
-      }
-    }),
-    ],
-    routing_exclusions: []
-  })
-
-  design(input).then(r => {
-    setOutput(r)
-  })
-
-  /*design(new Input({
-    chip: Chip.from({
-      width: 127000,
-      height: 87000,
-      pitch: 3000
-    }),
-    building_blocks: [
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[0, 1]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[1, 1]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[2, 2]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[2, 3]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[2, 2]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[2, 3]]
-      })
-    ],
-    channels: [
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 0,
-          port: [0, 1]
-        },
-        to: {
-          building_block: 1,
-          port: [1, 1]
-        }
-      }),
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 2,
-          port: [2, 2]
-        },
-        to: {
-          building_block: 3,
-          port: [2, 3]
-        }
-      }),
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 0,
-          port: [0, 2]
-        },
-        to: {
-          building_block: 3,
-          port: [3, 3]
-        }
-      }),
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 1,
-          port: [3, 2]
-        },
-        to: {
-          building_block: 2,
-          port: [1, 0]
-        }
-      }),
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 4,
-          port: [3, 2]
-        },
-        to: {
-          building_block: 5,
-          port: [1, 3]
-        }
-      }),
-    ],
-    routing_exclusions: [{
-      position_x: 10000,
-      position_y: 10000,
-      width: 20000,
-      height: 20000
-    }, {
-      position_x: 60000,
-      position_y: 60000,
-      width: 20000,
-      height: 20000
-    }]
-  })).then(r => {
-    setOutput(r)
-  })*/
-
-  /*design(new Input({
-    chip: Chip.from({
-      width: 127000,
-      height: 87000,
-      pitch: 3000
-    }),
-    building_blocks: [
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[0, 1]]
-      }),
-      new BuildingBlockInstance({
-        width: 15000,
-        height: 15000,
-        pitch: 3000,
-        active_ports: [[1, 1]]
-      })
-    ],
-    channels: [
-      new ChannelInstance({
-        width: 400,
-        height: 400,
-        spacing: 400,
-        from: {
-          building_block: 0,
-          port: [0, 1]
-        },
-        to: {
-          building_block: 1,
-          port: [1, 1]
-        }
-      }),
-    ],
-    routing_exclusions: []
-  })).then(r => {
-    setOutput(r)
-  })*/
-
-
-
-  //}, [])
-
-  /*store.dispatch(workspaceActions.add({
-    id: 0,
-    timeline: [{
-      entities: [0]
-    }]
-  }))
-
-  const module: Module = {
-    id: 0,
-    type: EntityType.Module,
-    width: 500,
-    height: 330,
-    pitch: 20,
-    tentative_position: {
-      x: 200,
-      y: 200
-    },
-    tentative_rotation: Rotation.Up,
-    ports: []
-  }*/
-
-  //module.ports = generate_ports(module)
-  //module.ports.find(p => p.index_x === 0 && p.index_y === 0)!.active = true
-
-  //store.dispatch(entityActions.add(module))
+  const defaultStatus: StatusProps = {
+    status: StatusType.Idle
+  }
+  const [status, setStatus] = useState<StatusProps>(defaultStatus)
 
   return (
     <div className="App">
@@ -740,9 +363,11 @@ useEffect(() => {
                 let config
                 try {
                   config = JSON.parse(content)
-                  console.log('Loaded successfully.')
                 } catch (e) {
-                  alert(`Invalid input: ${config}`)
+                  setStatus({
+                    status: StatusType.Error,
+                    message: 'Input file could not be parsed.'
+                  })
                 }
                 setInput(Input.from(config))
               }
@@ -759,7 +384,7 @@ useEffect(() => {
             sx={{
               margin: 1
             }}
-          >Load</Button>
+          >Load Input File</Button>
           <Button
             onClick={() => {
               if (output !== undefined) {
@@ -775,6 +400,7 @@ useEffect(() => {
             Download
           </Button>
         </div>
+        <Status {...status}></Status>
         <ChipView chip={output}></ChipView>
       </main>
       <footer
@@ -785,13 +411,13 @@ useEffect(() => {
           backgroundColor: '#444',
         }}
       >
-        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{textDecoration: 'none'}}><Typography
+        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}><Typography
           level='h4'
           sx={{
             color: '#fff',
             padding: 1
           }}
-        >Chair for Design Automation<br/>Technical University of Munich</Typography></a>
+        >Chair for Design Automation<br />Technical University of Munich</Typography></a>
       </footer>
     </div>
   );

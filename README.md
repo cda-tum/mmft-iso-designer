@@ -17,3 +17,13 @@ npm start
 A browser window should open up where you can load an input file using the `Load` button.
 
 Example configurations featured in the corresponding research paper can be found in the `examples` directory.
+
+### Q&A
+
+#### Why does the displayed runtime appear to be significantly lower than the time the program takes to deliver results?
+
+The measured runtime includes Z3 solving runtime only. Producing the constraints, passing constraints to the solver and generating output images is not included. This discrepancy becomes obvious mostly for validation cases with a large set of constraints, but low actual solver runtime.
+
+#### How do I abort the program?
+
+Simply reload or close the tab or browser window.

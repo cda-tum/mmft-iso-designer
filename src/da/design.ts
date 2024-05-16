@@ -45,14 +45,20 @@ async function design(input: Input) {
         const timing = performance.now() - start
         console.log(`Result: ${check}; time elapsed: ${timing} ms`)
         if(check === 'unsat') {
-            console.log('unsat')
+            return {
+                success: false,
+                timing
+            } as {
+                success: false,
+                timing: number
+            }
             /*const avec = Z3.solver_get_unsat_core(ctx.ptr, solver.ptr)
             const size = Z3.ast_vector_size(ctx.ptr, avec)
             const asts = [...Array(size).keys()].map(i => Z3.ast_vector_get(ctx.ptr, avec, i))
             console.log(size)
             console.log(asts)*/
         } else if (check === 'unknown') {
-            console.log('unknown')
+            throw 'Z3 cannot determine whether there is a solution.'
         } else {
             console.log('sat')
             const model = solver.model()

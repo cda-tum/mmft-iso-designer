@@ -98,6 +98,7 @@ class EncodedInput extends Input {
     result(m: Model): Output {
         return {
             ...this,
+            success: true,
             building_blocks: this.building_blocks.map(b => b.result(m)),
             channels: this.channels.map(c => c.result(m))
         }
@@ -109,6 +110,7 @@ class Output extends EncodedInput {
     channels!: ResultChannelInstance[]
 
     timing?: number //ms
+    success: true = true
 
     constructor(obj: Partial<Output>) {
         super(obj)
