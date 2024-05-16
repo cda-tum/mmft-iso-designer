@@ -3,20 +3,23 @@ import { ResultChannelInstance } from "../../da/channel"
 import { Output } from "../../da/input_output"
 import { Rotation } from "../../da/rotation"
 import { StaticRoutingExclusion } from "../../da/routing-exclusion"
-
-export { ChipView }
+import { renderToString } from "react-dom/server"
 
 function randomColor() {
     const letters = '0123456789abcdef'
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
 }
 
-function ChipView(props: { chip: Output | undefined }) {
+export function svgAsString(chip: Output) {
+    return renderToString(<ChipView chip={chip} />)
+}
+
+export function ChipView(props: { chip: Output | undefined }) {
     const boundaryStrokeWidth = 500
     const boundaryOffset = boundaryStrokeWidth / 2
     const boundaryColor = '#27f'
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.2" width="100%" height="800" style={{ backgroundColor: 'fff' }}>
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.2" width="100%" height="800" style={{ backgroundColor: '#fff' }}>
             <g transform="scale(0.005 -0.005) translate(20000 -100000)">
                 {props.chip &&
                     <rect x={-boundaryOffset} y={-boundaryOffset} width={props.chip.chip.width + boundaryStrokeWidth} height={props.chip.chip.height + boundaryStrokeWidth} fill='none' strokeWidth={boundaryStrokeWidth} stroke={boundaryColor}></rect>
@@ -85,10 +88,10 @@ function Channel(props: { channel: ResultChannelInstance, color?: string }) {
         } else {
             return `L ${p.x} ${p.y}`
         }
-    }).join(',')
+    }).join(' ')
     return (
         <g>
-            <path d={d} strokeWidth={props.channel.width} stroke={color} fill="none" strokeLinecap="square"></path>
+            <path d={d} strokeWidth={props.channel.width} stroke={color} fill="none" strokeLinecap="square"/>
         </g>
     )
 }

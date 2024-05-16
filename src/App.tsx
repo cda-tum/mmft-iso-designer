@@ -6,7 +6,7 @@ import { design } from './da/design';
 import { Input, Output } from './da/input_output';
 import { BuildingBlock, BuildingBlockInstance } from './da/building_block';
 import { example } from './da/test';
-import { ChipView } from './gui/view/ChipView';
+import { ChipView, svgAsString } from './gui/view/ChipView';
 import { Channel, ChannelInstance } from './da/channel';
 import { Chip } from './da/chip';
 import { StaticRoutingExclusion } from './da/routing-exclusion';
@@ -390,14 +390,27 @@ function App() {
               if (output !== undefined) {
                 const o = transformToInput(output)
                 const id = nanoid()
-                download(o, id)
+                downloadJSON(o, id)
               }
             }}
             sx={{
               margin: 1
             }}
           >
-            Download
+            Download Output
+          </Button>
+          <Button
+            onClick={() => {
+              if (output !== undefined) {
+                const id = nanoid()
+                downloadSVG(svgAsString(output), id)
+              }
+            }}
+            sx={{
+              margin: 1
+            }}
+          >
+            Download Image
           </Button>
         </div>
         <Status {...status}></Status>
@@ -541,11 +554,21 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
   return output
 }
 
-function download(exportObj: any, exportName: string) {
+function downloadJSON(exportObj: any, exportName: string) {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, undefined, 2))
   const downloadAnchorNode = document.createElement('a')
   downloadAnchorNode.setAttribute("href", dataStr);
   downloadAnchorNode.setAttribute("download", exportName + ".json");
+  document.body.appendChild(downloadAnchorNode); // required for firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function downloadSVG(exportString: string, exportName: string) {
+  const dataStr = "data:image/svg;charset=utf-8," + encodeURIComponent(exportString)
+  const downloadAnchorNode = document.createElement('a')
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", exportName + ".svg");
   document.body.appendChild(downloadAnchorNode); // required for firefox
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
