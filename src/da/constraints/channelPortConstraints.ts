@@ -2,7 +2,7 @@ import { Context } from "z3-solver";
 import { EncodedChannelInstance } from "../channel";
 import { EncodedBuildingBlockInstance } from "../buildingBlock";
 
-export function encode_channel_port_constraints(ctx: Context, channel: EncodedChannelInstance, from_block: EncodedBuildingBlockInstance, to_block: EncodedBuildingBlockInstance) {
+export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannelInstance, from_block: EncodedBuildingBlockInstance, to_block: EncodedBuildingBlockInstance) {
     const clauses = []
 
     const from_port_position = from_block.port_position(ctx, channel.from.port[0], channel.from.port[1])

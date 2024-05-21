@@ -3,7 +3,6 @@ import { EnumBitVec, EnumBitVecValue, bool_val, enumbitvec_val, int_val } from "
 import { Rotation } from "./rotation";
 import { Position } from "./position";
 import { Chip } from "./chip";
-import { encode_block_constraints } from "./constraints/blockConstraints";
 
 export { BuildingBlock, BuildingBlockInstance, EncodedBuildingBlockInstance, ResultBuildingBlockInstance }
 

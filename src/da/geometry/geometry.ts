@@ -1,12 +1,9 @@
 import { Arith, Context } from "z3-solver";
 import { EncodedChannelInstance, SegmentType } from "../channel";
-import { EnumBitVec } from "../z3Helpers";
 import { StaticRoutingExclusion } from "../routingExclusion";
 import { Rotation } from "../rotation";
 
-//export { point_segment_distance_x }
-
-export function min_distance_asym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
+export function minDistanceAsym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
     if (typeof c1 == 'number') {
         if (typeof c2 == 'number') {
             if (typeof distance == 'number') {
@@ -47,27 +44,27 @@ export function min_distance_asym(ctx: Context, c1: Arith | number, c2: Arith | 
     }
 }
 
-export function min_distance_sym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
+export function minDistanceSym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
     return ctx.Or(
-        min_distance_asym(ctx, c1, c2, distance),
-        min_distance_asym(ctx, c2, c1, distance)
+        minDistanceAsym(ctx, c1, c2, distance),
+        minDistanceAsym(ctx, c2, c1, distance)
     )
 }
 
-export function segment_box_distance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
+export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
     return ctx.Or(
-        min_distance_asym(ctx, segment.c1_higher, box.c1, min_distance),
-        min_distance_asym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
-        min_distance_asym(ctx, segment.c2, box.c2, min_distance),
-        min_distance_asym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
+        minDistanceAsym(ctx, segment.c1_higher, box.c1, min_distance),
+        minDistanceAsym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
+        minDistanceAsym(ctx, segment.c2, box.c2, min_distance),
+        minDistanceAsym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
     )
 }
 
-export function channel_segment_routing_exclusion_distance(ctx: Context, channel: EncodedChannelInstance, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannelInstance, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
     return ctx.And(
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Up),
-            segment_box_distance(ctx, {
+            segmentBoxDistance(ctx, {
                 c1_lower: channel.waypoints[segment].y,
                 c1_higher: channel.waypoints[segment + 1].y,
                 c2: channel.waypoints[segment].x,
@@ -80,7 +77,7 @@ export function channel_segment_routing_exclusion_distance(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Down),
-            segment_box_distance(ctx, {
+            segmentBoxDistance(ctx, {
                 c1_lower: channel.waypoints[segment + 1].y,
                 c1_higher: channel.waypoints[segment].y,
                 c2: channel.waypoints[segment].x,
@@ -93,7 +90,7 @@ export function channel_segment_routing_exclusion_distance(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Right),
-            segment_box_distance(ctx, {
+            segmentBoxDistance(ctx, {
                 c1_lower: channel.waypoints[segment].x,
                 c1_higher: channel.waypoints[segment + 1].x,
                 c2: channel.waypoints[segment].y,
@@ -106,7 +103,7 @@ export function channel_segment_routing_exclusion_distance(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Left),
-            segment_box_distance(ctx, {
+            segmentBoxDistance(ctx, {
                 c1_lower: channel.waypoints[segment + 1].x,
                 c1_higher: channel.waypoints[segment].x,
                 c2: channel.waypoints[segment].y,
@@ -120,17 +117,17 @@ export function channel_segment_routing_exclusion_distance(ctx: Context, channel
     )
 }
 
-export function point_box_distance(ctx: Context, point: { c1: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
+export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
     return ctx.Or(
-        min_distance_asym(ctx, point.c1, box.c1, min_distance),
-        min_distance_asym(ctx, point.c2, box.c2, min_distance),
-        min_distance_asym(ctx, box.c1, point.c1, min_distance + box.c1_span),
-        min_distance_asym(ctx, box.c2, point.c2, min_distance + box.c2_span)
+        minDistanceAsym(ctx, point.c1, box.c1, min_distance),
+        minDistanceAsym(ctx, point.c2, box.c2, min_distance),
+        minDistanceAsym(ctx, box.c1, point.c1, min_distance + box.c1_span),
+        minDistanceAsym(ctx, box.c2, point.c2, min_distance + box.c2_span)
     )
 }
 
-export function waypoint_routing_exclusion_distance(ctx: Context, channel: EncodedChannelInstance, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
-    return point_box_distance(ctx, {
+export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannelInstance, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+    return pointBoxDistance(ctx, {
         c1: channel.waypoints[waypoint].x,
         c2: channel.waypoints[waypoint].y
     }, {
@@ -141,19 +138,19 @@ export function waypoint_routing_exclusion_distance(ctx: Context, channel: Encod
     }, min_distance)
 }
 
-export function point_segment_distance(ctx: Context, point: { c1: Arith, c2: Arith }, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, min_distance: number) {
+export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith }, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, min_distance: number) {
     return ctx.Or(
-        min_distance_asym(ctx, point.c1, segment.c1_lower, 0),
-        min_distance_asym(ctx, segment.c1_higher, point.c1, 0),
-        min_distance_sym(ctx, point.c2, segment.c2, min_distance)
+        minDistanceAsym(ctx, point.c1, segment.c1_lower, 0),
+        minDistanceAsym(ctx, segment.c1_higher, point.c1, 0),
+        minDistanceSym(ctx, point.c2, segment.c2, min_distance)
     )
 }
 
-export function waypoint_segment_distance(ctx: Context, channel_a: EncodedChannelInstance, waypoint_a: number, channel_b: EncodedChannelInstance, segment_b: number, min_distance: number) {
+export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannelInstance, waypoint_a: number, channel_b: EncodedChannelInstance, segment_b: number, min_distance: number) {
     return ctx.And(
         ctx.Implies(
             channel_b.segments[segment_b].type.eq(ctx, SegmentType.Up),
-            point_segment_distance(ctx, {
+            pointSegmentDistance(ctx, {
                 c1: channel_a.waypoints[waypoint_a].y,
                 c2: channel_a.waypoints[waypoint_a].x,
             }, {
@@ -164,7 +161,7 @@ export function waypoint_segment_distance(ctx: Context, channel_a: EncodedChanne
         ),
         ctx.Implies(
             channel_b.segments[segment_b].type.eq(ctx, SegmentType.Down),
-            point_segment_distance(ctx, {
+            pointSegmentDistance(ctx, {
                 c1: channel_a.waypoints[waypoint_a].y,
                 c2: channel_a.waypoints[waypoint_a].x,
             }, {
@@ -175,7 +172,7 @@ export function waypoint_segment_distance(ctx: Context, channel_a: EncodedChanne
         ),
         ctx.Implies(
             channel_b.segments[segment_b].type.eq(ctx, SegmentType.Right),
-            point_segment_distance(ctx, {
+            pointSegmentDistance(ctx, {
                 c1: channel_a.waypoints[waypoint_a].x,
                 c2: channel_a.waypoints[waypoint_a].y,
             }, {
@@ -186,7 +183,7 @@ export function waypoint_segment_distance(ctx: Context, channel_a: EncodedChanne
         ),
         ctx.Implies(
             channel_b.segments[segment_b].type.eq(ctx, SegmentType.Left),
-            point_segment_distance(ctx, {
+            pointSegmentDistance(ctx, {
                 c1: channel_a.waypoints[waypoint_a].x,
                 c2: channel_a.waypoints[waypoint_a].y,
             }, {
@@ -198,20 +195,20 @@ export function waypoint_segment_distance(ctx: Context, channel_a: EncodedChanne
     )
 }
 
-export function segment_box_no_cross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }) {
+export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }) {
     return ctx.Or(
         ctx.LE(segment.c1_higher, box.c1),
-        min_distance_asym(ctx, box.c1, segment.c1_lower, box.c1_span),
+        minDistanceAsym(ctx, box.c1, segment.c1_lower, box.c1_span),
         ctx.LE(segment.c2, box.c2),
-        min_distance_asym(ctx, box.c2, segment.c2, box.c2_span),
+        minDistanceAsym(ctx, box.c2, segment.c2, box.c2_span),
     )
 }
 
-export function channel_segment_routing_exclusion_no_cross(ctx: Context, channel: EncodedChannelInstance, segment: number, exclusion: StaticRoutingExclusion) {
+export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannelInstance, segment: number, exclusion: StaticRoutingExclusion) {
     return ctx.And(
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Up),
-            segment_box_no_cross(ctx, {
+            segmentBoxNoCross(ctx, {
                 c1_lower: channel.waypoints[segment].y,
                 c1_higher: channel.waypoints[segment + 1].y,
                 c2: channel.waypoints[segment].x
@@ -224,7 +221,7 @@ export function channel_segment_routing_exclusion_no_cross(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Down),
-            segment_box_no_cross(ctx, {
+            segmentBoxNoCross(ctx, {
                 c1_lower: channel.waypoints[segment + 1].y,
                 c1_higher: channel.waypoints[segment].y,
                 c2: channel.waypoints[segment].x
@@ -237,7 +234,7 @@ export function channel_segment_routing_exclusion_no_cross(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Right),
-            segment_box_no_cross(ctx, {
+            segmentBoxNoCross(ctx, {
                 c1_lower: channel.waypoints[segment].x,
                 c1_higher: channel.waypoints[segment + 1].x,
                 c2: channel.waypoints[segment].y
@@ -250,7 +247,7 @@ export function channel_segment_routing_exclusion_no_cross(ctx: Context, channel
         ),
         ctx.Implies(
             channel.segments[segment].type.eq(ctx, SegmentType.Left),
-            segment_box_no_cross(ctx, {
+            segmentBoxNoCross(ctx, {
                 c1_lower: channel.waypoints[segment + 1].x,
                 c1_higher: channel.waypoints[segment].x,
                 c2: channel.waypoints[segment].y
@@ -264,7 +261,7 @@ export function channel_segment_routing_exclusion_no_cross(ctx: Context, channel
     )
 }
 
-export function segment_segment_no_cross(ctx: Context, segment_a: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, segment_b: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
+export function segmentSegmentNoCross(ctx: Context, segment_a: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, segment_b: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
     return ctx.Or(
         ctx.LE(segment_a.c1_higher, segment_b.c1),
         ctx.GE(segment_a.c1_lower, segment_b.c1),
@@ -274,14 +271,14 @@ export function segment_segment_no_cross(ctx: Context, segment_a: { c1_lower: Ar
 }
 
 
-export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChannelInstance, segment_a: number, channel_b: EncodedChannelInstance, segment_b: number) {
+export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannelInstance, segment_a: number, channel_b: EncodedChannelInstance, segment_b: number) {
     return ctx.And(
         ctx.Implies(
             ctx.And(
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Right)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a].y,
                 c1_higher: channel_a.waypoints[segment_a + 1].y,
                 c2: channel_a.waypoints[segment_a].x
@@ -296,7 +293,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Left)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a].y,
                 c1_higher: channel_a.waypoints[segment_a + 1].y,
                 c2: channel_a.waypoints[segment_a].x
@@ -311,7 +308,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Right)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a + 1].y,
                 c1_higher: channel_a.waypoints[segment_a].y,
                 c2: channel_a.waypoints[segment_a].x
@@ -326,7 +323,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Left)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a + 1].y,
                 c1_higher: channel_a.waypoints[segment_a].y,
                 c2: channel_a.waypoints[segment_a].x
@@ -341,7 +338,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Up)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a].x,
                 c1_higher: channel_a.waypoints[segment_a + 1].x,
                 c2: channel_a.waypoints[segment_a].y
@@ -356,7 +353,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Down)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a].x,
                 c1_higher: channel_a.waypoints[segment_a + 1].x,
                 c2: channel_a.waypoints[segment_a].y
@@ -371,7 +368,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Up)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a + 1].x,
                 c1_higher: channel_a.waypoints[segment_a].x,
                 c2: channel_a.waypoints[segment_a].y
@@ -386,7 +383,7 @@ export function channel_segments_no_cross(ctx: Context, channel_a: EncodedChanne
                 channel_a.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.segments[segment_b].type.eq(ctx, SegmentType.Down)
             ),
-            segment_segment_no_cross(ctx, {
+            segmentSegmentNoCross(ctx, {
                 c1_lower: channel_a.waypoints[segment_a + 1].x,
                 c1_higher: channel_a.waypoints[segment_a].x,
                 c2: channel_a.waypoints[segment_a].y
@@ -403,7 +400,7 @@ function negate(ctx: Context, value: Arith | number) {
     return typeof value == 'number' ? -value : ctx.Neg(value)
 }
 
-function rotate_offset(ctx: Context, offset: { x: Arith | number, y: Arith | number }, target_rotation: Rotation) {
+function rotateOffset(ctx: Context, offset: { x: Arith | number, y: Arith | number }, target_rotation: Rotation) {
     switch (target_rotation) {
         case Rotation.Up:
             return offset

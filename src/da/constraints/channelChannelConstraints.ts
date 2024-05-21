@@ -1,9 +1,9 @@
 import { Bool, Context } from "z3-solver";
 import { EncodedChannelInstance } from "../channel";
 import { cross } from "../utils";
-import { channel_segments_no_cross, min_distance_sym, waypoint_segment_distance } from "../geometry/geometry";
+import { channelSegmentsNoCross, minDistanceSym, waypointSegmentDistance } from "../geometry/geometry";
 
-export function encode_channel_channel_constraints(ctx: Context, a: EncodedChannelInstance, b: EncodedChannelInstance): Bool[] {
+export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannelInstance, b: EncodedChannelInstance): Bool[] {
     const clauses = []
 
     /* Avoid segment crossings */
@@ -14,7 +14,7 @@ export function encode_channel_channel_constraints(ctx: Context, a: EncodedChann
                     a.segments[ia].active,
                     b.segments[ib].active
                 ),
-                channel_segments_no_cross(ctx, a, ia, b, ib)
+                channelSegmentsNoCross(ctx, a, ia, b, ib)
             )
         }))
     }
@@ -24,8 +24,8 @@ export function encode_channel_channel_constraints(ctx: Context, a: EncodedChann
         const min_distance = Math.ceil((a.width + b.width) / 2 + Math.max(a.spacing, b.spacing))
         clauses.push(...cross(a.waypoints, b.waypoints).map(([wa, wb]) => {
             return ctx.Or(
-                min_distance_sym(ctx, wa.x, wb.x, min_distance),
-                min_distance_sym(ctx, wa.y, wb.y, min_distance)
+                minDistanceSym(ctx, wa.x, wb.x, min_distance),
+                minDistanceSym(ctx, wa.y, wb.y, min_distance)
             )
         }))
     }
@@ -36,13 +36,13 @@ export function encode_channel_channel_constraints(ctx: Context, a: EncodedChann
         clauses.push(...cross([...a.waypoints.keys()], [...b.segments.keys()]).map(([wa, sb]) => {
             return ctx.Implies(
                 b.segments[sb].active,
-                waypoint_segment_distance(ctx, a, wa, b, sb, min_distance),
+                waypointSegmentDistance(ctx, a, wa, b, sb, min_distance),
             )
         }))
         clauses.push(...cross([...a.segments.keys()], [...b.waypoints.keys()]).map(([sa, wb]) => {
             return ctx.Implies(
                 a.segments[sa].active,
-                waypoint_segment_distance(ctx, b, wb, a, sa, min_distance)
+                waypointSegmentDistance(ctx, b, wb, a, sa, min_distance)
             )
         }))
     }

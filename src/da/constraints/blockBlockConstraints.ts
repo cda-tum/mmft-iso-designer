@@ -1,9 +1,9 @@
 import { Bool, Context } from "z3-solver";
 import { EncodedBuildingBlockInstance } from "../buildingBlock";
-import { min_distance_asym } from "../geometry/geometry";
 import { smtsum } from "../utils";
+import { minDistanceAsym } from "../geometry/geometry";
 
-export function encode_block_block_constraints(ctx: Context, a: EncodedBuildingBlockInstance, b: EncodedBuildingBlockInstance): Bool[] {
+export function encodeBlockBlockConstraints(ctx: Context, a: EncodedBuildingBlockInstance, b: EncodedBuildingBlockInstance): Bool[] {
     const clauses = []
 
     /* Minimal inter-block distance */
@@ -11,10 +11,10 @@ export function encode_block_block_constraints(ctx: Context, a: EncodedBuildingB
         const min_distance = Math.max(a.spacing, b.spacing)
         clauses.push(
             ctx.Or(
-                min_distance_asym(ctx, a.position_x, b.position_x, smtsum(ctx, a.size_x(ctx), min_distance)),
-                min_distance_asym(ctx, a.position_y, b.position_y, smtsum(ctx, a.size_y(ctx), min_distance)),
-                min_distance_asym(ctx, b.position_x, a.position_x, smtsum(ctx, b.size_x(ctx), min_distance)),
-                min_distance_asym(ctx, b.position_y, a.position_y, smtsum(ctx, b.size_y(ctx), min_distance)),
+                minDistanceAsym(ctx, a.position_x, b.position_x, smtsum(ctx, a.size_x(ctx), min_distance)),
+                minDistanceAsym(ctx, a.position_y, b.position_y, smtsum(ctx, a.size_y(ctx), min_distance)),
+                minDistanceAsym(ctx, b.position_x, a.position_x, smtsum(ctx, b.size_x(ctx), min_distance)),
+                minDistanceAsym(ctx, b.position_y, a.position_y, smtsum(ctx, b.size_y(ctx), min_distance)),
             )
         )
     }

@@ -1,19 +1,18 @@
 import { Bool, Context, Model } from "z3-solver"
 import { BuildingBlockInstance, EncodedBuildingBlockInstance, ResultBuildingBlockInstance } from "./buildingBlock"
-import { Rotation } from "./rotation"
 import { Chip } from "./chip"
-import { Channel, ChannelInstance, EncodedChannelInstance, ResultChannelInstance } from "./channel"
+import { ChannelInstance, EncodedChannelInstance, ResultChannelInstance } from "./channel"
 import { cross, pairwise_unique } from "./utils"
-import { encode_channel_block_constraints } from "./constraints/channelBlockConstraints"
-import { encode_block_block_constraints } from "./constraints/blockBlockConstraints"
-import { encode_channel_channel_constraints } from "./constraints/channelChannelConstraints"
-import { encode_block_constraints } from "./constraints/blockConstraints"
-import { encode_channel_constraints } from "./constraints/channelConstraints"
-import { encode_channel_port_constraints } from "./constraints/channelPortConstraints"
 import { StaticRoutingExclusion } from "./routingExclusion"
-import { encode_static_routing_exclusion } from "./constraints/staticRoutingExclusion"
-import { encode_channel_waypoints_constraints } from "./constraints/channelWaypoints"
-import { encode_artificial_paper_constraints } from "./constraints/paperConstraints"
+import { encodePaperConstraints } from "./constraints/paperConstraints"
+import { encodeBlockConstraints } from "./constraints/blockConstraints"
+import { encodeChannelConstraints } from "./constraints/channelConstraints"
+import { encodeChannelPortConstraints } from "./constraints/channelPortConstraints"
+import { encodeChannelWaypointConstraints } from "./constraints/channelWaypoints"
+import { encodeBlockBlockConstraints } from "./constraints/blockBlockConstraints"
+import { encodeChannelChannelConstraints } from "./constraints/channelChannelConstraints"
+import { encodeChannelBlockConstraints } from "./constraints/channelBlockConstraints"
+import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusion"
 
 export { Input, Output }
 
@@ -36,31 +35,31 @@ class Input {
         ]
 
         /* Paper constraints */
-        clauses.push(...encode_artificial_paper_constraints(ctx, this.chip, building_blocks, channels))
+        clauses.push(...encodePaperConstraints(ctx, this.chip, building_blocks, channels))
 
         /* Encode block contraints */
-        clauses.push(...building_blocks.flatMap(b => encode_block_constraints(ctx, b, this.chip)))
+        clauses.push(...building_blocks.flatMap(b => encodeBlockConstraints(ctx, b, this.chip)))
 
         /* Encode channel contraints */
-        clauses.push(...channels.flatMap(c => encode_channel_constraints(ctx, c, this.chip)))
+        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip)))
 
         /* Encode channel ports connections */
-        clauses.push(...channels.flatMap(c => encode_channel_port_constraints(ctx, c, building_blocks[c.from.building_block], building_blocks[c.to.building_block])))
+        clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, building_blocks[c.from.building_block], building_blocks[c.to.building_block])))
 
         /* Encode channel fixed waypoints */
-        clauses.push(...channels.flatMap(c => encode_channel_waypoints_constraints(ctx, c, c.fixed_waypoints)))
+        clauses.push(...channels.flatMap(c => encodeChannelWaypointConstraints(ctx, c, c.fixed_waypoints)))
 
         /* Encode inter-block effects */
-        clauses.push(...pairwise_unique(building_blocks).flatMap(([a, b]) => encode_block_block_constraints(ctx, a, b)))
+        clauses.push(...pairwise_unique(building_blocks).flatMap(([a, b]) => encodeBlockBlockConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwise_unique(channels).flatMap(([a, b]) => encode_channel_channel_constraints(ctx, a, b)))
+        clauses.push(...pairwise_unique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
 
         /* Encode channel-block effects */
-        clauses.push(...cross(channels, building_blocks).flatMap(([c, b]) => encode_channel_block_constraints(ctx, c, b)))
+        clauses.push(...cross(channels, building_blocks).flatMap(([c, b]) => encodeChannelBlockConstraints(ctx, c, b)))
 
         /* Encode routing exclusion zones */
-        clauses.push(...cross(channels, this.routing_exclusions).flatMap(([c, e]) => encode_static_routing_exclusion(ctx, c, e)))
+        clauses.push(...cross(channels, this.routing_exclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
         return new EncodedInput({
             ...this,

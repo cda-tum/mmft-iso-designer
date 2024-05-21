@@ -1,10 +1,10 @@
 import { Context } from "z3-solver";
 import { Chip } from "../chip";
 import { EncodedChannelInstance, SegmentType } from "../channel";
-import { channel_segments_no_cross, min_distance_asym, min_distance_sym, waypoint_segment_distance } from "../geometry/geometry";
 import { pairwise_unique, pairwise_unique_indexed } from "../utils";
+import { channelSegmentsNoCross, minDistanceAsym, minDistanceSym, waypointSegmentDistance } from "../geometry/geometry";
 
-export function encode_channel_constraints(ctx: Context, channel: EncodedChannelInstance, chip: Chip) {
+export function encodeChannelConstraints(ctx: Context, channel: EncodedChannelInstance, chip: Chip) {
     const clauses = []
 
     /* Specify active/inactive segments */
@@ -131,10 +131,10 @@ export function encode_channel_constraints(ctx: Context, channel: EncodedChannel
         channel.waypoints.forEach(w => {
             clauses.push(
                 ctx.And(
-                    min_distance_asym(ctx, chip.origin_x, w.x, min_boundary_distance),
-                    min_distance_asym(ctx, w.x, chip.origin_x + chip.width, min_boundary_distance),
-                    min_distance_asym(ctx, chip.origin_y, w.y, min_boundary_distance),
-                    min_distance_asym(ctx, w.y, chip.origin_y + chip.height, min_boundary_distance)
+                    minDistanceAsym(ctx, chip.origin_x, w.x, min_boundary_distance),
+                    minDistanceAsym(ctx, w.x, chip.origin_x + chip.width, min_boundary_distance),
+                    minDistanceAsym(ctx, chip.origin_y, w.y, min_boundary_distance),
+                    minDistanceAsym(ctx, w.y, chip.origin_y + chip.height, min_boundary_distance)
                 )
             )
         })
@@ -148,7 +148,7 @@ export function encode_channel_constraints(ctx: Context, channel: EncodedChannel
                     channel.segments[ia].active,
                     channel.segments[ib].active
                 ),
-                channel_segments_no_cross(ctx, channel, ia, channel, ib)
+                channelSegmentsNoCross(ctx, channel, ia, channel, ib)
             )
         }))
     }
@@ -162,8 +162,8 @@ export function encode_channel_constraints(ctx: Context, channel: EncodedChannel
             return ctx.Implies(
                 channel.segments[s].active,
                 ctx.Or(
-                    min_distance_sym(ctx, wa.x, wb.x, min_waypoint_distance),
-                    min_distance_sym(ctx, wa.y, wb.y, min_waypoint_distance)
+                    minDistanceSym(ctx, wa.x, wb.x, min_waypoint_distance),
+                    minDistanceSym(ctx, wa.y, wb.y, min_waypoint_distance)
                 )
             )
         }))
@@ -177,7 +177,7 @@ export function encode_channel_constraints(ctx: Context, channel: EncodedChannel
                 clauses.push(
                     ctx.Implies(
                         channel.segments[j].active,
-                        waypoint_segment_distance(ctx, channel, i, channel, j, min_distance)
+                        waypointSegmentDistance(ctx, channel, i, channel, j, min_distance)
                     )
                 )
             }

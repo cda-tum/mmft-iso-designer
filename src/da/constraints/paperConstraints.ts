@@ -4,7 +4,7 @@ import { EncodedBuildingBlockInstance } from "../buildingBlock"
 import { nanoid } from "@reduxjs/toolkit"
 import { EncodedChannelInstance } from "../channel"
 
-export function encode_artificial_paper_constraints(ctx: Context, chip: Chip, blocks: EncodedBuildingBlockInstance[], channels: EncodedChannelInstance[]): Bool[] {
+export function encodePaperConstraints(ctx: Context, chip: Chip, blocks: EncodedBuildingBlockInstance[], channels: EncodedChannelInstance[]): Bool[] {
     const clauses: Bool[] = []
 
     /* Pitch is multiple of 1500um */

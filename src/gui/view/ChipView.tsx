@@ -28,10 +28,10 @@ export function ChipView(props: { chip: Output | undefined }) {
                 {props.chip &&
                     props.chip.building_blocks.map((b, i) => <BuildingBlockInstance block={b} ports={props.chip?.channels.flatMap(c => {
                         const ports = []
-                        if(c.from.building_block == i) {
+                        if(c.from.building_block === i) {
                             ports.push(c.from.port)
                         }
-                        if(c.to.building_block == i) {
+                        if(c.to.building_block === i) {
                             ports.push(c.to.port)
                         }
                         return ports

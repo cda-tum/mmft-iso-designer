@@ -3,7 +3,7 @@ import { EncodedChannelInstance } from "../channel"
 import { Position } from "../position"
 import { pairwise_unique } from "../utils"
 
-export function encode_channel_waypoints_constraints(ctx: Context, channel: EncodedChannelInstance, fixed_waypoints: Position[]) {
+export function encodeChannelWaypointConstraints(ctx: Context, channel: EncodedChannelInstance, fixed_waypoints: Position[]) {
     const clauses = []
 
     if (fixed_waypoints.length > channel.segments_n + 1) {
