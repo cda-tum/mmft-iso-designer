@@ -6,7 +6,6 @@ import { StaticRoutingExclusion } from "../../da/routingExclusion"
 import { renderToString } from "react-dom/server"
 
 function randomColor() {
-    const letters = '0123456789abcdef'
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
 }
 
