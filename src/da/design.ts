@@ -1,6 +1,6 @@
 import { Arith, AstVector, Bool, init } from "z3-solver"
-import { Input } from "./input_output"
-import { EnumBitVec, EnumBitVecValue, get_bitvec, get_int, get_int_array, int_val } from "./z3_helpers"
+import { Input } from "./inputOutput"
+import { EnumBitVec, EnumBitVecValue, get_bitvec, get_int, get_int_array, int_val } from "./z3Helpers"
 import { Rotation } from "./rotation"
 import { channel_segments_no_cross, min_distance_asym, segment_segment_no_cross } from "./geometry/geometry"
 import { SegmentType } from "./channel"

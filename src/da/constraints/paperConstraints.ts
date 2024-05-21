@@ -1,6 +1,6 @@
 import { Bool, Context } from "z3-solver"
 import { Chip } from "../chip"
-import { EncodedBuildingBlockInstance } from "../building_block"
+import { EncodedBuildingBlockInstance } from "../buildingBlock"
 import { nanoid } from "@reduxjs/toolkit"
 import { EncodedChannelInstance } from "../channel"
 

@@ -1,8 +1,8 @@
-import { ResultBuildingBlockInstance } from "../../da/building_block"
+import { ResultBuildingBlockInstance } from "../../da/buildingBlock"
 import { ResultChannelInstance } from "../../da/channel"
-import { Output } from "../../da/input_output"
+import { Output } from "../../da/inputOutput"
 import { Rotation } from "../../da/rotation"
-import { StaticRoutingExclusion } from "../../da/routing-exclusion"
+import { StaticRoutingExclusion } from "../../da/routingExclusion"
 import { renderToString } from "react-dom/server"
 
 function randomColor() {

@@ -1,5 +1,5 @@
 import { Context } from "z3-solver";
-import { EncodedBuildingBlockInstance } from "../building_block";
+import { EncodedBuildingBlockInstance } from "../buildingBlock";
 import { Chip } from "../chip";
 import { min_distance_asym } from "../geometry/geometry";
 import { smtsum } from "../utils";

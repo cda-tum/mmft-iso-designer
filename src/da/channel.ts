@@ -1,6 +1,6 @@
 import { Arith, ArithSort, BitVecSort, Bool, Context, Model, SMTArray } from "z3-solver"
 import { Position } from "./position"
-import { EnumBitVec, IntArray, bool_val, get_bool, get_enum_array, get_int_array, int_val, z3_switch } from "./z3_helpers"
+import { EnumBitVec, IntArray, bool_val, get_bool, get_enum_array, get_int_array, int_val, z3_switch } from "./z3Helpers"
 import { Chip } from "./chip"
 import uuid from "v4-uuid"
 import { min_distance_asym, min_distance_sym, point_segment_distance } from "./geometry/geometry"

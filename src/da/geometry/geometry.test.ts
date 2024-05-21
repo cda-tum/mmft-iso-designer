@@ -1,7 +1,7 @@
 import { Context, init } from "z3-solver"
 import { channel_segments_no_cross, segment_segment_no_cross } from "./geometry"
 import { ChannelInstance } from "../channel"
-import { encode_channel_constraints } from "../constraints/channel-constraints"
+import { encode_channel_constraints } from "../constraints/channelConstraints"
 import { Chip } from "../chip"
 
 function get_int_vars(ctx: Context, n: number) {

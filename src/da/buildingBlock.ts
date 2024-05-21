@@ -1,9 +1,9 @@
 import { Arith, BitVecNum, Bool, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, bool_val, enumbitvec_val, int_val } from "./z3_helpers";
+import { EnumBitVec, EnumBitVecValue, bool_val, enumbitvec_val, int_val } from "./z3Helpers";
 import { Rotation } from "./rotation";
 import { Position } from "./position";
 import { Chip } from "./chip";
-import { encode_block_constraints } from "./constraints/block-constraints";
+import { encode_block_constraints } from "./constraints/blockConstraints";
 
 export { BuildingBlock, BuildingBlockInstance, EncodedBuildingBlockInstance, ResultBuildingBlockInstance }
 

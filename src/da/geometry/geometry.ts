@@ -1,7 +1,7 @@
 import { Arith, Context } from "z3-solver";
 import { EncodedChannelInstance, SegmentType } from "../channel";
-import { EnumBitVec } from "../z3_helpers";
-import { StaticRoutingExclusion } from "../routing-exclusion";
+import { EnumBitVec } from "../z3Helpers";
+import { StaticRoutingExclusion } from "../routingExclusion";
 import { Rotation } from "../rotation";
 
 //export { point_segment_distance_x }
