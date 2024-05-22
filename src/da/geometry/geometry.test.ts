@@ -8,7 +8,7 @@ function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
 }
 
-describe('segment_segment_no_cross', () => {
+describe('segmentSegmentNoCross', () => {
     async function testSegmentSegmentNoCross(a: { c1_lower: number, c1_higher: number, c2: number}, b: { c1: number, c2_lower: number, c2_higher: number}) {
         const { Context, em } = await init()
         const ctx = Context('main')
@@ -239,7 +239,7 @@ describe('segment_segment_no_cross', () => {
     })
 })
 
-describe('channel_segments_no_cross', () => {
+describe('channelSegmentsNoCross', () => {
     async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: { x1: number, y1: number, x2: number, y2: number }) {
         const { Context, em } = await init()
         const ctx = Context('main')
