@@ -155,7 +155,6 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannelIn
 
     /* Specify waypoint distance to other waypoints of this channel */
     {
-        //TODO: why does this not fail? max segment should not exist...
         const min_waypoint_distance = Math.ceil(channel.width + channel.spacing)
         clauses.push(...pairwise_unique_indexed(channel.waypoints).map(([wa, ia, wb, ib]) => {
             const s = Math.max(ia, ib) - 1
