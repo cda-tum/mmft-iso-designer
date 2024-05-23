@@ -1,6 +1,6 @@
 import { Arith, ArithSort, BitVecSort, Bool, Context, Model, SMTArray } from "z3-solver"
 import { Position } from "./position"
-import { EnumBitVec, IntArray, bool_val, get_bool, get_enum_array, get_int_array, int_val, z3_switch } from "./z3Helpers"
+import { EnumBitVec, IntArray, bool_val, get_bool, get_enum_array, get_int_array, int_val } from "./z3Helpers"
 import { Chip } from "./chip"
 import uuid from "v4-uuid"
 
@@ -16,7 +16,7 @@ class Channel {
         Object.assign(this, obj)
     }
 
-    create(options: { from: { building_block: number, port: [number, number] }, to: { building_block: number, port: [number, number] }, fixed_waypoints?: Position[], static_waypoints?: Position[], max_segments?: number, fixed_length?: number }): ChannelInstance {
+    create(options: { from: { module: number, port: [number, number] }, to: { module: number, port: [number, number] }, fixed_waypoints?: Position[], static_waypoints?: Position[], max_segments?: number, fixed_length?: number }): ChannelInstance {
         return new ChannelInstance({
             ...this,
             ...options
@@ -27,11 +27,11 @@ class Channel {
 class ChannelInstance extends Channel {
 
     from!: {
-        building_block: number,
+        module: number,
         port: [number, number]
     }
     to!: {
-        building_block: number,
+        module: number,
         port: [number, number]
     }
 

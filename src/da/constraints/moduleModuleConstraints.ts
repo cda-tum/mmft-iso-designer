@@ -1,12 +1,12 @@
 import { Bool, Context } from "z3-solver";
-import { EncodedBuildingBlockInstance } from "../buildingBlock";
 import { smtsum } from "../utils";
 import { minDistanceAsym } from "../geometry/geometry";
+import { EncodedModuleInstance } from "../module";
 
-export function encodeBlockBlockConstraints(ctx: Context, a: EncodedBuildingBlockInstance, b: EncodedBuildingBlockInstance): Bool[] {
+export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModuleInstance, b: EncodedModuleInstance): Bool[] {
     const clauses = []
 
-    /* Minimal inter-block distance */
+    /* Minimal inter-module distance */
     {
         const min_distance = Math.max(a.spacing, b.spacing)
         clauses.push(

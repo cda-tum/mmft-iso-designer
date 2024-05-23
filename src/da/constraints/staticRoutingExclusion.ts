@@ -1,5 +1,5 @@
 import { Bool, Context } from "z3-solver";
-import { EncodedChannelInstance, SegmentType } from "../channel";
+import { EncodedChannelInstance } from "../channel";
 import { StaticRoutingExclusion } from "../routingExclusion";
 import { channelSegmentRoutingExclusionDistance, channelSegmentRoutingExclusionNoCross, waypointRoutingExclusionDistance } from "../geometry/geometry";
 

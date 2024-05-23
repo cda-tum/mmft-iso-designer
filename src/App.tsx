@@ -1,20 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import logo from './logo.svg';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { init } from 'z3-solver';
 import { design } from './da/design';
 import { Input, Output } from './da/inputOutput';
-import { BuildingBlock, BuildingBlockInstance } from './da/buildingBlock';
-import { example } from './da/test';
 import { ChipView, svgAsString } from './gui/view/ChipView';
-import { Channel, ChannelInstance } from './da/channel';
-import { Chip } from './da/chip';
-import { StaticRoutingExclusion } from './da/routingExclusion';
-import { workspaceActions, workspaceSelectors, workspaceSlice } from './gui/data/workspace';
-import { store } from './gui/data/store';
-import { EntityType, entityActions } from './gui/data/entity';
-import { Module, Rotation, generate_ports } from './gui/data/iso/module';
-import { pairwise_unique_indexed } from './da/utils';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
 import { Status, StatusProps, StatusType } from './gui/view/Status';
@@ -192,7 +180,7 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       width: o.chip.width,
       height: o.chip.height
     },
-    building_blocks: o.building_blocks.map(b => ({
+    modules: o.modules.map(b => ({
       width: b.width,
       height: b.height,
       pitch: b.pitch,
@@ -207,11 +195,11 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       width: c.width,
       spacing: c.spacing,
       from: {
-        building_block: c.from.building_block,
+        module: c.from.module,
         port: c.from.port
       },
       to: {
-        building_block: c.to.building_block,
+        module: c.to.module,
         port: c.to.port
       },
       max_segments: c.max_segments,
@@ -239,7 +227,7 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       width: o.chip.width,
       height: o.chip.height
     },
-    building_blocks: o.building_blocks.map(b => ({
+    modules: o.modules.map(b => ({
       width: b.width,
       height: b.height,
       pitch: b.pitch,
@@ -254,11 +242,11 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       width: c.width,
       spacing: c.spacing,
       from: {
-        building_block: c.from.building_block,
+        module: c.from.module,
         port: c.from.port
       },
       to: {
-        building_block: c.to.building_block,
+        module: c.to.module,
         port: c.to.port
       },
       max_segments: c.max_segments,

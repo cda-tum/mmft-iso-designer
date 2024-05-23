@@ -4,7 +4,7 @@
     "width": 128000,
     "height": 85500
   },
-  "building_blocks": [
+  "modules": [
     {
       "width": 30000,
       "height": 60000,
@@ -44,14 +44,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           0,
           0
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           0,
           0
@@ -82,14 +82,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           6,
           0
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           0,
           0
@@ -112,14 +112,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           3,
           0
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           2,
           0
@@ -150,14 +150,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           0,
           18
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           0
@@ -192,14 +192,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           2,
           18
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           1,
           18
@@ -234,14 +234,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           2,
           1
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           1,
           18
@@ -276,14 +276,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           1
         ]
       },
       "to": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           2,
           17
@@ -318,14 +318,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           0
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           6,
           18
@@ -360,14 +360,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           18
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           18
@@ -398,14 +398,14 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           1
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           3,
           18

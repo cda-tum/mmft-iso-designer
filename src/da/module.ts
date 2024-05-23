@@ -1,12 +1,10 @@
-import { Arith, BitVecNum, Bool, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, bool_val, enumbitvec_val, int_val } from "./z3Helpers";
+import { Arith, Bool, Context, Model } from "z3-solver";
+import { EnumBitVec, EnumBitVecValue, int_val } from "./z3Helpers";
 import { Rotation } from "./rotation";
 import { Position } from "./position";
 import { Chip } from "./chip";
 
-export { BuildingBlock, BuildingBlockInstance, EncodedBuildingBlockInstance, ResultBuildingBlockInstance }
-
-class BuildingBlock {
+export class Module {
     width!: number
     height!: number
     pitch!: number
@@ -19,7 +17,7 @@ class BuildingBlock {
     ports_y: number
     active_ports?: [number, number][]
 
-    constructor(obj: Partial<BuildingBlock>) {
+    constructor(obj: Partial<Module>) {
         Object.assign(this, obj)
         this.ports_x = Math.floor(this.width / this.pitch) - 1
         const p_offset_x = (this.width - (this.ports_x - 1) * this.pitch) / 2
@@ -32,16 +30,16 @@ class BuildingBlock {
     }
 }
 
-class BuildingBlockInstance extends BuildingBlock {
+export class ModuleInstance extends Module {
     fixed_rotation?: Rotation
     fixed_position?: Position
 
-    constructor(obj: Partial<BuildingBlockInstance>) {
+    constructor(obj: Partial<ModuleInstance>) {
         super(obj)
         Object.assign(this, obj)
     }
 
-    encode(bid: number, chip: Chip, ctx: Context): EncodedBuildingBlockInstance {
+    encode(bid: number, chip: Chip, ctx: Context): EncodedModuleInstance {
         const rotation = this.fixed_rotation !== undefined ? new EnumBitVecValue(ctx, Rotation, this.fixed_rotation) : new EnumBitVec(ctx, `ebb_${bid}_rotation`, Rotation)
 
         const position = this.fixed_position ? {
@@ -52,7 +50,7 @@ class BuildingBlockInstance extends BuildingBlock {
             position_y: ctx.Int.const(`ebb_${bid}_position_y`)
         }
 
-        const instance = new EncodedBuildingBlockInstance({
+        const instance = new EncodedModuleInstance({
             ...this,
             bid,
             ...position,
@@ -66,14 +64,14 @@ class BuildingBlockInstance extends BuildingBlock {
     }
 }
 
-class EncodedBuildingBlockInstance extends BuildingBlockInstance {
+export class EncodedModuleInstance extends ModuleInstance {
     bid!: number
     position_x!: Arith | number
     position_y!: Arith | number
     rotation!: EnumBitVec | EnumBitVecValue
     clauses!: Bool[]
 
-    constructor(obj: Partial<EncodedBuildingBlockInstance>) {
+    constructor(obj: Partial<EncodedModuleInstance>) {
         super(obj)
         this.clauses = []
         Object.assign(this, obj)
@@ -266,8 +264,8 @@ class EncodedBuildingBlockInstance extends BuildingBlockInstance {
         }
     }
 
-    result(m: Model): ResultBuildingBlockInstance {
-        return new ResultBuildingBlockInstance({
+    result(m: Model): ResultModuleInstance {
+        return new ResultModuleInstance({
             ...this,
             results: {
                 position_x: int_val(m, this.position_x),
@@ -278,14 +276,14 @@ class EncodedBuildingBlockInstance extends BuildingBlockInstance {
     }
 }
 
-class ResultBuildingBlockInstance extends EncodedBuildingBlockInstance {
+export class ResultModuleInstance extends EncodedModuleInstance {
     results!: {
         position_x: number
         position_y: number
         rotation: Rotation
     }
 
-    constructor(obj: Partial<ResultBuildingBlockInstance>) {
+    constructor(obj: Partial<ResultModuleInstance>) {
         super(obj)
         Object.assign(this, obj)
     }

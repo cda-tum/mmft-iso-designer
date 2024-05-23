@@ -1,7 +1,6 @@
 import { Context } from "z3-solver"
 import { EncodedChannelInstance } from "../channel"
 import { Position } from "../position"
-import { pairwise_unique } from "../utils"
 
 export function encodeChannelWaypointConstraints(ctx: Context, channel: EncodedChannelInstance, fixed_waypoints: Position[]) {
     const clauses = []

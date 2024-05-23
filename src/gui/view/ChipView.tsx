@@ -1,6 +1,6 @@
-import { ResultBuildingBlockInstance } from "../../da/buildingBlock"
 import { ResultChannelInstance } from "../../da/channel"
 import { Output } from "../../da/inputOutput"
+import { ResultModuleInstance } from "../../da/module"
 import { Rotation } from "../../da/rotation"
 import { StaticRoutingExclusion } from "../../da/routingExclusion"
 import { renderToString } from "react-dom/server"
@@ -25,16 +25,16 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
 
                 {props.chip &&
-                    props.chip.building_blocks.map((b, i) => <BuildingBlockInstance block={b} ports={props.chip?.channels.flatMap(c => {
+                    props.chip.modules.map((b, i) => <ModuleInstance module={b} ports={props.chip?.channels.flatMap(c => {
                         const ports = []
-                        if(c.from.building_block === i) {
+                        if(c.from.module === i) {
                             ports.push(c.from.port)
                         }
-                        if(c.to.building_block === i) {
+                        if(c.to.module === i) {
                             ports.push(c.to.port)
                         }
                         return ports
-                    })}></BuildingBlockInstance>)
+                    })}></ModuleInstance>)
                 }
 
                 {props.chip &&
@@ -49,25 +49,25 @@ export function ChipView(props: { chip: Output | undefined }) {
     )
 }
 
-function BuildingBlockInstance(props: { block: ResultBuildingBlockInstance, ports?: [number, number][], color?: string }) {
+function ModuleInstance(props: { module: ResultModuleInstance, ports?: [number, number][], color?: string }) {
     const strokeWidth = 500
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
 
-    const portRadius = props.block.pitch / 4
+    const portRadius = props.module.pitch / 4
     const portStrokeWidth = portRadius / 4
     const portStrokeOffset = portStrokeWidth / 2
     const portStrokeColor = '#59f'
 
-    const [width, height] = (props.block.results.rotation === Rotation.Up || props.block.results.rotation === Rotation.Down) ? [props.block.width, props.block.height] : [props.block.height, props.block.width]
-    const ports = [...props.block.active_ports ?? [], ...(props.ports ?? [])]
+    const [width, height] = (props.module.results.rotation === Rotation.Up || props.module.results.rotation === Rotation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+    const ports = [...props.module.active_ports ?? [], ...(props.ports ?? [])]
 
     return (
         <g>
-            <rect x={props.block.results.position_x + strokeOffset} y={props.block.results.position_y + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
+            <rect x={props.module.results.position_x + strokeOffset} y={props.module.results.position_y + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
             {
                 ports.map(port => {
-                    const { x: cx, y: cy} = props.block.result_port_position(port[0], port[1])
+                    const { x: cx, y: cy} = props.module.result_port_position(port[0], port[1])
                     return (
                         <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
                     )

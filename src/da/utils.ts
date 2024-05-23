@@ -1,4 +1,4 @@
-import { Arith, Context, Expr } from "z3-solver"
+import { Arith, Context } from "z3-solver"
 
 export function cross<S, T>(array1: S[], array2: T[]): [S, T][] {
     return array1.flatMap(e1 => array2.map(e2 => [e1, e2] as [S, T]))

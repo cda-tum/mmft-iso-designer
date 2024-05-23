@@ -1,15 +1,15 @@
 import { Bool, Context } from "z3-solver"
 import { Chip } from "../chip"
-import { EncodedBuildingBlockInstance } from "../buildingBlock"
 import { nanoid } from "@reduxjs/toolkit"
 import { EncodedChannelInstance } from "../channel"
+import { EncodedModuleInstance } from "../module"
 
-export function encodePaperConstraints(ctx: Context, chip: Chip, blocks: EncodedBuildingBlockInstance[], channels: EncodedChannelInstance[]): Bool[] {
+export function encodePaperConstraints(ctx: Context, chip: Chip, modules: EncodedModuleInstance[], channels: EncodedChannelInstance[]): Bool[] {
     const clauses: Bool[] = []
 
     /* Pitch is multiple of 1500um */
     {
-        blocks.forEach(b => {
+        modules.forEach(b => {
             const uid = nanoid()
             const vuid = ctx.Int.const(uid)
             clauses.push(
@@ -59,7 +59,7 @@ export function encodePaperConstraints(ctx: Context, chip: Chip, blocks: Encoded
 
     /* Module dimensions multiple of 15mm */
     {
-        blocks.forEach(b => {
+        modules.forEach(b => {
             const uid1 = nanoid()
             const vuid1 = ctx.Int.const(uid1)
             const uid2 = nanoid()
@@ -78,22 +78,22 @@ export function encodePaperConstraints(ctx: Context, chip: Chip, blocks: Encoded
     /* Port index validation */
     {
         channels.forEach(c => {
-            if(blocks[c.from.building_block] === undefined) {
+            if(modules[c.from.module] === undefined) {
                 throw 'Invalid start module'
             }
 
-            if(blocks[c.to.building_block] === undefined) {
+            if(modules[c.to.module] === undefined) {
                 throw 'Invalid end module'
             }
 
             clauses.push(ctx.Bool.val(c.from.port[0] >= 0))
-            clauses.push(ctx.Bool.val(c.from.port[0] < blocks[c.from.building_block].ports_x))
+            clauses.push(ctx.Bool.val(c.from.port[0] < modules[c.from.module].ports_x))
             clauses.push(ctx.Bool.val(c.from.port[1] >= 0))
-            clauses.push(ctx.Bool.val(c.from.port[1] < blocks[c.from.building_block].ports_y))
+            clauses.push(ctx.Bool.val(c.from.port[1] < modules[c.from.module].ports_y))
             clauses.push(ctx.Bool.val(c.to.port[0] >= 0))
-            clauses.push(ctx.Bool.val(c.to.port[0] < blocks[c.to.building_block].ports_x))
+            clauses.push(ctx.Bool.val(c.to.port[0] < modules[c.to.module].ports_x))
             clauses.push(ctx.Bool.val(c.to.port[1] >= 0))
-            clauses.push(ctx.Bool.val(c.to.port[1] < blocks[c.to.building_block].ports_y))
+            clauses.push(ctx.Bool.val(c.to.port[1] < modules[c.to.module].ports_y))
         })
     }
 

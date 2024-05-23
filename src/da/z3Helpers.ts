@@ -1,6 +1,4 @@
-import { randomUUID } from "crypto"
-import { EnumType, Type } from "typescript"
-import { Arith, ArithSort, BitVec, BitVecNum, BitVecSort, Bool, Context, Model, SMTArray, Sort } from "z3-solver"
+import { Arith, ArithSort, BitVec, BitVecNum, BitVecSort, Bool, Context, Model, SMTArray } from "z3-solver"
 
 export { get_int, get_bool, int_val, bool_val, get_int_array, get_enum_array, get_bitvec, get_enumbitvec, enumbitvec_val, EnumBitVec, EnumBitVecValue, z3_switch }
 export type { IntArray }
