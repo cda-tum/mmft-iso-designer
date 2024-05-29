@@ -1,156 +1,144 @@
-import { Arith, ArithSort, BitVecSort, Bool, Context, Model, SMTArray } from "z3-solver"
+import { Arith, Bool, Context, Model } from "z3-solver"
 import { Position } from "./position"
-import { EnumBitVec, IntArray, bool_val, get_bool, get_enum_array, get_int_array, int_val, z3_switch } from "./z3_helpers"
-import { Chip } from "./chip"
-import uuid from "v4-uuid"
-import { min_distance_asym, min_distance_sym, point_segment_distance } from "./geometry/geometry"
+import { EnumBitVec, boolVal, intVal } from "./z3Helpers"
+import { ModuleID } from "./module"
 
-export { Channel, ChannelInstance, EncodedChannelInstance, ResultChannelInstance, SegmentType }
-
-class Channel {
-    width!: number
-    spacing!: number
-    height?: number
-    max_segments?: number
-
-    constructor(obj: Partial<Channel>) {
-        Object.assign(this, obj)
-    }
-
-    create(options: { from: { building_block: number, port: [number, number] }, to: { building_block: number, port: [number, number] }, fixed_waypoints?: Position[], static_waypoints?: Position[], max_segments?: number, fixed_length?: number }): ChannelInstance {
-        return new ChannelInstance({
-            ...this,
-            ...options
-        })
-    }
+export type ChannelID = number
+type ModulePort = {
+    module: ModuleID,
+    port: [number, number]
 }
+type ChannelProperties = {
+    id: ChannelID
+    width: number
+    spacing: number
+    maxSegments: number
+    from: ModulePort
+    to: ModulePort
+    mandatoryWaypoints?: Position[]
+    staticWaypoints?: Position[]
+    maxLength?: number
+    exactLength?: number
+}
+export class Channel {
+    id: number
+    width: number
+    spacing: number
+    maxSegments: number
+    from: ModulePort
+    to: ModulePort
+    mandatoryWaypoints?: Position[]
+    maxLength?: number
+    exactLength?: number
 
-class ChannelInstance extends Channel {
-
-    from!: {
-        building_block: number,
-        port: [number, number]
+    constructor(o: ChannelProperties) {
+        this.id = o.id
+        this.width = o.width
+        this.spacing = o.spacing
+        this.maxSegments = o.maxSegments
+        this.from = o.from
+        this.to = o.to
+        this.mandatoryWaypoints = o.mandatoryWaypoints
+        this.maxLength = o.maxLength
+        this.exactLength = o.exactLength
     }
-    to!: {
-        building_block: number,
-        port: [number, number]
-    }
 
-    fixed_waypoints!: Position[]
-    static_waypoints?: Position[]
-    max_segments!: number
-    fixed_length!: number
+    encode(ctx: Context): EncodedChannel {
+        const var_prefix = `ec_${this.id}_`
 
-    constructor(obj: Partial<ChannelInstance>) {
-        super(obj)
-        Object.assign(this, obj)
-        this.fixed_waypoints ??= []
-    }
-
-    encode(cid: number, chip: Chip | undefined, ctx: Context): EncodedChannelInstance {
-        const var_prefix = `ec_${cid}_`
-
-        const waypoints = [...Array(this.max_segments + 1).keys()].map(w => ({
+        const waypoints = [...Array(this.maxSegments + 1).keys()].map(w => ({
             x: ctx.Int.const(`${var_prefix}${w}_x`),
             y: ctx.Int.const(`${var_prefix}${w}_y`),
         }))
 
-        const segments = [...Array(this.max_segments).keys()].map(s => ({
+        const segments = [...Array(this.maxSegments).keys()].map(s => ({
             active: ctx.Bool.const(`${var_prefix}${s}_active`),
             type: new EnumBitVec(ctx, `${var_prefix}${s}_type`, SegmentType)
         }))
 
-        const length = ctx.Int.const(`${var_prefix}length_active`)
+        const length = ctx.Int.const(`${var_prefix}length`)
 
         const clauses = []
         clauses.push(...segments.flatMap(s => s.type.clauses))
 
-        if(this.static_waypoints !== undefined) {
-            if(this.static_waypoints.length !== waypoints.length) {
-                throw 'misconfiguration'
-            }
-            waypoints.forEach((w, i) => {
-                clauses.push(ctx.Eq(w.x, this.static_waypoints![i].x))
-                clauses.push(ctx.Eq(w.y, this.static_waypoints![i].y))
-            })
-        }
+        //TODO: EXACT LENGTH
 
-        return new EncodedChannelInstance({
+        return new EncodedChannel({
             ...this,
-            id: cid,
-            segments_n: this.max_segments,
-            waypoints,
-            segments,
-            clauses,
-            length
+            encoding: {
+                waypoints,
+                segments,
+                length,
+                clauses
+            }
         })
     }
 }
 
-class EncodedChannelInstance extends ChannelInstance {
-    id!: number
-    var_prefix!: string
-    clauses: Bool[]
-
-    segments_n!: number
-    waypoints!: {
+type EncodedChannelProperties = {
+    waypoints: {
         x: Arith
         y: Arith
     }[]
-    segments!: {
+    segments: {
         active: Bool,
         type: EnumBitVec
     }[]
+    length: Arith
 
-    length!: Arith
+    /* Extra clauses with regard to the variables above, e.g., limits for enums */
+    clauses: Bool[]
+}
+export class EncodedChannel extends Channel {
+    encoding: EncodedChannelProperties
 
-    constructor(obj: Partial<EncodedChannelInstance>) {
-        super(obj)
-        this.clauses = []
-        Object.assign(this, obj)
+    constructor(o: ChannelProperties & { encoding: EncodedChannelProperties }) {
+        super(o)
+        this.encoding = o.encoding
     }
 
-    result(m: Model): ResultChannelInstance {
-        const segments = this.segments.map(s => ({
-            active: bool_val(m, s.active),
+    result(m: Model): ResultChannel {
+        const segments = this.encoding.segments.map(s => ({
+            active: boolVal(m, s.active),
             type: s.type.result(m)
         }))
-        const active_segments = segments.filter(s => s.active).length
-        const waypoints = this.waypoints.map(w => ({
-            x: int_val(m, w.x),
-            y: int_val(m, w.y)
+        const activeSegments = segments.filter(s => s.active).length
+        const waypoints = this.encoding.waypoints.map(w => ({
+            x: intVal(m, w.x),
+            y: intVal(m, w.y)
         }))
-        const length = int_val(m, this.length)
+        const length = intVal(m, this.encoding.length)
 
-        return new ResultChannelInstance({
+        return new ResultChannel({
             ...this,
             results: {
                 waypoints,
                 segments,
-                active_segments,
+                activeSegments,
                 length
             }
         })
     }
 }
 
-class ResultChannelInstance extends EncodedChannelInstance {
-    results!: {
-        waypoints: Position[]
-        segments: {
-            active: boolean,
-            type: SegmentType
-        }[]
-        active_segments: number
-        length: number
-    }
+type ResultChannelProperties = {
+    waypoints: Position[]
+    segments: {
+        active: boolean,
+        type: SegmentType
+    }[]
+    activeSegments: number
+    length: number
+}
+export class ResultChannel extends EncodedChannel {
+    results!: ResultChannelProperties
 
-    constructor(obj: Partial<ResultChannelInstance>) {
-        super(obj)
-        Object.assign(this, obj)
+    constructor(o: Channel & { encoding: EncodedChannelProperties } & { results: ResultChannelProperties }) {
+        super(o)
+        this.results = o.results
     }
 }
 
-enum SegmentType {
+export enum SegmentType {
     Up, Down, Left, Right
 }

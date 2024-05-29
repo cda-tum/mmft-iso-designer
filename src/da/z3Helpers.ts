@@ -1,67 +1,64 @@
-import { randomUUID } from "crypto"
-import { EnumType, Type } from "typescript"
-import { Arith, ArithSort, BitVec, BitVecNum, BitVecSort, Bool, Context, Model, SMTArray, Sort } from "z3-solver"
+import { Arith, ArithSort, BitVec, BitVecNum, BitVecSort, Bool, Context, Model, SMTArray } from "z3-solver"
 
-export { get_int, get_bool, int_val, bool_val, get_int_array, get_enum_array, get_bitvec, get_enumbitvec, enumbitvec_val, EnumBitVec, EnumBitVecValue, z3_switch }
 export type { IntArray }
 
 type IntArray = SMTArray<"main", [ArithSort], ArithSort>
 type BitVecArray = SMTArray<"main", [ArithSort], BitVecSort>
 
-function parse_Z3_int(str: string) {
+function parseZ3Int(str: string) {
     return parseInt(str.replace(/([^-0-9])/gm, ''))
 }
 
-function get_int(model: Model, v: Arith) {
+function getInt(model: Model, v: Arith) {
     const r = model.get(v).toString()
-    return parse_Z3_int(r)
+    return parseZ3Int(r)
 }
 
-function int_val(model: Model, v: Arith | number) {
+export function intVal(model: Model, v: Arith | number) {
     if (typeof v == 'number') {
         return v
     } else {
-        return get_int(model, v)
+        return getInt(model, v)
     }
 }
 
-function get_bool(model: Model, v: Bool) {
+function getBool(model: Model, v: Bool) {
     return model.eval(v).toString() === 'true'
 }
 
-function bool_val(model: Model, v: Bool | boolean) {
+export function boolVal(model: Model, v: Bool | boolean) {
     if (typeof v == 'boolean') {
         return v
     } else {
-        return get_bool(model, v)
+        return getBool(model, v)
     }
 }
 
-function get_bitvec(model: Model, v: BitVec) {
+function getBitVec(model: Model, v: BitVec) {
     return model.eval(v).value()
 }
 
-function get_enumbitvec(model: Model, v: EnumBitVec) {
+function getEnumBitVec(model: Model, v: EnumBitVec) {
     return v.result(model)
 }
 
-function enumbitvec_val(model: Model, v: EnumBitVec | boolean) {
+function enumbBitVecVal(model: Model, v: EnumBitVec | boolean) {
     if (typeof v == 'boolean') {
         return v
     } else {
-        return get_enumbitvec(model, v)
+        return getEnumBitVec(model, v)
     }
 }
 
-function get_int_array(model: Model, v: SMTArray<"main", [ArithSort], ArithSort>, from: number, to: number) {
+export function getIntArray(model: Model, v: SMTArray<"main", [ArithSort], ArithSort>, from: number, to: number) {
     const range = to - from
     if (range <= 0) {
         return []
     }
-    return [...Array(range).keys()].map(k => k + from).map(i => parse_Z3_int(model.eval(v.select(i)).toString()))
+    return [...Array(range).keys()].map(k => k + from).map(i => parseZ3Int(model.eval(v.select(i)).toString()))
 }
 
-function get_enum_array(model: Model, v: SMTArray<"main", [ArithSort], BitVecSort>, from: number, to: number) {
+export function getEnumArray(model: Model, v: SMTArray<"main", [ArithSort], BitVecSort>, from: number, to: number) {
     const range = to - from
     if (range <= 0) {
         return []
@@ -69,7 +66,7 @@ function get_enum_array(model: Model, v: SMTArray<"main", [ArithSort], BitVecSor
     return [...Array(range).keys()].map(k => k + from).map(i => EnumBitVec.result(model, v.select(i)))
 }
 
-class EnumBitVec {
+export class EnumBitVec {
     ctx: Context
     bitvector: BitVec
     type: any
@@ -80,7 +77,7 @@ class EnumBitVec {
     constructor(ctx: Context, name: string, type: any) {
         this.ctx = ctx
         this.type = type
-        const [variants, bits] = variants_and_bits(type)
+        const [variants, bits] = variantsAndBits(type)
         this.variants = variants
         this.bits = bits
         this.bitvector = ctx.BitVec.const(name, this.bits)
@@ -108,7 +105,7 @@ class EnumBitVec {
     }
 
     static constraints(ctx: Context, bitvector: BitVec, type: any) {
-        const [variants, bits] = variants_and_bits(type)
+        const [variants, bits] = variantsAndBits(type)
         if (variants < 2 ** bits) {
             return [
                 ctx.ULT(
@@ -139,11 +136,11 @@ class EnumBitVec {
     }
 
     result(model: Model) {
-        return Number(get_bitvec(model, this.bitvector))
+        return Number(getBitVec(model, this.bitvector))
     }
 
     static result(model: Model, bitvector: BitVec) {
-        return Number(get_bitvec(model, bitvector))
+        return Number(getBitVec(model, bitvector))
     }
 
     value(v: any) {
@@ -151,17 +148,17 @@ class EnumBitVec {
     }
 
     static value(ctx: Context, type: any, v: any) {
-        const [_, bits] = variants_and_bits(type)
+        const [_, bits] = variantsAndBits(type)
         return ctx.BitVec.val(v.valueOf(), bits)
     }
 
     static bits(type: any) {
-        const r = variants_and_bits(type)
+        const r = variantsAndBits(type)
         return r[1]
     }
 }
 
-class EnumBitVecValue {
+export class EnumBitVecValue {
     ctx: Context
     value: any
     bitvector: BitVecNum
@@ -172,7 +169,7 @@ class EnumBitVecValue {
 
     constructor(ctx: Context, type: any, value: any) {
         this.ctx = ctx
-        const [variants, bits] = variants_and_bits(type)
+        const [variants, bits] = variantsAndBits(type)
         this.variants = variants
         this.bits = bits
         this.value = value
@@ -189,17 +186,17 @@ class EnumBitVecValue {
     }
 }
 
-function variants_and_bits(type: any) {
+function variantsAndBits(type: any) {
     const variants = Object.keys(type).length / 2
     const bits = Math.ceil(Math.log2(variants))
     return [variants, bits]
 }
 
-function bitvalues_to_number(bits: boolean[]) {
+function bitvaluesToNumber(bits: boolean[]) {
     return bits.reverse().reduce((a, b, i) => a + (b ? 2 ** i : 0), 0)
 }
 
-function z3_switch(ctx: Context, default_condition: Bool, ...conditions: [Bool, Bool][]) {
+function z3Switch(ctx: Context, default_condition: Bool, ...conditions: [Bool, Bool][]) {
     const initial = ctx.If(
         conditions[conditions.length - 1][0],
         conditions[conditions.length - 1][1],

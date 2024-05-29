@@ -1,10 +1,9 @@
-import { Context } from "vm";
+import { Position } from "./position";
 
 export { StaticRoutingExclusion }
 
 class StaticRoutingExclusion {
-    position_x!: number
-    position_y!: number
+    position!: Position
     width!: number
     height!: number
 

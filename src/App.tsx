@@ -1,20 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import logo from './logo.svg';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { init } from 'z3-solver';
 import { design } from './da/design';
-import { Input, Output } from './da/input_output';
-import { BuildingBlock, BuildingBlockInstance } from './da/building_block';
-import { example } from './da/test';
+import { Input, Output } from './da/inputOutput';
 import { ChipView, svgAsString } from './gui/view/ChipView';
-import { Channel, ChannelInstance } from './da/channel';
-import { Chip } from './da/chip';
-import { StaticRoutingExclusion } from './da/routing-exclusion';
-import { workspaceActions, workspaceSelectors, workspaceSlice } from './gui/data/workspace';
-import { store } from './gui/data/store';
-import { EntityType, entityActions } from './gui/data/entity';
-import { Module, Rotation, generate_ports } from './gui/data/iso/module';
-import { pairwise_unique_indexed } from './da/utils';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
 import { Status, StatusProps, StatusType } from './gui/view/Status';
@@ -192,38 +180,36 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       width: o.chip.width,
       height: o.chip.height
     },
-    building_blocks: o.building_blocks.map(b => ({
+    modules: o.modules.map(b => ({
       width: b.width,
       height: b.height,
       pitch: b.pitch,
       spacing: b.spacing,
-      fixed_position: {
-        x: b.results.position_x,
-        y: b.results.position_y
+      position: {
+        x: b.results.positionX,
+        y: b.results.positionY
       },
-      fixed_rotation: b.results.rotation
+      orientation: b.results.orientation
     })),
     channels: o.channels.map(c => ({
       width: c.width,
       spacing: c.spacing,
       from: {
-        building_block: c.from.building_block,
+        module: c.from.module,
         port: c.from.port
       },
       to: {
-        building_block: c.to.building_block,
+        module: c.to.module,
         port: c.to.port
       },
-      max_segments: c.max_segments,
-      ...(c.fixed_length ? { fixed_length: c.fixed_length } : {}),
-      ...(waypoints_fixed ? {
-        fixed_waypoints: c.results.waypoints
-      } : {}),
-      actual_length: c.results.length
+      maxSegments: c.maxSegments,
+      maxLength: c.maxLength,
+      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
+      length: c.results.length
     })),
-    routing_exclusions: o.routing_exclusions.map(e => ({
-      position_x: e.position_x,
-      position_y: e.position_y,
+    routingExclusions: o.routingExclusions.map(e => ({
+      positionX: e.position.x,
+      positionY: e.position.y,
       width: e.width,
       height: e.height
     }))
@@ -239,38 +225,36 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       width: o.chip.width,
       height: o.chip.height
     },
-    building_blocks: o.building_blocks.map(b => ({
+    modules: o.modules.map(b => ({
       width: b.width,
       height: b.height,
       pitch: b.pitch,
       spacing: b.spacing,
-      fixed_position: {
-        x: b.results.position_x,
-        y: b.results.position_y
+      position: {
+        x: b.results.positionX,
+        y: b.results.positionY
       },
-      fixed_rotation: b.results.rotation
+      orientation: b.results.orientation
     })),
     channels: o.channels.map(c => ({
       width: c.width,
       spacing: c.spacing,
       from: {
-        building_block: c.from.building_block,
+        module: c.from.module,
         port: c.from.port
       },
       to: {
-        building_block: c.to.building_block,
+        module: c.to.module,
         port: c.to.port
       },
-      max_segments: c.max_segments,
-      ...(c.fixed_length ? { fixed_length: c.fixed_length } : {}),
-      ...(waypoints_fixed ? {
-        static_waypoints: c.results.waypoints
-      } : {}),
-      actual_length: c.results.length
+      maxSegments: c.maxSegments,
+      maxLength: c.maxLength,
+      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
+      length: c.results.length
     })),
-    routing_exclusions: o.routing_exclusions.map(e => ({
-      position_x: e.position_x,
-      position_y: e.position_y,
+    routingExclusions: o.routingExclusions.map(e => ({
+      positionX: e.position.x,
+      positionY: e.position.y,
       width: e.width,
       height: e.height
     }))

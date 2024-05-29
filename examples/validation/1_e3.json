@@ -4,39 +4,39 @@
     "width": 128000,
     "height": 85500
   },
-  "building_blocks": [
+  "modules": [
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 10000,
         "y": 12000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 49000,
         "y": 12000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 89000,
         "y": 12000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     }
   ],
   "channels": [
@@ -44,21 +44,21 @@
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           0,
           0
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           0,
           0
         ]
       },
-      "max_segments": 3,
-      "static_waypoints": [
+      "maxSegments": 3,
+      "mandatoryWaypoints": [
         {
           "x": 13000,
           "y": 15000
@@ -76,27 +76,27 @@
           "y": 15000
         }
       ],
-      "actual_length": 88500
+      "actualLength": 88500
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           6,
           0
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           0,
           0
         ]
       },
-      "max_segments": 1,
-      "static_waypoints": [
+      "maxSegments": 1,
+      "mandatoryWaypoints": [
         {
           "x": 70000,
           "y": 15000
@@ -106,27 +106,27 @@
           "y": 15000
         }
       ],
-      "actual_length": 0
+      "actualLength": 0
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           3,
           0
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           2,
           0
         ]
       },
-      "max_segments": 3,
-      "static_waypoints": [
+      "maxSegments": 3,
+      "mandatoryWaypoints": [
         {
           "x": 22000,
           "y": 15000
@@ -144,27 +144,27 @@
           "y": 15000
         }
       ],
-      "actual_length": 37500
+      "actualLength": 37500
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           0,
           18
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 13000,
           "y": 69000
@@ -186,27 +186,27 @@
           "y": 15000
         }
       ],
-      "actual_length": 111000
+      "actualLength": 111000
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           2,
           18
         ]
       },
       "to": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           1,
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 19000,
           "y": 69000
@@ -228,27 +228,27 @@
           "y": 69000
         }
       ],
-      "actual_length": 34500
+      "actualLength": 34500
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           2,
           1
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           1,
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 58000,
           "y": 18000
@@ -270,27 +270,27 @@
           "y": 69000
         }
       ],
-      "actual_length": 38500
+      "actualLength": 38500
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           1
         ]
       },
       "to": {
-        "building_block": 0,
+        "module": 0,
         "port": [
           2,
           17
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 64000,
           "y": 18000
@@ -312,27 +312,27 @@
           "y": 66000
         }
       ],
-      "actual_length": 93000
+      "actualLength": 93000
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           0
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           6,
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 104000,
           "y": 15000
@@ -354,27 +354,27 @@
           "y": 69000
         }
       ],
-      "actual_length": 63000
+      "actualLength": 63000
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 1,
+        "module": 1,
         "port": [
           4,
           18
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           18
         ]
       },
-      "max_segments": 3,
-      "static_waypoints": [
+      "maxSegments": 3,
+      "mandatoryWaypoints": [
         {
           "x": 64000,
           "y": 69000
@@ -392,27 +392,27 @@
           "y": 69000
         }
       ],
-      "actual_length": 41500
+      "actualLength": 41500
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           4,
           1
         ]
       },
       "to": {
-        "building_block": 2,
+        "module": 2,
         "port": [
           3,
           18
         ]
       },
-      "max_segments": 3,
-      "static_waypoints": [
+      "maxSegments": 3,
+      "mandatoryWaypoints": [
         {
           "x": 104000,
           "y": 18000
@@ -430,8 +430,8 @@
           "y": 69000
         }
       ],
-      "actual_length": 51000
+      "actualLength": 51000
     }
   ],
-  "routing_exclusions": []
+  "routingExclusions": []
 }
