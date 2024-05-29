@@ -56,7 +56,7 @@ export class Channel {
             type: new EnumBitVec(ctx, `${var_prefix}${s}_type`, SegmentType)
         }))
 
-        const length = ctx.Int.const(`${var_prefix}length_active`)
+        const length = ctx.Int.const(`${var_prefix}length`)
 
         const clauses = []
         clauses.push(...segments.flatMap(s => s.type.clauses))

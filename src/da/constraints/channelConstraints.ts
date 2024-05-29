@@ -221,5 +221,17 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
         }
     }
 
+    /* Exact channel length */
+    {
+        if(channel.exactLength !== undefined) {
+            clauses.push(
+                ctx.Eq(
+                    channel.encoding.length, 
+                    channel.exactLength
+                )
+            )
+        }
+    }
+
     return clauses
 }
