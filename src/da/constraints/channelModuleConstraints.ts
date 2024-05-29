@@ -1,8 +1,8 @@
 import { Bool, Context } from "z3-solver";
-import { EncodedChannelInstance } from "../channel";
-import { EncodedModuleInstance } from "../module";
+import { EncodedModule } from "../module";
+import { EncodedChannel } from "../channel";
 
 /* Constraints between channels and modules */
-export function encodeChannelModuleConstraints(ctx: Context, channel: EncodedChannelInstance, module: EncodedModuleInstance): Bool[] {
+export function encodeChannelModuleConstraints(ctx: Context, channel: EncodedChannel, module: EncodedModule): Bool[] {
     return []
 }

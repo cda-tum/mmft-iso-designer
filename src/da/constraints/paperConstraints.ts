@@ -1,10 +1,10 @@
 import { Bool, Context } from "z3-solver"
 import { Chip } from "../chip"
 import { nanoid } from "@reduxjs/toolkit"
-import { EncodedChannelInstance } from "../channel"
-import { EncodedModuleInstance } from "../module"
+import { EncodedModule } from "../module"
+import { EncodedChannel } from "../channel"
 
-export function encodePaperConstraints(ctx: Context, chip: Chip, modules: EncodedModuleInstance[], channels: EncodedChannelInstance[]): Bool[] {
+export function encodePaperConstraints(ctx: Context, chip: Chip, modules: EncodedModule[], channels: EncodedChannel[]): Bool[] {
     const clauses: Bool[] = []
 
     /* Pitch is multiple of 1500um */
@@ -87,13 +87,13 @@ export function encodePaperConstraints(ctx: Context, chip: Chip, modules: Encode
             }
 
             clauses.push(ctx.Bool.val(c.from.port[0] >= 0))
-            clauses.push(ctx.Bool.val(c.from.port[0] < modules[c.from.module].ports_x))
+            clauses.push(ctx.Bool.val(c.from.port[0] < modules[c.from.module].portsX))
             clauses.push(ctx.Bool.val(c.from.port[1] >= 0))
-            clauses.push(ctx.Bool.val(c.from.port[1] < modules[c.from.module].ports_y))
+            clauses.push(ctx.Bool.val(c.from.port[1] < modules[c.from.module].portsY))
             clauses.push(ctx.Bool.val(c.to.port[0] >= 0))
-            clauses.push(ctx.Bool.val(c.to.port[0] < modules[c.to.module].ports_x))
+            clauses.push(ctx.Bool.val(c.to.port[0] < modules[c.to.module].portsX))
             clauses.push(ctx.Bool.val(c.to.port[1] >= 0))
-            clauses.push(ctx.Bool.val(c.to.port[1] < modules[c.to.module].ports_y))
+            clauses.push(ctx.Bool.val(c.to.port[1] < modules[c.to.module].portsY))
         })
     }
 

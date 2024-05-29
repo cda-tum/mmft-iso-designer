@@ -1,105 +1,119 @@
 import { Arith, Bool, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, int_val } from "./z3Helpers";
-import { Rotation } from "./rotation";
+import { EnumBitVec, EnumBitVecValue, intVal } from "./z3Helpers";
+import { Orientation } from "./orientation";
 import { Position } from "./position";
-import { Chip } from "./chip";
 
-export class Module {
-    width!: number
-    height!: number
-    pitch!: number
-    spacing!: number
-    pitch_offset_x: number
-    pitch_offset_y: number
-    pitch_offset_odd_x: boolean
-    pitch_offset_odd_y: boolean
-    ports_x: number
-    ports_y: number
-    active_ports?: [number, number][]
-
-    constructor(obj: Partial<Module>) {
-        Object.assign(this, obj)
-        this.ports_x = Math.floor(this.width / this.pitch) - 1
-        const p_offset_x = (this.width - (this.ports_x - 1) * this.pitch) / 2
-        this.pitch_offset_x = Math.floor(p_offset_x)
-        this.pitch_offset_odd_x = this.pitch_offset_x !== p_offset_x
-        this.ports_y = Math.floor(this.height / this.pitch) - 1
-        const p_offset_y = (this.height - (this.ports_y - 1) * this.pitch) / 2
-        this.pitch_offset_y = Math.floor(p_offset_y)
-        this.pitch_offset_odd_y = this.pitch_offset_y !== p_offset_y
-    }
+export type ModuleID = number
+type ModuleProperties = {
+    id: ModuleID
+    width: number
+    height: number
+    pitch: number
+    spacing: number
+    position?: Position
+    orientation?: Orientation
 }
+export class Module {
+    id: ModuleID
+    width: number
+    height: number
+    pitch: number
+    spacing: number
+    position?: Position
+    orientation?: Orientation
 
-export class ModuleInstance extends Module {
-    fixed_rotation?: Rotation
-    fixed_position?: Position
 
-    constructor(obj: Partial<ModuleInstance>) {
-        super(obj)
-        Object.assign(this, obj)
+    pitchOffsetX: number
+    pitchOffsetY: number
+    pitchOffsetOddX: boolean
+    pitchOffsetOddY: boolean
+    portsX: number
+    portsY: number
+
+    constructor(o: ModuleProperties) {
+        this.id = o.id
+        this.width = o.width
+        this.height = o.height
+        this.pitch = o.pitch
+        this.spacing = o.spacing
+        this.position = o.position
+        this.orientation = o.orientation
+        this.portsX = Math.floor(this.width / this.pitch) - 1
+        const p_offset_x = (this.width - (this.portsX - 1) * this.pitch) / 2
+        this.pitchOffsetX = Math.floor(p_offset_x)
+        this.pitchOffsetOddX = this.pitchOffsetX !== p_offset_x
+        this.portsY = Math.floor(this.height / this.pitch) - 1
+        const p_offset_y = (this.height - (this.portsY - 1) * this.pitch) / 2
+        this.pitchOffsetY = Math.floor(p_offset_y)
+        this.pitchOffsetOddY = this.pitchOffsetY !== p_offset_y
     }
 
-    encode(bid: number, chip: Chip, ctx: Context): EncodedModuleInstance {
-        const rotation = this.fixed_rotation !== undefined ? new EnumBitVecValue(ctx, Rotation, this.fixed_rotation) : new EnumBitVec(ctx, `ebb_${bid}_rotation`, Rotation)
+    encode(ctx: Context): EncodedModule {
+        const orientation = this.orientation !== undefined ? new EnumBitVecValue(ctx, Orientation, this.orientation) : new EnumBitVec(ctx, `ebb_${this.id}_rotation`, Orientation)
 
-        const position = this.fixed_position ? {
-            position_x: this.fixed_position.x,
-            position_y: this.fixed_position.y
+        const position = this.position ? {
+            positionX: this.position.x,
+            positionY: this.position.y
         } : {
-            position_x: ctx.Int.const(`ebb_${bid}_position_x`),
-            position_y: ctx.Int.const(`ebb_${bid}_position_y`)
+            positionX: ctx.Int.const(`ebb_${this.id}_position_x`),
+            positionY: ctx.Int.const(`ebb_${this.id}_position_y`)
         }
 
-        const instance = new EncodedModuleInstance({
+        const instance = new EncodedModule({
             ...this,
-            bid,
-            ...position,
-            rotation,
-            clauses: [
-                ...rotation.clauses
-            ]
+            encoding: {
+                ...position,
+                orientation,
+                clauses: [
+                    ...orientation.clauses
+                ]
+            }
         })
 
         return instance
     }
 }
 
-export class EncodedModuleInstance extends ModuleInstance {
-    bid!: number
-    position_x!: Arith | number
-    position_y!: Arith | number
-    rotation!: EnumBitVec | EnumBitVecValue
-    clauses!: Bool[]
+type EncodedModuleProperties = {
+    positionX: Arith | number
+    positionY: Arith | number
+    orientation: EnumBitVec | EnumBitVecValue
 
-    constructor(obj: Partial<EncodedModuleInstance>) {
-        super(obj)
-        this.clauses = []
-        Object.assign(this, obj)
+    /* Extra clauses with regard to the variables above, e.g., limits for enums */
+    clauses: Bool[]
+}
+
+export class EncodedModule extends Module {
+    encoding: EncodedModuleProperties
+
+    constructor(o: ModuleProperties & { encoding: EncodedModuleProperties }) {
+        super(o)
+        this.encoding = o.encoding
     }
 
-    size_x(ctx: Context) {
-        if (this.rotation instanceof EnumBitVecValue) {
-            switch (this.rotation.value) {
-                case Rotation.Up:
+    spanX(ctx: Context) {
+        if (this.encoding.orientation instanceof EnumBitVecValue) {
+            switch (this.encoding.orientation.value) {
+                case Orientation.Up:
                     return this.width
-                case Rotation.Right:
+                case Orientation.Right:
                     return this.height
-                case Rotation.Down:
+                case Orientation.Down:
                     return this.width
-                case Rotation.Left:
+                case Orientation.Left:
                     return this.height
                 default: throw ''
             }
 
-        } else if (this.rotation instanceof EnumBitVec) {
+        } else if (this.encoding.orientation instanceof EnumBitVec) {
             return ctx.If(
-                this.rotation.eq(ctx, Rotation.Up),
+                this.encoding.orientation.eq(ctx, Orientation.Up),
                 this.width,
                 ctx.If(
-                    this.rotation.eq(ctx, Rotation.Right),
+                    this.encoding.orientation.eq(ctx, Orientation.Right),
                     this.height,
                     ctx.If(
-                        this.rotation.eq(ctx, Rotation.Down),
+                        this.encoding.orientation.eq(ctx, Orientation.Down),
                         this.width,
                         this.height
                     )
@@ -110,29 +124,29 @@ export class EncodedModuleInstance extends ModuleInstance {
         }
     }
 
-    size_y(ctx: Context) {
-        if (this.rotation instanceof EnumBitVecValue) {
-            switch (this.rotation.value) {
-                case Rotation.Up:
+    spanY(ctx: Context) {
+        if (this.encoding.orientation instanceof EnumBitVecValue) {
+            switch (this.encoding.orientation.value) {
+                case Orientation.Up:
                     return this.height
-                case Rotation.Right:
+                case Orientation.Right:
                     return this.width
-                case Rotation.Down:
+                case Orientation.Down:
                     return this.height
-                case Rotation.Left:
+                case Orientation.Left:
                     return this.width
                 default: throw ''
             }
 
-        } else if (this.rotation instanceof EnumBitVec) {
+        } else if (this.encoding.orientation instanceof EnumBitVec) {
             return ctx.If(
-                this.rotation.eq(ctx, Rotation.Up),
+                this.encoding.orientation.eq(ctx, Orientation.Up),
                 this.height,
                 ctx.If(
-                    this.rotation.eq(ctx, Rotation.Right),
+                    this.encoding.orientation.eq(ctx, Orientation.Right),
                     this.width,
                     ctx.If(
-                        this.rotation.eq(ctx, Rotation.Down),
+                        this.encoding.orientation.eq(ctx, Orientation.Down),
                         this.height,
                         this.width
                     )
@@ -143,58 +157,58 @@ export class EncodedModuleInstance extends ModuleInstance {
         }
     }
 
-    port_position(ctx: Context, x: number, y: number) {
-        if (typeof this.position_x == 'number' && typeof this.position_y == 'number') {
-            if (this.rotation instanceof EnumBitVecValue) {
-                switch (this.rotation.value) {
-                    case Rotation.Up:
+    portPosition(ctx: Context, x: number, y: number) {
+        if (typeof this.encoding.positionX == 'number' && typeof this.encoding.positionY == 'number') {
+            if (this.encoding.orientation instanceof EnumBitVecValue) {
+                switch (this.encoding.orientation.value) {
+                    case Orientation.Up:
                         return {
-                            x: this.position_x + this.pitch_offset_x + x * this.pitch,
-                            y: this.position_y + this.pitch_offset_y + y * this.pitch
+                            x: this.encoding.positionX + this.pitchOffsetX + x * this.pitch,
+                            y: this.encoding.positionY + this.pitchOffsetY + y * this.pitch
                         }
-                    case Rotation.Right:
+                    case Orientation.Right:
                         return {
-                            x: this.position_x + this.pitch_offset_y + y * this.pitch,
-                            y: this.position_y + (this.width - (this.pitch_offset_x + x * this.pitch))
+                            x: this.encoding.positionX + this.pitchOffsetY + y * this.pitch,
+                            y: this.encoding.positionY + (this.width - (this.pitchOffsetX + x * this.pitch))
                         }
-                    case Rotation.Down:
+                    case Orientation.Down:
                         return {
-                            x: this.position_x + (this.width - (this.pitch_offset_x + x * this.pitch)),
-                            y: this.position_y + (this.height - (this.pitch_offset_y + y * this.pitch))
+                            x: this.encoding.positionX + (this.width - (this.pitchOffsetX + x * this.pitch)),
+                            y: this.encoding.positionY + (this.height - (this.pitchOffsetY + y * this.pitch))
                         }
-                    case Rotation.Left:
+                    case Orientation.Left:
                         return {
-                            x: this.position_x + (this.height - (this.pitch_offset_y + y * this.pitch)),
-                            y: this.position_y + this.pitch_offset_x + x * this.pitch
+                            x: this.encoding.positionX + (this.height - (this.pitchOffsetY + y * this.pitch)),
+                            y: this.encoding.positionY + this.pitchOffsetX + x * this.pitch
                         }
                     default: throw ''
                 }
 
-            } else if (this.rotation instanceof EnumBitVec) {
+            } else if (this.encoding.orientation instanceof EnumBitVec) {
                 return {
                     x: ctx.If(
-                        this.rotation.eq(ctx, Rotation.Up),
-                        this.position_x + this.pitch_offset_x + x * this.pitch,
+                        this.encoding.orientation.eq(ctx, Orientation.Up),
+                        this.encoding.positionX + this.pitchOffsetX + x * this.pitch,
                         ctx.If(
-                            this.rotation.eq(ctx, Rotation.Right),
-                            this.position_x + this.pitch_offset_y + y * this.pitch,
+                            this.encoding.orientation.eq(ctx, Orientation.Right),
+                            this.encoding.positionX + this.pitchOffsetY + y * this.pitch,
                             ctx.If(
-                                this.rotation.eq(ctx, Rotation.Down),
-                                this.position_x + (this.width - (this.pitch_offset_x + x * this.pitch)),
-                                this.position_x + this.height - (this.pitch_offset_y + y * this.pitch),
+                                this.encoding.orientation.eq(ctx, Orientation.Down),
+                                this.encoding.positionX + (this.width - (this.pitchOffsetX + x * this.pitch)),
+                                this.encoding.positionX + this.height - (this.pitchOffsetY + y * this.pitch),
                             )
                         )
                     ),
                     y: ctx.If(
-                        this.rotation.eq(ctx, Rotation.Up),
-                        this.position_y + this.pitch_offset_y + y * this.pitch,
+                        this.encoding.orientation.eq(ctx, Orientation.Up),
+                        this.encoding.positionY + this.pitchOffsetY + y * this.pitch,
                         ctx.If(
-                            this.rotation.eq(ctx, Rotation.Right),
-                            this.position_y + (this.width - (this.pitch_offset_x + x * this.pitch)),
+                            this.encoding.orientation.eq(ctx, Orientation.Right),
+                            this.encoding.positionY + (this.width - (this.pitchOffsetX + x * this.pitch)),
                             ctx.If(
-                                this.rotation.eq(ctx, Rotation.Down),
-                                this.position_y + (this.height - (this.pitch_offset_y + y * this.pitch)),
-                                this.position_y + this.pitch_offset_x + x * this.pitch,
+                                this.encoding.orientation.eq(ctx, Orientation.Down),
+                                this.encoding.positionY + (this.height - (this.pitchOffsetY + y * this.pitch)),
+                                this.encoding.positionY + this.pitchOffsetX + x * this.pitch,
                             )
                         )
                     )
@@ -202,56 +216,56 @@ export class EncodedModuleInstance extends ModuleInstance {
             } else {
                 throw ''
             }
-        } else if (typeof this.position_x != 'number' && typeof this.position_y != 'number') {
-            if (this.rotation instanceof EnumBitVecValue) {
-                switch (this.rotation.value) {
-                    case Rotation.Up:
+        } else if (typeof this.encoding.positionX != 'number' && typeof this.encoding.positionY != 'number') {
+            if (this.encoding.orientation instanceof EnumBitVecValue) {
+                switch (this.encoding.orientation.value) {
+                    case Orientation.Up:
                         return {
-                            x: ctx.Sum(this.position_x, this.pitch_offset_x + x * this.pitch),
-                            y: ctx.Sum(this.position_y, this.pitch_offset_y + y * this.pitch)
+                            x: ctx.Sum(this.encoding.positionX, this.pitchOffsetX + x * this.pitch),
+                            y: ctx.Sum(this.encoding.positionY, this.pitchOffsetY + y * this.pitch)
                         }
-                    case Rotation.Right:
+                    case Orientation.Right:
                         return {
-                            x: ctx.Sum(this.position_x, this.pitch_offset_y + y * this.pitch),
-                            y: ctx.Sum(this.position_y, (this.width - (this.pitch_offset_x + x * this.pitch)))
+                            x: ctx.Sum(this.encoding.positionX, this.pitchOffsetY + y * this.pitch),
+                            y: ctx.Sum(this.encoding.positionY, (this.width - (this.pitchOffsetX + x * this.pitch)))
                         }
-                    case Rotation.Down:
+                    case Orientation.Down:
                         return {
-                            x: ctx.Sum(this.position_x, (this.width - (this.pitch_offset_x + x * this.pitch))),
-                            y: ctx.Sum(this.position_y, (this.height - (this.pitch_offset_y + y * this.pitch)))
+                            x: ctx.Sum(this.encoding.positionX, (this.width - (this.pitchOffsetX + x * this.pitch))),
+                            y: ctx.Sum(this.encoding.positionY, (this.height - (this.pitchOffsetY + y * this.pitch)))
                         }
-                    case Rotation.Left:
+                    case Orientation.Left:
                         return {
-                            x: ctx.Sum(this.position_x, this.height - (this.pitch_offset_y + y * this.pitch)),
-                            y: ctx.Sum(this.position_y, this.pitch_offset_x + x * this.pitch)
+                            x: ctx.Sum(this.encoding.positionX, this.height - (this.pitchOffsetY + y * this.pitch)),
+                            y: ctx.Sum(this.encoding.positionY, this.pitchOffsetX + x * this.pitch)
                         }
                     default: throw ''
                 }
-            } else if (this.rotation instanceof EnumBitVec) {
+            } else if (this.encoding.orientation instanceof EnumBitVec) {
                 return {
                     x: ctx.If(
-                        this.rotation.eq(ctx, Rotation.Up),
-                        ctx.Sum(this.position_x, this.pitch_offset_x + x * this.pitch),
+                        this.encoding.orientation.eq(ctx, Orientation.Up),
+                        ctx.Sum(this.encoding.positionX, this.pitchOffsetX + x * this.pitch),
                         ctx.If(
-                            this.rotation.eq(ctx, Rotation.Right),
-                            ctx.Sum(this.position_x, this.pitch_offset_y + y * this.pitch),
+                            this.encoding.orientation.eq(ctx, Orientation.Right),
+                            ctx.Sum(this.encoding.positionX, this.pitchOffsetY + y * this.pitch),
                             ctx.If(
-                                this.rotation.eq(ctx, Rotation.Down),
-                                ctx.Sum(this.position_x, (this.width - (this.pitch_offset_x + x * this.pitch))),
-                                ctx.Sum(this.position_x, this.height - (this.pitch_offset_y + y * this.pitch)),
+                                this.encoding.orientation.eq(ctx, Orientation.Down),
+                                ctx.Sum(this.encoding.positionX, (this.width - (this.pitchOffsetX + x * this.pitch))),
+                                ctx.Sum(this.encoding.positionX, this.height - (this.pitchOffsetY + y * this.pitch)),
                             )
                         )
                     ),
                     y: ctx.If(
-                        this.rotation.eq(ctx, Rotation.Up),
-                        ctx.Sum(this.position_y, this.pitch_offset_y + y * this.pitch),
+                        this.encoding.orientation.eq(ctx, Orientation.Up),
+                        ctx.Sum(this.encoding.positionY, this.pitchOffsetY + y * this.pitch),
                         ctx.If(
-                            this.rotation.eq(ctx, Rotation.Right),
-                            ctx.Sum(this.position_y, (this.width - (this.pitch_offset_x + x * this.pitch))),
+                            this.encoding.orientation.eq(ctx, Orientation.Right),
+                            ctx.Sum(this.encoding.positionY, (this.width - (this.pitchOffsetX + x * this.pitch))),
                             ctx.If(
-                                this.rotation.eq(ctx, Rotation.Down),
-                                ctx.Sum(this.position_y, (this.height - (this.pitch_offset_y + y * this.pitch))),
-                                ctx.Sum(this.position_y, this.pitch_offset_x + x * this.pitch),
+                                this.encoding.orientation.eq(ctx, Orientation.Down),
+                                ctx.Sum(this.encoding.positionY, (this.height - (this.pitchOffsetY + y * this.pitch))),
+                                ctx.Sum(this.encoding.positionY, this.pitchOffsetX + x * this.pitch),
                             )
                         )
                     )
@@ -264,51 +278,52 @@ export class EncodedModuleInstance extends ModuleInstance {
         }
     }
 
-    result(m: Model): ResultModuleInstance {
-        return new ResultModuleInstance({
+    result(m: Model): ResultModule {
+        return new ResultModule({
             ...this,
             results: {
-                position_x: int_val(m, this.position_x),
-                position_y: int_val(m, this.position_y),
-                rotation: this.rotation.result(m)
+                positionX: intVal(m, this.encoding.positionX),
+                positionY: intVal(m, this.encoding.positionY),
+                orientation: this.encoding.orientation.result(m)
             }
         })
     }
 }
 
-export class ResultModuleInstance extends EncodedModuleInstance {
-    results!: {
-        position_x: number
-        position_y: number
-        rotation: Rotation
+type ResultModuleProperties = {
+    positionX: number
+    positionY: number
+    orientation: Orientation
+}
+export class ResultModule extends EncodedModule {
+    results: ResultModuleProperties
+
+    constructor(o: ModuleProperties & { encoding: EncodedModuleProperties } & { results: ResultModuleProperties }) {
+        super(o)
+        this.results = o.results
     }
 
-    constructor(obj: Partial<ResultModuleInstance>) {
-        super(obj)
-        Object.assign(this, obj)
-    }
-
-    result_port_position(ix: number, iy: number): { x: number, y: number } {
-        switch (this.results.rotation) {
-            case Rotation.Up:
+    resultPortPosition(ix: number, iy: number): { x: number, y: number } {
+        switch (this.results.orientation) {
+            case Orientation.Up:
                 return {
-                    x: this.results.position_x + this.pitch_offset_x + ix * this.pitch,
-                    y: this.results.position_y + this.pitch_offset_y + iy * this.pitch
+                    x: this.results.positionX + this.pitchOffsetX + ix * this.pitch,
+                    y: this.results.positionY + this.pitchOffsetY + iy * this.pitch
                 }
-            case Rotation.Right:
+            case Orientation.Right:
                 return {
-                    x: this.results.position_x + this.pitch_offset_y + iy * this.pitch,
-                    y: this.results.position_y + this.pitch_offset_x + (this.ports_x - ix - 1) * this.pitch
+                    x: this.results.positionX + this.pitchOffsetY + iy * this.pitch,
+                    y: this.results.positionY + this.pitchOffsetX + (this.portsX - ix - 1) * this.pitch
                 }
-            case Rotation.Down:
+            case Orientation.Down:
                 return {
-                    x: this.results.position_x + this.pitch_offset_x + (this.ports_x - ix - 1) * this.pitch,
-                    y: this.results.position_y + this.pitch_offset_y + (this.ports_y - iy - 1) * this.pitch
+                    x: this.results.positionX + this.pitchOffsetX + (this.portsX - ix - 1) * this.pitch,
+                    y: this.results.positionY + this.pitchOffsetY + (this.portsY - iy - 1) * this.pitch
                 }
-            case Rotation.Left:
+            case Orientation.Left:
                 return {
-                    x: this.results.position_x + this.pitch_offset_y + (this.ports_y - iy - 1) * this.pitch,
-                    y: this.results.position_y + this.pitch_offset_x + ix * this.pitch
+                    x: this.results.positionX + this.pitchOffsetY + (this.portsY - iy - 1) * this.pitch,
+                    y: this.results.positionY + this.pitchOffsetX + ix * this.pitch
                 }
         }
     }

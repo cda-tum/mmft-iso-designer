@@ -1,8 +1,8 @@
 import { Context, init } from "z3-solver"
-import { ChannelInstance } from "../channel"
 import { Chip } from "../chip"
 import { channelSegmentsNoCross, segmentSegmentNoCross } from "./geometry"
 import { encodeChannelConstraints } from "../constraints/channelConstraints"
+import { Channel } from "../channel"
 
 function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
@@ -246,33 +246,51 @@ describe('channelSegmentsNoCross', () => {
         try {
             const solver = new ctx.Solver()
             const chip = new Chip({
-                origin_x: -5000,
-                origin_y: -5000,
+                originX: -5000,
+                originY: -5000,
                 width: 10000,
                 height: 10000
             })
-            const channel_a = new ChannelInstance({
+            const channel_a = new Channel({
+                id: 0,
                 width: 1,
                 spacing: 1,
-                max_segments: 1
+                maxSegments: 1,
+                from: {
+                    module: 0,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 0,
+                    port: [0, 0]
+                }
             })
-            const ea = channel_a.encode(0, undefined, ctx)
-            const channel_b = new ChannelInstance({
+            const ea = channel_a.encode(ctx)
+            const channel_b = new Channel({
+                id: 1,
                 width: 1,
                 spacing: 1,
-                max_segments: 1
+                maxSegments: 1,
+                from: {
+                    module: 0,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 0,
+                    port: [0, 0]
+                }
             })
-            const eb = channel_b.encode(1, undefined, ctx)
-            solver.add(...ea.clauses)
-            solver.add(...eb.clauses)
-            solver.add(ea.waypoints[0].x.eq(a.x1))      
-            solver.add(ea.waypoints[0].y.eq(a.y1))     
-            solver.add(ea.waypoints[1].x.eq(a.x2))     
-            solver.add(ea.waypoints[1].y.eq(a.y2))
-            solver.add(eb.waypoints[0].x.eq(b.x1))      
-            solver.add(eb.waypoints[0].y.eq(b.y1))     
-            solver.add(eb.waypoints[1].x.eq(b.x2))     
-            solver.add(eb.waypoints[1].y.eq(b.y2))
+            const eb = channel_b.encode(ctx)
+            solver.add(...ea.encoding.clauses)
+            solver.add(...eb.encoding.clauses)
+            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))      
+            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))     
+            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))     
+            solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
+            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))      
+            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))     
+            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))     
+            solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
             solver.add(...encodeChannelConstraints(ctx, ea, chip))
             solver.add(...encodeChannelConstraints(ctx, eb, chip))
             let check1 = await solver.check()

@@ -185,11 +185,11 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       height: b.height,
       pitch: b.pitch,
       spacing: b.spacing,
-      fixed_position: {
-        x: b.results.position_x,
-        y: b.results.position_y
+      position: {
+        x: b.results.positionX,
+        y: b.results.positionY
       },
-      fixed_rotation: b.results.rotation
+      orientation: b.results.orientation
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -202,16 +202,14 @@ function transformToInput(o: Output, waypoints_fixed = true) {
         module: c.to.module,
         port: c.to.port
       },
-      max_segments: c.max_segments,
-      ...(c.fixed_length ? { fixed_length: c.fixed_length } : {}),
-      ...(waypoints_fixed ? {
-        fixed_waypoints: c.results.waypoints
-      } : {}),
-      actual_length: c.results.length
+      maxSegments: c.maxSegments,
+      maxLength: c.maxLength,
+      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
+      length: c.results.length
     })),
-    routing_exclusions: o.routing_exclusions.map(e => ({
-      position_x: e.position_x,
-      position_y: e.position_y,
+    routingExclusions: o.routingExclusions.map(e => ({
+      positionX: e.position.x,
+      positionY: e.position.y,
       width: e.width,
       height: e.height
     }))
@@ -232,11 +230,11 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       height: b.height,
       pitch: b.pitch,
       spacing: b.spacing,
-      fixed_position: {
-        x: b.results.position_x,
-        y: b.results.position_y
+      position: {
+        x: b.results.positionX,
+        y: b.results.positionY
       },
-      fixed_rotation: b.results.rotation
+      orientation: b.results.orientation
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -249,16 +247,14 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
         module: c.to.module,
         port: c.to.port
       },
-      max_segments: c.max_segments,
-      ...(c.fixed_length ? { fixed_length: c.fixed_length } : {}),
-      ...(waypoints_fixed ? {
-        static_waypoints: c.results.waypoints
-      } : {}),
-      actual_length: c.results.length
+      maxSegments: c.maxSegments,
+      maxLength: c.maxLength,
+      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
+      length: c.results.length
     })),
-    routing_exclusions: o.routing_exclusions.map(e => ({
-      position_x: e.position_x,
-      position_y: e.position_y,
+    routingExclusions: o.routingExclusions.map(e => ({
+      positionX: e.position.x,
+      positionY: e.position.y,
       width: e.width,
       height: e.height
     }))

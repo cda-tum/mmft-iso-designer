@@ -1,18 +1,18 @@
 import { Context } from "z3-solver";
-import { EncodedChannelInstance } from "../channel";
-import { EncodedModuleInstance } from "../module";
+import { EncodedModule } from "../module";
+import { EncodedChannel } from "../channel";
 
-export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannelInstance, from_module: EncodedModuleInstance, to_module: EncodedModuleInstance) {
+export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannel, fromModule: EncodedModule, toModule: EncodedModule) {
     const clauses = []
 
-    const from_port_position = from_module.port_position(ctx, channel.from.port[0], channel.from.port[1])
-    const to_port_position = to_module.port_position(ctx, channel.to.port[0], channel.to.port[1])
+    const fromPortPosition = fromModule.portPosition(ctx, channel.from.port[0], channel.from.port[1])
+    const toPortPosition = toModule.portPosition(ctx, channel.to.port[0], channel.to.port[1])
 
     clauses.push(
-        ctx.Eq(channel.waypoints[0].x, from_port_position.x),
-        ctx.Eq(channel.waypoints[0].y, from_port_position.y),
-        ctx.Eq(channel.waypoints[channel.segments_n].x, to_port_position.x),
-        ctx.Eq(channel.waypoints[channel.segments_n].y, to_port_position.y),
+        ctx.Eq(channel.encoding.waypoints[0].x, fromPortPosition.x),
+        ctx.Eq(channel.encoding.waypoints[0].y, fromPortPosition.y),
+        ctx.Eq(channel.encoding.waypoints[channel.maxSegments].x, toPortPosition.x),
+        ctx.Eq(channel.encoding.waypoints[channel.maxSegments].y, toPortPosition.y),
     )
 
     return clauses

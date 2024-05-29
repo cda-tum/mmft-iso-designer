@@ -1,7 +1,6 @@
 import { Bool, Context, Model } from "z3-solver"
 import { Chip } from "./chip"
-import { ChannelInstance, EncodedChannelInstance, ResultChannelInstance } from "./channel"
-import { cross, pairwise_unique } from "./utils"
+import { cross, pairwiseUnique } from "./utils"
 import { StaticRoutingExclusion } from "./routingExclusion"
 import { encodePaperConstraints } from "./constraints/paperConstraints"
 import { encodeChannelConstraints } from "./constraints/channelConstraints"
@@ -9,29 +8,36 @@ import { encodeChannelPortConstraints } from "./constraints/channelPortConstrain
 import { encodeChannelWaypointConstraints } from "./constraints/channelWaypoints"
 import { encodeChannelChannelConstraints } from "./constraints/channelChannelConstraints"
 import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusion"
-import { EncodedModuleInstance, ModuleInstance, ResultModuleInstance } from "./module"
 import { encodeModuleConstraints } from "./constraints/moduleConstraints"
 import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
+import { EncodedModule, Module, ResultModule } from "./module"
+import { Channel, EncodedChannel, ResultChannel } from "./channel"
 
 export { Input, Output }
 
 class Input {
     chip!: Chip
-    modules!: ModuleInstance[]
-    channels!: ChannelInstance[]
-    routing_exclusions!: StaticRoutingExclusion[]
+    modules!: Module[]
+    channels!: Channel[]
+    routingExclusions!: StaticRoutingExclusion[]
 
     constructor(obj: Partial<Input>) {
         Object.assign(this, obj)
     }
 
+    updateIds() {
+        this.modules.forEach((m, i) => m.id = i)
+        this.channels.forEach((c, i) => c.id = i)
+    }
+
     encode(ctx: Context): EncodedInput {
-        const modules = this.modules.map((b, i) => b.encode(i, this.chip, ctx))
-        const channels = this.channels.map((c, i) => c.encode(i, this.chip, ctx))
+        this.updateIds()
+        const modules = this.modules.map(m => m.encode(ctx))
+        const channels = this.channels.map((c, i) => c.encode(ctx))
         const clauses = [
-            ...modules.flatMap(b => b.clauses),
-            ...channels.flatMap(c => c.clauses)
+            ...modules.flatMap(b => b.encoding.clauses),
+            ...channels.flatMap(c => c.encoding.clauses)
         ]
 
         /* Paper constraints */
@@ -47,19 +53,19 @@ class Input {
         clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, modules[c.from.module], modules[c.to.module])))
 
         /* Encode channel fixed waypoints */
-        clauses.push(...channels.flatMap(c => encodeChannelWaypointConstraints(ctx, c, c.fixed_waypoints)))
+        clauses.push(...channels.flatMap(c => encodeChannelWaypointConstraints(ctx, c)))
 
         /* Encode inter-module effects */
-        clauses.push(...pairwise_unique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
+        clauses.push(...pairwiseUnique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwise_unique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
+        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
 
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
         /* Encode routing exclusion zones */
-        clauses.push(...cross(channels, this.routing_exclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
+        clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
         return new EncodedInput({
             ...this,
@@ -76,16 +82,16 @@ class Input {
 
         return new Input({
             chip: new Chip(o.chip),
-            modules: o.modules?.map(b => new ModuleInstance(b)) ?? [],
-            channels: o.channels?.map(c => new ChannelInstance(c)) ?? [],
-            routing_exclusions: o.routing_exclusions?.map(e => new StaticRoutingExclusion(e)) ?? []
+            modules: o.modules?.map(m => new Module(m)) ?? [],
+            channels: o.channels?.map(c => new Channel(c)) ?? [],
+            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? []
         })
     }
 }
 
 class EncodedInput extends Input {
-    modules!: EncodedModuleInstance[]
-    channels!: EncodedChannelInstance[]
+    modules!: EncodedModule[]
+    channels!: EncodedChannel[]
     clauses!: Bool[]
 
     constructor(obj: Partial<EncodedInput>) {
@@ -105,8 +111,8 @@ class EncodedInput extends Input {
 }
 
 class Output extends EncodedInput {
-    modules!: ResultModuleInstance[]
-    channels!: ResultChannelInstance[]
+    modules!: ResultModule[]
+    channels!: ResultChannel[]
 
     timing?: number //ms
     success: true = true

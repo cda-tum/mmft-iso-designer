@@ -10,33 +10,33 @@
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 10000,
         "y": 12000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 49000,
         "y": 2000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "fixed_position": {
+      "position": {
         "x": 89000,
         "y": 12000
       },
-      "fixed_rotation": 0
+      "orientation": 0
     }
   ],
   "channels": [
@@ -57,8 +57,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 13000,
           "y": 15000
@@ -80,7 +80,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 43500
+      "actualLength": 43500
     },
     {
       "width": 500,
@@ -99,8 +99,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 70000,
           "y": 15000
@@ -122,7 +122,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 26500
+      "actualLength": 26500
     },
     {
       "width": 500,
@@ -141,8 +141,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 22000,
           "y": 15000
@@ -164,7 +164,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 37500
+      "actualLength": 37500
     },
     {
       "width": 500,
@@ -183,8 +183,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 13000,
           "y": 69000
@@ -206,7 +206,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 108000
+      "actualLength": 108000
     },
     {
       "width": 500,
@@ -225,8 +225,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 19000,
           "y": 69000
@@ -248,7 +248,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 36000
+      "actualLength": 36000
     },
     {
       "width": 500,
@@ -267,8 +267,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 58000,
           "y": 18000
@@ -290,7 +290,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 43000
+      "actualLength": 43000
     },
     {
       "width": 500,
@@ -309,8 +309,8 @@
           17
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 64000,
           "y": 18000
@@ -332,7 +332,7 @@
           "y": 66000
         }
       ],
-      "actual_length": 96000
+      "actualLength": 96000
     },
     {
       "width": 500,
@@ -351,8 +351,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 104000,
           "y": 15000
@@ -374,7 +374,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 10500
+      "actualLength": 10500
     },
     {
       "width": 500,
@@ -393,8 +393,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 64000,
           "y": 69000
@@ -416,7 +416,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 46000
+      "actualLength": 46000
     },
     {
       "width": 500,
@@ -435,8 +435,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 104000,
           "y": 18000
@@ -458,7 +458,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 54000
+      "actualLength": 54000
     },
     {
       "width": 500,
@@ -477,8 +477,8 @@
           18
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 16000,
           "y": 69000
@@ -500,7 +500,7 @@
           "y": 69000
         }
       ],
-      "actual_length": 100000
+      "actualLength": 100000
     },
     {
       "width": 500,
@@ -519,8 +519,8 @@
           1
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 16000,
           "y": 66000
@@ -542,7 +542,7 @@
           "y": 18000
         }
       ],
-      "actual_length": 7500
+      "actualLength": 7500
     },
     {
       "width": 500,
@@ -561,8 +561,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 101000,
           "y": 15000
@@ -584,7 +584,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 86500
+      "actualLength": 86500
     },
     {
       "width": 500,
@@ -603,8 +603,8 @@
           0
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 31000,
           "y": 18000
@@ -626,7 +626,7 @@
           "y": 15000
         }
       ],
-      "actual_length": 28500
+      "actualLength": 28500
     },
     {
       "width": 500,
@@ -645,8 +645,8 @@
           17
         ]
       },
-      "max_segments": 4,
-      "static_waypoints": [
+      "maxSegments": 4,
+      "mandatoryWaypoints": [
         {
           "x": 98000,
           "y": 66000
@@ -668,8 +668,8 @@
           "y": 66000
         }
       ],
-      "actual_length": 37000
+      "actualLength": 37000
     }
   ],
-  "routing_exclusions": []
+  "routingExclusions": []
 }

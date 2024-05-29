@@ -1,9 +1,9 @@
 import { Bool, Context } from "z3-solver";
-import { smtsum } from "../utils";
 import { minDistanceAsym } from "../geometry/geometry";
-import { EncodedModuleInstance } from "../module";
+import { EncodedModule } from "../module";
+import { smtSum } from "../utils";
 
-export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModuleInstance, b: EncodedModuleInstance): Bool[] {
+export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b: EncodedModule): Bool[] {
     const clauses = []
 
     /* Minimal inter-module distance */
@@ -11,10 +11,10 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModuleInst
         const min_distance = Math.max(a.spacing, b.spacing)
         clauses.push(
             ctx.Or(
-                minDistanceAsym(ctx, a.position_x, b.position_x, smtsum(ctx, a.size_x(ctx), min_distance)),
-                minDistanceAsym(ctx, a.position_y, b.position_y, smtsum(ctx, a.size_y(ctx), min_distance)),
-                minDistanceAsym(ctx, b.position_x, a.position_x, smtsum(ctx, b.size_x(ctx), min_distance)),
-                minDistanceAsym(ctx, b.position_y, a.position_y, smtsum(ctx, b.size_y(ctx), min_distance)),
+                minDistanceAsym(ctx, a.encoding.positionX, b.encoding.positionX, smtSum(ctx, a.spanX(ctx), min_distance)),
+                minDistanceAsym(ctx, a.encoding.positionY, b.encoding.positionY, smtSum(ctx, a.spanY(ctx), min_distance)),
+                minDistanceAsym(ctx, b.encoding.positionX, a.encoding.positionX, smtSum(ctx, b.spanX(ctx), min_distance)),
+                minDistanceAsym(ctx, b.encoding.positionY, a.encoding.positionY, smtSum(ctx, b.spanY(ctx), min_distance)),
             )
         )
     }

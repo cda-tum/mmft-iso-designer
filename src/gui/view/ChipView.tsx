@@ -1,7 +1,7 @@
-import { ResultChannelInstance } from "../../da/channel"
+import { ResultChannel } from "../../da/channel"
 import { Output } from "../../da/inputOutput"
-import { ResultModuleInstance } from "../../da/module"
-import { Rotation } from "../../da/rotation"
+import { ResultModule } from "../../da/module"
+import { Orientation } from "../../da/orientation"
 import { StaticRoutingExclusion } from "../../da/routingExclusion"
 import { renderToString } from "react-dom/server"
 
@@ -42,14 +42,14 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
 
                 {props.chip &&
-                    props.chip.routing_exclusions.map((e, i) => <RoutingExclusion exclusion={e}></RoutingExclusion>)
+                    props.chip.routingExclusions.map((e, i) => <RoutingExclusion exclusion={e}></RoutingExclusion>)
                 }
             </g>
         </svg>
     )
 }
 
-function ModuleInstance(props: { module: ResultModuleInstance, ports?: [number, number][], color?: string }) {
+function ModuleInstance(props: { module: ResultModule, ports?: [number, number][], color?: string }) {
     const strokeWidth = 500
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
@@ -59,15 +59,15 @@ function ModuleInstance(props: { module: ResultModuleInstance, ports?: [number, 
     const portStrokeOffset = portStrokeWidth / 2
     const portStrokeColor = '#59f'
 
-    const [width, height] = (props.module.results.rotation === Rotation.Up || props.module.results.rotation === Rotation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
-    const ports = [...props.module.active_ports ?? [], ...(props.ports ?? [])]
+    const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+    const ports = [...(props.ports ?? [])]
 
     return (
         <g>
-            <rect x={props.module.results.position_x + strokeOffset} y={props.module.results.position_y + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
+            <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
             {
                 ports.map(port => {
-                    const { x: cx, y: cy} = props.module.result_port_position(port[0], port[1])
+                    const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
                     return (
                         <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
                     )
@@ -77,7 +77,7 @@ function ModuleInstance(props: { module: ResultModuleInstance, ports?: [number, 
     )
 }
 
-function Channel(props: { channel: ResultChannelInstance, color?: string }) {
+function Channel(props: { channel: ResultChannel, color?: string }) {
     const color = props.color ?? randomColor()
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
@@ -101,7 +101,7 @@ function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidt
     const offset = strokeWidth / 2
     return (
         <g>
-            <rect x={props.exclusion.position_x + offset} y={props.exclusion.position_y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
+            <rect x={props.exclusion.position.x + offset} y={props.exclusion.position.y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
         </g>
     )
 }
