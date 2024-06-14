@@ -64,7 +64,7 @@ export function Status(props: StatusProps) {
             }
             {
                 props.status === StatusType.Result &&
-                <Typography>Computation terminated. Result: {props.success && <Typography color="success">SATISFIABLE</Typography>} {!props.success && <Typography color="danger">UNSATISFIABLE</Typography>}. Total runtime: {props.timing / 1000} s</Typography>
+                <Typography>Computation terminated. Result: {props.success && <Typography color="success">ISO-compliant</Typography>} {!props.success && <Typography color="danger">Not ISO-compliant</Typography>}. Total runtime: {props.timing / 1000} s</Typography>
             }
         </Box>
     )
