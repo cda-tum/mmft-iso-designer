@@ -6,6 +6,7 @@ import { ChipView, svgAsString } from './gui/view/ChipView';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
 import { Status, StatusProps, StatusType } from './gui/view/Status';
+import MakerJs, { IModel } from 'makerjs';
 
 function App() {
 
@@ -149,6 +150,19 @@ function App() {
           >
             Download Image
           </Button>
+          <Button
+            onClick={() => {
+              if (output !== undefined) {
+                const id = nanoid()
+                downloadDXF(output, id)
+              }
+            }}
+            sx={{
+              margin: 1
+            }}
+          >
+            Download DXF
+          </Button>
         </div>
         <Status {...status}></Status>
         <ChipView chip={output}></ChipView>
@@ -278,6 +292,45 @@ function downloadSVG(exportString: string, exportName: string) {
   const downloadAnchorNode = document.createElement('a')
   downloadAnchorNode.setAttribute("href", dataStr);
   downloadAnchorNode.setAttribute("download", exportName + ".svg");
+  document.body.appendChild(downloadAnchorNode); // required for firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+export function createDXF(
+output: Output
+) {
+  const channels = output.channels.map(c => {
+    const points = c.results.waypoints.filter((w, i) => i === 0 || c.results.waypoints[i - 1].x !== w.x || c.results.waypoints[i - 1].y !== w.y).map(w => `${w.x} ${w.y}`).join(',')
+    const e = new MakerJs.models.ConnectTheDots(false, points)
+    return e
+  })
+  const modules = output.modules.map(m => {
+    const e = new MakerJs.models.Rectangle(m.width, m.height)
+    e.origin = [m.results.positionX, m.results.positionY]
+    return e
+  })
+  const chip = new MakerJs.models.Rectangle(output.chip.width, output.chip.height)
+  chip.origin = [output.chip.originX, output.chip.originY]
+  const model: IModel = {
+    models: {}
+  }
+
+  const models = [chip, ...modules, ...channels]
+  models.forEach((m, i) => model.models![i] = m)
+
+  console.log(model)
+  
+  MakerJs.model.scale(model, 1e-3)
+  return MakerJs.exporter.toDXF(model, { units: 'mm' })
+}
+
+function downloadDXF(output: Output, exportName: string) {
+  const exportString = createDXF(output)
+  const dataStr = "data:image/svg;charset=utf-8," + encodeURIComponent(exportString)
+  const downloadAnchorNode = document.createElement('a')
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", exportName + ".dxf");
   document.body.appendChild(downloadAnchorNode); // required for firefox
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
