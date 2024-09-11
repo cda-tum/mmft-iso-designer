@@ -2,6 +2,7 @@ import { Arith, Bool, Context, Model } from "z3-solver";
 import { EnumBitVec, EnumBitVecValue, intVal } from "./z3Helpers";
 import { Orientation } from "./orientation";
 import { Position } from "./position";
+import {Placement} from "./placement";
 
 export type ModuleID = number
 type ModuleProperties = {
@@ -12,6 +13,7 @@ type ModuleProperties = {
     spacing: number
     position?: Position
     orientation?: Orientation
+    placement?: Placement
 }
 export class Module {
     id: ModuleID
@@ -21,6 +23,8 @@ export class Module {
     spacing: number
     position?: Position
     orientation?: Orientation
+    placement?: Placement
+
 
 
     pitchOffsetX: number
@@ -38,6 +42,7 @@ export class Module {
         this.spacing = o.spacing
         this.position = o.position
         this.orientation = o.orientation
+        this.placement = o.placement
         this.portsX = Math.floor(this.width / this.pitch) - 1
         const p_offset_x = (this.width - (this.portsX - 1) * this.pitch) / 2
         this.pitchOffsetX = Math.floor(p_offset_x)
@@ -50,6 +55,7 @@ export class Module {
 
     encode(ctx: Context): EncodedModule {
         const orientation = this.orientation !== undefined ? new EnumBitVecValue(ctx, Orientation, this.orientation) : new EnumBitVec(ctx, `ebb_${this.id}_rotation`, Orientation)
+        const placement = this.placement !== undefined ? new EnumBitVecValue(ctx, Placement, this.placement) : new EnumBitVec(ctx, `ebb_${this.id}_placement`, Placement)
 
         const position = this.position ? {
             positionX: this.position.x,
@@ -64,6 +70,7 @@ export class Module {
             encoding: {
                 ...position,
                 orientation,
+                placement,
                 clauses: [
                     ...orientation.clauses
                 ]
@@ -78,6 +85,7 @@ type EncodedModuleProperties = {
     positionX: Arith | number
     positionY: Arith | number
     orientation: EnumBitVec | EnumBitVecValue
+    placement: EnumBitVec | EnumBitVecValue
 
     /* Extra clauses with regard to the variables above, e.g., limits for enums */
     clauses: Bool[]
