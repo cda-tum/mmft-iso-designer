@@ -1,9 +1,10 @@
-import { ResultChannel } from "../../da/channel"
-import { Output } from "../../da/inputOutput"
-import { ResultModule } from "../../da/module"
-import { Orientation } from "../../da/orientation"
-import { StaticRoutingExclusion } from "../../da/routingExclusion"
-import { renderToString } from "react-dom/server"
+import {ResultChannel} from "../../da/channel"
+import {Output} from "../../da/inputOutput"
+import {ResultModule} from "../../da/module"
+import {Orientation} from "../../da/orientation"
+import {StaticRoutingExclusion} from "../../da/routingExclusion"
+import {renderToString} from "react-dom/server"
+import {Placement} from "../../da/placement";
 
 function randomColor() {
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
@@ -17,6 +18,7 @@ export function ChipView(props: { chip: Output | undefined }) {
     const boundaryStrokeWidth = 500
     const boundaryOffset = boundaryStrokeWidth / 2
     const boundaryColor = '#27f'
+
     return (
         <svg xmlns="http://www.w3.org/2000/svg" version="1.2" width="100%" height="800" style={{ backgroundColor: '#fff' }}>
             <g transform="scale(0.005 -0.005) translate(20000 -100000)">
@@ -28,17 +30,39 @@ export function ChipView(props: { chip: Output | undefined }) {
                     props.chip.modules.map((b, i) => <ModuleInstance module={b} ports={props.chip?.channels.flatMap(c => {
                         const ports = []
                         if(c.from.module === i) {
-                            ports.push(c.from.port)
+                            ports.push({
+                                port: c.from.port,
+                                placement: b.placement
+                            })
                         }
                         if(c.to.module === i) {
-                            ports.push(c.to.port)
+                            ports.push({
+                                port: c.to.port,
+                                placement: b.placement
+                            })
                         }
                         return ports
                     })}></ModuleInstance>)
                 }
 
                 {props.chip &&
-                    props.chip.channels.map((c, i) => <Channel channel={c}></Channel>)
+                    props.chip.channels.map((c, i) => {
+                        if (props.chip) {
+                            const fromModule = props.chip.modules[c.from.module];
+                            const toModule = props.chip.modules[c.to.module];
+
+                            let placement;
+                            if (fromModule.placement === toModule.placement && fromModule.placement === Placement.Bottom) {
+                                return (
+                                    <Channel channel={c} placement={Placement.Bottom} ></Channel>
+                                );
+                            } else {
+                                return (
+                                    <Channel channel={c} placement={Placement.Top} ></Channel>
+                                );
+                            }
+                        }
+                    })
                 }
 
                 {props.chip &&
@@ -49,12 +73,13 @@ export function ChipView(props: { chip: Output | undefined }) {
     )
 }
 
-function ModuleInstance(props: { module: ResultModule, ports?: [number, number][], color?: string }) {
+function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, number], placement: Placement | undefined }[], color?: string }) {
     const strokeWidth = 500
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
 
     const strokeDashArray = "300, 300";
+    const bottomPortDashArray = "150, 120";
     const strokeDashColor = "#87b7ff"
 
     const portRadius = props.module.pitch / 4
@@ -71,7 +96,7 @@ function ModuleInstance(props: { module: ResultModule, ports?: [number, number][
                 <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
                 {
                     ports.map(port => {
-                        const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
+                        const { x: cx, y: cy} = props.module.resultPortPosition(port.port[0], port.port[1])
                         return (
                             <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
                         )
@@ -85,9 +110,9 @@ function ModuleInstance(props: { module: ResultModule, ports?: [number, number][
                 <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>
                 {
                     ports.map(port => {
-                        const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
+                        const { x: cx, y: cy} = props.module.resultPortPosition(port.port[0], port.port[1])
                         return (
-                            <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
+                            <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={strokeDashColor} strokeWidth={portStrokeWidth} strokeDasharray={bottomPortDashArray} fill='none'></circle>
                         )
                     })
                 }
@@ -97,10 +122,13 @@ function ModuleInstance(props: { module: ResultModule, ports?: [number, number][
 
 }
 
-function Channel(props: { channel: ResultChannel, color?: string }) {
+function Channel(props: { channel: ResultChannel, color?: string, placement?: Placement | undefined }) {
     const color = props.color ?? randomColor()
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
+    const placement = props.placement ?? undefined
+    const strokeDashArray = "300, 600";
+
     const d = points.map((p, i) => {
         if (i === 0) {
             return `M ${p.x} ${p.y}`
@@ -108,11 +136,20 @@ function Channel(props: { channel: ResultChannel, color?: string }) {
             return `L ${p.x} ${p.y}`
         }
     }).join(' ')
-    return (
-        <g>
-            <path d={d} strokeWidth={props.channel.width} stroke={color} fill="none" strokeLinecap="square"/>
-        </g>
-    )
+
+    if (placement === Placement.Bottom) {
+        return (
+            <g>
+                <path d={d} strokeWidth={props.channel.width} stroke={color} strokeDasharray={strokeDashArray} fill="none" strokeLinecap="round"/>
+            </g>
+        )
+    } else {
+        return (
+            <g>
+                <path d={d} strokeWidth={props.channel.width} stroke={color} fill="none" strokeLinecap="round"/>
+            </g>
+        )
+    }
 }
 
 function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidth?: number, color?: string }) {
