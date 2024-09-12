@@ -1,0 +1,171 @@
+{
+  "timing": 2907,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "modules": [
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000
+    },
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000,
+      "placement": 1
+    },
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000
+    }
+  ],
+  "channels": [
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 0,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 3,
+      "length": 37500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          6,
+          10
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          4,
+          12
+        ]
+      },
+      "maxSegments": 3,
+      "length": 63000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 3,
+      "length": 88500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 2,
+        "port": [
+          6,
+          0
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          2,
+          9
+        ]
+      },
+      "maxSegments": 3,
+      "length": 88500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          4,
+          9
+        ]
+      },
+      "maxSegments": 3,
+      "length": 111000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 2,
+        "port": [
+          4,
+          1
+        ]
+      },
+      "to": {
+        "module": 0,
+        "port": [
+          3,
+          18
+        ]
+      },
+      "maxSegments": 3,
+      "actualLength": 110000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 2,
+        "port": [
+          4,
+          6
+        ]
+      },
+      "to": {
+        "module": 0,
+        "port": [
+          4,
+          16
+        ]
+      },
+      "maxSegments": 3,
+      "actualLength": 110000
+    }
+  ],
+  "routingExclusions": []
+}
