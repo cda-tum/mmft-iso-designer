@@ -54,6 +54,9 @@ function ModuleInstance(props: { module: ResultModule, ports?: [number, number][
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
 
+    const strokeDashArray = "300, 300";
+    const strokeDashColor = "#87b7ff"
+
     const portRadius = props.module.pitch / 4
     const portStrokeWidth = portRadius / 4
     const portStrokeOffset = portStrokeWidth / 2
@@ -62,19 +65,36 @@ function ModuleInstance(props: { module: ResultModule, ports?: [number, number][
     const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
     const ports = [...(props.ports ?? [])]
 
-    return (
-        <g>
-            <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
-            {
-                ports.map(port => {
-                    const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
-                    return (
-                        <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
-                    )
-                })
-            }
-        </g>
-    )
+    if (props.module.placement == 0 || props.module.placement == undefined) {
+        return (
+            <g>
+                <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
+                {
+                    ports.map(port => {
+                        const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
+                        return (
+                            <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
+                        )
+                    })
+                }
+            </g>
+        )
+    } else {
+        return (
+            <g>
+                <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>
+                {
+                    ports.map(port => {
+                        const { x: cx, y: cy} = props.module.resultPortPosition(port[0], port[1])
+                        return (
+                            <circle cx={cx} cy={cy} r={portRadius - portStrokeOffset} stroke={portStrokeColor} strokeWidth={portStrokeWidth} fill='none'></circle>
+                        )
+                    })
+                }
+            </g>
+        )
+    }
+
 }
 
 function Channel(props: { channel: ResultChannel, color?: string }) {
