@@ -13,14 +13,15 @@ function App() {
   const tempInput = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState(undefined as undefined | Input)
   const [output, setOutput] = useState(undefined as undefined | Output)
-
+  const [fileName, setFileName] = useState(undefined as undefined | string)
 
   useEffect(() => {
     if (input) {
       console.log("Running...")
       setStatus({
         status: StatusType.Computing,
-        startTime: performance.now()
+        startTime: performance.now(),
+        filename: fileName
       })
       setOutput(undefined)
       design(input).then(r => {
@@ -31,14 +32,16 @@ function App() {
             setStatus({
               status: StatusType.Result,
               success: true,
-              timing: r.timing!
+              timing: r.timing!,
+              filename: fileName
             })
             setOutput(r)
           } else {
             setStatus({
               status: StatusType.Result,
               success: false,
-              timing: r.timing!
+              timing: r.timing!,
+              filename: fileName
             })
             setOutput(undefined)
           }
@@ -89,6 +92,7 @@ function App() {
                 return
               }
               const file = e.target.files[0];
+              setFileName(file.name);
 
               const reader = new FileReader();
               reader.readAsText(file, 'UTF-8');
@@ -165,7 +169,7 @@ function App() {
           </Button>
         </div>
         <Status {...status}></Status>
-        <ChipView chip={output}></ChipView>
+        <ChipView chip={output} ></ChipView>
       </main>
       <footer
         style={{

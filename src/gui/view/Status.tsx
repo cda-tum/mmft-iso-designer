@@ -20,12 +20,14 @@ type ErrorStatus = {
 type ComputingStatus = {
     status: StatusType.Computing
     startTime: DOMHighResTimeStamp
+    filename?: string
 }
 
 type ResultStatus = {
     status: StatusType.Result
     timing: DOMHighResTimeStamp
     success: boolean
+    filename?: string
 }
 
 export type StatusProps = IdleStatus | ErrorStatus | ComputingStatus | ResultStatus
@@ -60,11 +62,15 @@ export function Status(props: StatusProps) {
             }
             {
                 props.status === StatusType.Computing &&
-                <Typography>Computing. Time elapsed: { elapsedTime } s</Typography>
+                <Typography>Computing design for file <span className="filename">{ props.filename }</span>. <br/> Time elapsed: { elapsedTime } s</Typography>
             }
             {
                 props.status === StatusType.Result &&
-                <Typography>Computation terminated. Result: {props.success && <Typography color="success">ISO-compliant</Typography>} {!props.success && <Typography color="danger">Not ISO-compliant</Typography>}. Total runtime: {props.timing / 1000} s</Typography>
+                <Typography>Computation for file <span
+                    className="filename">{props.filename}</span> terminated. <br/> Result: {props.success &&
+                    <Typography color="success">ISO-compliant</Typography>} {!props.success &&
+                    <Typography color="danger">Not ISO-compliant</Typography>}. <br/> Total
+                    runtime: {props.timing / 1000} s</Typography>
             }
         </Box>
     )
