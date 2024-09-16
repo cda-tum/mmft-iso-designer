@@ -191,6 +191,7 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
     )
 }
 
+// TODO: all distance calculations for diagonals
 export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: {
     c1: Arith | number,
     c2: Arith | number,
@@ -292,6 +293,7 @@ export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_h
     )
 }
 
+// TODO: add diagonal direction segment types
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion) {
     return ctx.And(
         ctx.Implies(
@@ -489,6 +491,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
         // 16 more new constraints come with octilinear routing as every quad-linear direction
         // has to be paired with each of the four new directions to avoid all kinds of crossings
 
+        // TODO: change parameter values according to the SegmentType / direction of the segment
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
