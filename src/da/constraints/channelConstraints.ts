@@ -14,11 +14,11 @@ export function diagonalChannelDistance(ctx: Context, delta: Arith) {
 function approxEqual(ctx: Context, val1: Arith, val2: Arith, tolerance: number) {
     return ctx.And(
         ctx.GE(
-            val2,
+            ctx.ToReal(val2),
             ctx.Sub(val1, tolerance)  // val2 >= val1 - tolerance
         ),
         ctx.LE(
-            val2,
+            ctx.ToReal(val2),
             ctx.Sum(val1, tolerance)  // val2 <= val1 + tolerance
         )
     )
@@ -321,9 +321,8 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                         ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),
                                         ctx.If(
                                             ctx.Or(channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight), channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft)),
-                                            // TODO: fix  integer/rational problem and replace both 2 with Math.sqrt(2)
-                                            ctx.Product(ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y), 2),
-                                            ctx.Product(ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y, 2))
+                                            ctx.Product(ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y)), Math.sqrt(2)),
+                                            ctx.Product(ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y)), Math.sqrt(2))
                                         )
                                     )
                                 )
@@ -334,8 +333,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
             )
 
             clauses.push(
-                //approxEqual(ctx, totalDistance, channel.encoding.length, 1.01)
-                ctx.Eq(totalDistance, channel.encoding.length)
+                ctx.And(approxEqual(ctx, totalDistance, channel.encoding.length, 0.99))
             )
     }
 
