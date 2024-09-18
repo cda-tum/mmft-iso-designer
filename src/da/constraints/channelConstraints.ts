@@ -8,7 +8,7 @@ import {channelSegmentsNoCross, minDistanceAsym, minDistanceSym, waypointSegment
 export function diagonalChannelDistance(ctx: Context, delta: Arith) {
     // Calculate distance according to simplified distance function (dist = delta * sqrt(2))
     // with delta = delta_x = delta_y (because only 45-angled diagonals exist)
-    return delta.mul(Math.sqrt(2))
+    return ctx.Product(delta, Math.sqrt(2))
 }
 
 function approxEqual(ctx: Context, val1: Arith, val2: Arith, tolerance: number) {
@@ -321,8 +321,8 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                         ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),
                                         ctx.If(
                                             ctx.Or(channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight), channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft)),
-                                            ctx.Product(ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y)), Math.sqrt(2)),
-                                            ctx.Product(ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y)), Math.sqrt(2))
+                                            diagonalChannelDistance(ctx, ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y))),
+                                            diagonalChannelDistance(ctx, ctx.ToReal(ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y)))
                                         )
                                     )
                                 )

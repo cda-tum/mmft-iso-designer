@@ -199,7 +199,6 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
     )
 }
 
-// TODO: all distance calculations for diagonals
 export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: {
     c1: Arith | number,
     c2: Arith | number,
@@ -226,6 +225,13 @@ export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedC
     }, min_distance)
 }
 
+// TODO: get running with real and not integer values
+function pointPointDistanceReal(ctx: Context, pointA: { c1: Arith, c2: Arith }, pointB: { c1: Arith, c2: Arith }) {
+    //const distanceVector = { c1: ctx.ToReal(ctx.Sub(pointA.c1, pointB.c1)), c2: ctx.ToReal(ctx.Sub(pointA.c2, pointB.c2)) }
+    //return ctx.ToReal(ctx.Sqrt(ctx.Product(ctx.Sum(distanceVector.c1, distanceVector.c1), ctx.Product(distanceVector.c2, distanceVector.c2))));
+    return ctx.Int.val(0)
+}
+
 export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
     c1_lower: Arith,
     c1_higher: Arith,
@@ -238,6 +244,31 @@ export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith
     )
 }
 
+function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
+    start: { c1: Arith, c2: Arith },
+    end: { c1: Arith, c2: Arith }
+}, min_distance: number) {
+    const segmentVector = { c1: ctx.Sub(segment.end.c1, segment.start.c1), c2: ctx.Sub(segment.end.c2, segment.start.c2) }
+    const pointVector = { c1: ctx.Sub(point.c1, segment.start.c1), c2: ctx.Sub(point.c2, segment.start.c2) }
+
+    // Compute projection of the point vector onto the segment vector
+    const segmentLengthSquared = ctx.Sum(ctx.Product(segmentVector.c1, segmentVector.c1), ctx.Product(segmentVector.c2, segmentVector.c2))
+    const dotProduct = ctx.Sum(ctx.Product(pointVector.c1, segmentVector.c1), ctx.Product(pointVector.c2, segmentVector.c2))
+    const projection = ctx.Div(dotProduct, segmentLengthSquared)
+
+    // Making sure that the projection is on the segment and not outside
+    const clampedProjection = ctx.If(ctx.LE(projection, 0), 0,
+        ctx.If(ctx.GE(projection, 1), 1, projection))
+
+    // Compute the closest point on the segment
+    const closestPoint = {
+        c1: ctx.ToReal(ctx.Sum(segment.start.c1, ctx.Product(clampedProjection, segmentVector.c1))),
+        c2: ctx.ToReal(ctx.Sum(segment.start.c2, ctx.Product(clampedProjection, segmentVector.c2)))
+    }
+
+    const distance = pointPointDistanceReal(ctx, point, closestPoint)
+    return ctx.GE(distance, min_distance)
+}
 
 export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel, waypoint_a: number, channel_b: EncodedChannel, segment_b: number, min_distance: number) {
 
@@ -291,14 +322,18 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
             }, min_distance)
         ),
         ctx.Implies(
-            channelSegmentB.type.eq(ctx, SegmentType.UpRight),
-            pointSegmentDistance(ctx, {
+            ctx.Or(
+                channelSegmentB.type.eq(ctx, SegmentType.UpRight),
+                channelSegmentB.type.eq(ctx, SegmentType.DownRight),
+                channelSegmentB.type.eq(ctx, SegmentType.DownLeft),
+                channelSegmentB.type.eq(ctx, SegmentType.UpLeft),
+            ),
+            pointSegmentDistanceDiagonal(ctx, {
                 c1: waypointsA[waypoint_a].x,
                 c2: waypointsA[waypoint_a].y,
             }, {
-                c1_lower: waypointsB[segment_b + 1].x,
-                c1_higher: waypointsB[segment_b].x,
-                c2: waypointsB[segment_b].y
+                start: { c1: waypointsB[segment_b].x, c2: waypointsB[segment_b].y },
+                end: { c1: waypointsB[segment_b + 1].x, c2: waypointsB[segment_b + 1].y }
             }, min_distance)
         )
     )
