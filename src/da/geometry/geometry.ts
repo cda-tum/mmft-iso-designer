@@ -3,7 +3,7 @@ import {StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 
-
+// declaration of diagonal direction for further use in distance and helper functions
 const diagonalDirections: SegmentType[] = [
     SegmentType.UpRight,
     SegmentType.UpLeft,
@@ -11,6 +11,7 @@ const diagonalDirections: SegmentType[] = [
     SegmentType.DownLeft
 ];
 
+// Helper function to calculate asymmetric distance
 export function minDistanceAsym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
     if (typeof c1 == 'number') {
         if (typeof c2 == 'number') {
@@ -52,6 +53,7 @@ export function minDistanceAsym(ctx: Context, c1: Arith | number, c2: Arith | nu
     }
 }
 
+// Helper function to calculate symmetric distance
 export function minDistanceSym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
     return ctx.Or(
         minDistanceAsym(ctx, c1, c2, distance),
@@ -59,6 +61,8 @@ export function minDistanceSym(ctx: Context, c1: Arith | number, c2: Arith | num
     )
 }
 
+// Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the vertical/horizontal segments
+// and a given box (e.g. exclusion zone)
 export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: {
     c1: Arith | number,
     c2: Arith | number,
@@ -73,6 +77,8 @@ export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_
     )
 }
 
+// Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the diagonal segments
+// and a given box (e.g. exclusion zone)
 export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
     c1_lower: Arith,
     c1_higher: Arith,
@@ -83,6 +89,7 @@ export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
     return ctx.Or()
 }
 
+// Function to ensure a given minimum distance between a channel segment and an exclusion zone
 export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
     return ctx.And(
         ctx.Implies(
@@ -199,6 +206,31 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
     )
 }
 
+// TODO: test if calculations are correct
+// Helper function for the pointSegmentDistanceDiagonal function, measuring the distance between two points (one in the integer grid
+// of the chip and one in between that lies on a channel segment and is closest to the integer point)
+export function pointPointDistanceReal(ctx: Context, pointA: { c1: Arith, c2: Arith }, pointB: { c1: Arith, c2: Arith }, min_distance: number ) {
+    const pointA_x = ctx.ToReal(pointA.c1)
+    const pointA_y = ctx.ToReal(pointA.c2)
+
+    const pointB_x = pointB.c1
+    const pointB_y = pointB.c2
+
+    let deltaC1 = pointB_x.sub(pointA_x)
+    let deltaC2 = pointB_y.sub(pointA_y)
+
+    let deltaC1Squared = deltaC1.mul(deltaC1)
+    let deltaC2Squared = deltaC2.mul(deltaC2)
+
+    let distanceSquared = deltaC1Squared.add(deltaC2Squared)
+    let distance = ctx.Sqrt(distanceSquared)
+
+    return ctx.LE(distance, min_distance)
+}
+
+
+// Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
+// using minDistanceAsym
 export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: {
     c1: Arith | number,
     c2: Arith | number,
@@ -213,6 +245,7 @@ export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, 
     )
 }
 
+// Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
 export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
     return pointBoxDistance(ctx, {
         c1: channel.encoding.waypoints[waypoint].x,
@@ -225,13 +258,8 @@ export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedC
     }, min_distance)
 }
 
-// TODO: get running with real and not integer values
-function pointPointDistanceReal(ctx: Context, pointA: { c1: Arith, c2: Arith }, pointB: { c1: Arith, c2: Arith }) {
-    //const distanceVector = { c1: ctx.ToReal(ctx.Sub(pointA.c1, pointB.c1)), c2: ctx.ToReal(ctx.Sub(pointA.c2, pointB.c2)) }
-    //return ctx.ToReal(ctx.Sqrt(ctx.Product(ctx.Sum(distanceVector.c1, distanceVector.c1), ctx.Product(distanceVector.c2, distanceVector.c2))));
-    return ctx.Int.val(0)
-}
-
+// Helper function for the horizontal/vertical directions of the waypointSegmentDistance function, measuring distance
+// between segment and point using minDistanceAsym and Sym
 export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
     c1_lower: Arith,
     c1_higher: Arith,
@@ -244,6 +272,9 @@ export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith
     )
 }
 
+// TODO: make calculations simpler and more efficient
+// Helper function for the diagonal directions of the waypointSegmentDistance function, measuring distance
+// between segment and point using the pointPointDistanceReal helping function (non-integer distance)
 function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
     start: { c1: Arith, c2: Arith },
     end: { c1: Arith, c2: Arith }
@@ -266,10 +297,11 @@ function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arit
         c2: ctx.ToReal(ctx.Sum(segment.start.c2, ctx.Product(clampedProjection, segmentVector.c2)))
     }
 
-    const distance = pointPointDistanceReal(ctx, point, closestPoint)
-    return ctx.GE(distance, min_distance)
+    return pointPointDistanceReal(ctx, point, closestPoint, min_distance)
 }
 
+// Function to ensure a given minimum distance between a waypoint of one channel to a segment of another channel
+// different helper function for the diagonal directions as the distance calculation is depending on both axes and non-integer
 export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel, waypoint_a: number, channel_b: EncodedChannel, segment_b: number, min_distance: number) {
 
     let channelSegmentB = channel_b.encoding.segments[segment_b]
@@ -339,7 +371,7 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
     )
 }
 
-// TODO: replace this legacy function (in accordance with Philipp) and adapt testing for the new crucial core function
+// TODO: replace this legacy function (in accordance with Philipp)
 export function segmentBoxNoCrossOld(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith}, box: {
     c1: Arith | number,
     c2: Arith | number,
@@ -354,16 +386,17 @@ export function segmentBoxNoCrossOld(ctx: Context, segment: { c1_lower: Arith, c
     )
 }
 
+// Helper function for the channelSegmentRoutingExclusionNoCross function to check whether a segment crosses a given box (e.g. exclusion zone)
 export function segmentBoxNoCross(ctx: Context, segment: {
     c1_lower: Arith,
     c1_higher: Arith,
     c2_lower: Arith,
     c2_higher: Arith
 }, box: {
-    c1: Arith | number,     // Lower-left corner x coordinate (c1)
-    c2: Arith | number,     // Lower-left corner y coordinate (c2)
-    c1_span: number,        // Width of the box (span in c1 direction)
-    c2_span: number         // Height of the box (span in c2 direction)
+    c1: Arith | number,
+    c2: Arith | number,
+    c1_span: number,
+    c2_span: number
 }) {
 
     return ctx.Or(
@@ -374,7 +407,7 @@ export function segmentBoxNoCross(ctx: Context, segment: {
     )
 }
 
-// TODO: replace this legacy function (in accordance with Philipp) and adapt testing for the new crucial core function
+// Function to ensure that no segment can cross through a routing exclusion zone (e.g. cut-out piece of the chip)
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion) {
 
     let channelSegment = channel.encoding.segments[segment]
@@ -497,7 +530,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
 }
 
 
-// TODO: replace this legacy function (in accordance with Philipp) and adapt testing for the new crucial core function
+// TODO: replace this legacy function (in accordance with Philipp) and adapt testing for the new function below this one
 export function segmentSegmentNoCross(ctx: Context, segment_a: {
     c1_lower: Arith,
     c1_higher: Arith,
@@ -511,7 +544,7 @@ export function segmentSegmentNoCross(ctx: Context, segment_a: {
     )
 }
 
-// New cross function that incorporates octa-linear channel routing
+// Helper function for the channelSegmentsNoCross function that incorporates octa-linear channel routing
 export function segmentSegmentNoCrossNew(ctx: Context, segment_a: {
                                              c1_lower: Arith,
                                              c1_higher: Arith,
@@ -552,7 +585,8 @@ export function segmentSegmentNoCrossNew(ctx: Context, segment_a: {
     }
 }
 
-
+// Function to ensure that no segments can cross each other on the chip
+// TODO: add differentiation between top and bottom channels as they do not interfere with each other
 export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
 
     let channelSegment_a = channel_a.encoding.segments[segment_a]
