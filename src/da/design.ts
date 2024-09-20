@@ -19,8 +19,9 @@ async function design(input: Input) {
         solver.set('unsat_core', false)
 
 
-        const encoded_input = input.encode(ctx) 
+        const encoded_input = input.encode(ctx)
         solver.add(...encoded_input.clauses)
+        console.log(encoded_input.clauses.length)
 
         let start = performance.now()
         const check = await solver.check()

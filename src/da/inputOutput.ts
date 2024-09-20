@@ -43,11 +43,11 @@ class Input {
         /* Paper constraints */
         clauses.push(...encodePaperConstraints(ctx, this.chip, modules, channels))
 
-        /* Encode module contraints */
+        /* Encode module constraints */
         clauses.push(...modules.flatMap(b => encodeModuleConstraints(ctx, b, this.chip)))
 
-        /* Encode channel contraints */
-        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip)))
+        /* Encode channel constraints */
+        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, modules)))
 
         /* Encode channel ports connections */
         clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, modules[c.from.module], modules[c.to.module])))
@@ -59,7 +59,7 @@ class Input {
         clauses.push(...pairwiseUnique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
+        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b, modules)))
 
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))

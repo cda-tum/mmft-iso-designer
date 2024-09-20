@@ -1,35 +1,61 @@
-import { Context, init } from "z3-solver"
-import { Chip } from "../chip"
-import { channelSegmentsNoCross, segmentSegmentNoCross } from "./geometry"
-import { encodeChannelConstraints } from "../constraints/channelConstraints"
-import { Channel } from "../channel"
+import {Arith, Bool, Context, init} from "z3-solver"
+import {Chip} from "../chip"
+import {
+    channelSegmentsNoCross,
+    pointSegmentDistanceDiagonal,
+    pointPointDistanceReal,
+    segmentSegmentNoCrossNew
+} from "./geometry"
+import {encodeChannelConstraints} from "../constraints/channelConstraints"
+import {Channel} from "../channel"
+import {EncodedModule, Module, ModuleID} from "../module";
+import {Position} from "../position";
+import {Orientation} from "../orientation";
+import {Placement} from "../placement";
+import {EnumBitVec, EnumBitVecValue} from "../z3Helpers";
 
 function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
 }
 
+// Testing all possible intersections of octa-directional segments to ensure proper functionality of the segmentSegmentNoCross method
 describe('segmentSegmentNoCross', () => {
-    async function testSegmentSegmentNoCross(a: { c1_lower: number, c1_higher: number, c2: number}, b: { c1: number, c2_lower: number, c2_higher: number}) {
-        const { Context, em } = await init()
+    async function testSegmentSegmentNoCross(a: {
+                                                 start_x: number,
+                                                 start_y: number,
+                                                 end_x: number,
+                                                 end_y: number
+                                             },
+                                             b: {
+                                                 start_x: number,
+                                                 start_y: number,
+                                                 end_x: number,
+                                                 end_y: number
+                                             }) {
+        const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            const [ac1l, ac1h, ac2, bc1, bc2l, bc2h] = get_int_vars(ctx, 6)
-            solver.add(segmentSegmentNoCross(ctx, {
-                c1_lower: ac1l,
-                c1_higher: ac1h,
-                c2: ac2
+            const [ax1, ay1, ax2, ay2, bx1, by1, bx2, by2] = get_int_vars(ctx, 8)
+            solver.add(segmentSegmentNoCrossNew(ctx, {
+                start_x: ax1,
+                start_y: ay1,
+                end_x: ax2,
+                end_y: ay2
             }, {
-                c1: bc1,
-                c2_lower: bc2l,
-                c2_higher: bc2h
+                start_x: bx1,
+                start_y: by1,
+                end_x: bx2,
+                end_y: by2
             }))
-            solver.add(ac1l.eq(a.c1_lower))
-            solver.add(ac1h.eq(a.c1_higher))
-            solver.add(ac2.eq(a.c2))
-            solver.add(bc2l.eq(b.c2_lower))
-            solver.add(bc2h.eq(b.c2_higher))
-            solver.add(bc1.eq(b.c1))
+            solver.add(ax1.eq(a.start_x))
+            solver.add(ay1.eq(a.start_y))
+            solver.add(ax2.eq(a.end_x))
+            solver.add(ay2.eq(a.end_y))
+            solver.add(bx1.eq(b.start_x))
+            solver.add(by1.eq(b.start_y))
+            solver.add(bx2.eq(b.end_x))
+            solver.add(by2.eq(b.end_y))
             let check = await solver.check()
             if (check === 'sat') {
                 return true
@@ -43,205 +69,775 @@ describe('segmentSegmentNoCross', () => {
         }
     }
 
-    test('', async () => {
+
+    test('up-right intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
         })
         expect(d).toBeFalsy()
     })
 
-    test('', async () => {
+    test('up-left intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 10
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: -10
-        }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 9
-        }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
         })
         expect(d).toBeFalsy()
     })
 
-    test('', async () => {
+    test('up-upright intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: -9
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
         })
         expect(d).toBeFalsy()
     })
 
-    test('', async () => {
+    test('up-upleft intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 11
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: -11
-        }, {
-            c1: 0,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
-        }, {
-            c1: 10,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
-        }, {
-            c1: -10,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
-        }, {
-            c1: 9,
-            c2_lower: -10,
-            c2_higher: 10
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
         })
         expect(d).toBeFalsy()
     })
 
-    test('', async () => {
+    test('up-downright intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: -9,
-            c2_lower: -10,
-            c2_higher: 10
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
         })
         expect(d).toBeFalsy()
     })
 
-    test('', async () => {
+    test('up-downleft intersection', async () => {
         const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
         }, {
-            c1: 11,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: -10,
-            c1_higher: 10,
-            c2: 0
-        }, {
-            c1: -11,
-            c2_lower: -10,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: 0,
-            c1_higher: 4,
-            c2: 0
-        }, {
-            c1: 5,
-            c2_lower: -5,
-            c2_higher: 5
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('', async () => {
-        const d = await testSegmentSegmentNoCross({
-            c1_lower: 9000,
-            c1_higher: 18000,
-            c2: 27000
-        }, {
-            c1: 12000,
-            c2_lower: 3000,
-            c2_higher: 42000
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
         })
         expect(d).toBeFalsy()
     })
+
+    test('down-right intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('down-left intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('down-upright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('down-upleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('down-downright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('down-downleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-up intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-down intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-upright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-upleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-downright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-downleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-up intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-down intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-upright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-upleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-downright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('left-downleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        }, {
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-up intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-down intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-left intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-upleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-downright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upright-right intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        }, {
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-up intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-down intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-left intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-downleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-upright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: -5,
+            start_y: 0,
+            end_x: 5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('upleft-right intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        }, {
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-up intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-down intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: 0,
+            start_y: 10,
+            end_x: 0,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-left intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 5,
+            end_x: -5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-upleft intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: 5,
+            start_y: 0,
+            end_x: -5,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-downright intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: -5,
+            start_y: 10,
+            end_x: 5,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('downleft-right intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 5,
+            start_y: 10,
+            end_x: -5,
+            end_y: 0
+        }, {
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+
+    // Edge case tests for no intersections
+
+    test('up-up aligned with no gap intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 5,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('right-right aligned with no gap intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 0,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+
+    // Edge case tests without intersections to check if the method is just strict enough but detects non-intersections
+
+    test('up-right no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 10,
+            start_y: -5,
+            end_x: 10,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 0,
+            end_x: 9,
+            end_y: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('down-left no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: -10
+        }, {
+            start_x: 5,
+            start_y: 1,
+            end_x: -5,
+            end_y: 1
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('upright-downleft no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -4,
+            start_y: -3,
+            end_x: 2,
+            end_y: 3
+        }, {
+            start_x: 4,
+            start_y: 3,
+            end_x: -2,
+            end_y: -3
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('right-right parallel no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: -5,
+            start_y: 5,
+            end_x: 5,
+            end_y: 5
+        }, {
+            start_x: -5,
+            start_y: 3,
+            end_x: -5,
+            end_y: 3
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('up-left no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 5
+        }, {
+            start_x: 5,
+            start_y: 6,
+            end_x: -5,
+            end_y: 6
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('up-up aligned with gap no intersection', async () => {
+        const d = await testSegmentSegmentNoCross({
+            start_x: 0,
+            start_y: 0,
+            end_x: 0,
+            end_y: 5
+        }, {
+            start_x: 0,
+            start_y: 6,
+            end_x: 0,
+            end_y: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+
+
 })
 
-describe('channelSegmentsNoCross', () => {
-    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: { x1: number, y1: number, x2: number, y2: number }) {
-        const { Context, em } = await init()
+describe('channelSegmentsNoCrossSameSide', () => {
+    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number
+    }) {
+        const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
@@ -262,7 +858,7 @@ describe('channelSegmentsNoCross', () => {
                 },
                 to: {
                     module: 0,
-                    port: [0, 0]
+                    port: [0, 2]
                 }
             })
             const ea = channel_a.encode(ctx)
@@ -272,27 +868,64 @@ describe('channelSegmentsNoCross', () => {
                 spacing: 1,
                 maxSegments: 1,
                 from: {
-                    module: 0,
+                    module: 1,
                     port: [0, 0]
                 },
                 to: {
-                    module: 0,
-                    port: [0, 0]
+                    module: 1,
+                    port: [0, 2]
                 }
             })
+
+            const clauses: Bool[] = []
+            const encodingProps = {
+                positionX: 0,
+                positionY: 0,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", 1),
+                clauses: clauses
+            }
+            const moduleProps0 = {
+                id: 0,
+                width: 2000,
+                height: 1000,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps
+            }
+            const moduleProps1 = {
+                id: 1,
+                width: 2000,
+                height: 1000,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps
+            }
+
+            const module0 = new EncodedModule(moduleProps0)
+            const module1 = new EncodedModule(moduleProps1)
+
+            const modules: EncodedModule[] = []
+            modules.push(module0, module1)
             const eb = channel_b.encode(ctx)
             solver.add(...ea.encoding.clauses)
             solver.add(...eb.encoding.clauses)
-            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))      
-            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))     
-            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))     
+            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
+            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
+            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
             solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
-            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))      
-            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))     
-            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))     
+            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
+            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
+            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
             solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
-            solver.add(...encodeChannelConstraints(ctx, ea, chip))
-            solver.add(...encodeChannelConstraints(ctx, eb, chip))
+            solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
+            solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
             let check1 = await solver.check()
             let sat1;
             if (check1 === 'sat') {
@@ -300,7 +933,7 @@ describe('channelSegmentsNoCross', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
@@ -413,3 +1046,284 @@ describe('channelSegmentsNoCross', () => {
         expect(d).toBeTruthy()
     })
 })
+
+
+describe('channelSegmentsNoCrossDifferentSides', () => {
+    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number
+    }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const chip = new Chip({
+                originX: -5000,
+                originY: -5000,
+                width: 10000,
+                height: 10000
+            })
+            const channel_a = new Channel({
+                id: 0,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 0,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 0,
+                    port: [0, 2]
+                }
+            })
+            const ea = channel_a.encode(ctx)
+            const channel_b = new Channel({
+                id: 1,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 1,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 1,
+                    port: [0, 2]
+                }
+            })
+
+            const clauses: Bool[] = []
+            const encodingProps = {
+                positionX: 0,
+                positionY: 0,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", 1),
+                clauses: clauses
+            }
+
+            // one module is placed on top
+            const moduleProps0 = {
+                id: 0,
+                width: 9900,
+                height: 9900,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps
+            }
+
+            // one module is placed on the bottom
+            const moduleProps1 = {
+                id: 1,
+                width: 9900,
+                height: 9900,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Bottom,
+                encoding: encodingProps
+            }
+
+            const module0 = new EncodedModule(moduleProps0)
+            const module1 = new EncodedModule(moduleProps1)
+
+            const modules: EncodedModule[] = []
+            modules.push(module0, module1)
+            const eb = channel_b.encode(ctx)
+            solver.add(...ea.encoding.clauses)
+            solver.add(...eb.encoding.clauses)
+            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
+            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
+            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
+            solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
+            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
+            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
+            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
+            solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
+            solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
+            solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
+            let check1 = await solver.check()
+            let sat1;
+            if (check1 === 'sat') {
+                sat1 = true
+            } else {
+                sat1 = false
+            }
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
+            let check2 = await solver.check()
+            if (check2 === 'sat') {
+                return true
+            } else {
+                return !sat1
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('downleft-downright no intersection different sides', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 5, x2: -5, y2: -5,
+        }, {
+            x1: -5, y1: 5, x2: 5, y2: -5,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('up-right no intersection different sides', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 0, y1: -5, x2: 0, y2: 5,
+        }, {
+            x1: -5, y1: 0, x2: 5, y2: 0,
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+
+describe('pointSegmentDistanceDiagonal', () => {
+    async function testPointSegmentDistanceDiagonal(point: { c1: number, c2: number },
+                                                    segment: {
+                                                        start: { c1: number, c2: number },
+                                                        end: { c1: number, c2: number }
+                                                    }, min_distance: number) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [pc1, pc2, ssc1, ssc2, sec1, sec2] = get_int_vars(ctx, 6)
+            solver.add(pointSegmentDistanceDiagonal(ctx, {
+                x: pc1,
+                y: pc2
+            }, {
+                start: {x: ssc1, y: ssc2},
+                end: {x: sec1, y: sec2}
+            }, min_distance))
+            solver.add(pc1.eq(point.c1))
+            solver.add(pc2.eq(point.c2))
+            solver.add(ssc1.eq(segment.start.c1))
+            solver.add(ssc2.eq(segment.start.c2))
+            solver.add(sec1.eq(segment.end.c1))
+            solver.add(sec2.eq(segment.end.c2))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('distance less than min_distance', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 0
+        }, {
+            start: {c1: 2, c2: 0},
+            end: {c1: 0, c2: 2}
+        }, 5)
+        expect(d).toBeTruthy()
+    })
+
+    test('distance greater than min_distance', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 0
+        }, {
+            start: {c1: 2, c2: 0},
+            end: {c1: 0, c2: 2}
+        }, 1)
+        expect(d).toBeFalsy()
+    })
+})
+
+
+describe('pointPointDistanceReal', () => {
+    async function testPointPointDistanceReal(a: { c1: number, c2: number }, b: {
+        c1: number,
+        c2: number
+    }, min_distance: number) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1, ac2, bc1, bc2] = get_int_vars(ctx, 4)
+
+            solver.add(pointPointDistanceReal(ctx, {
+                x: ac1,
+                y: ac2
+            }, {
+                x: bc1,
+                y: bc2
+            }, min_distance))
+
+            solver.add(ac1.eq(a.c1))
+            solver.add(ac2.eq(a.c2))
+            solver.add(bc1.eq(b.c1))
+            solver.add(bc2.eq(b.c2))
+
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else if (check === 'unsat') {
+                return false
+            } else {
+                console.error('Unexpected solver check result:', check)
+                return false
+            }
+        } catch (e) {
+            console.error('error', e)
+        } finally {
+            em.PThread.terminateAllThreads()
+        }
+    }
+
+    test('distance less than min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
+            4
+        )
+        expect(d).toBeTruthy()
+    })
+
+    test('distance greater than min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
+            7
+        )
+        expect(d).toBeFalsy() // should return false since 5 > 4
+    })
+
+    test('distance less than min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 2, c2: 2}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
+            1
+        )
+        expect(d).toBeTruthy()
+    })
+
+    test('distance less than min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 3, c2: 3}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
+            4
+        )
+        expect(d).toBeTruthy()
+    })
+})
+

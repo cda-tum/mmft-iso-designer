@@ -3,6 +3,8 @@ import {Chip} from "../chip";
 import {EncodedChannel, SegmentType} from "../channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
 import {channelSegmentsNoCross, minDistanceAsym, minDistanceSym, waypointSegmentDistance} from "../geometry/geometry";
+import Module from "node:module";
+import {EncodedModule} from "../module";
 
 
 export function diagonalChannelDistance(ctx: Context, delta: Arith) {
@@ -25,7 +27,7 @@ function approxEqual(ctx: Context, val1: Arith, val2: Arith, tolerance: number) 
 }
 
 
-export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip) {
+export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules: EncodedModule[]) {
     const clauses = []
 
     /* Specify active/inactive segments */
@@ -265,7 +267,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                     channel.encoding.segments[ia].active,
                     channel.encoding.segments[ib].active
                 ),
-                channelSegmentsNoCross(ctx, channel, ia, channel, ib)
+                channelSegmentsNoCross(ctx, channel, ia, channel, ib, modules)
             )
         }))
     }

@@ -2,14 +2,8 @@ import {Arith, Context} from "z3-solver";
 import {StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
+import {Module} from "../module";
 
-// declaration of diagonal direction for further use in distance and helper functions
-const diagonalDirections: SegmentType[] = [
-    SegmentType.UpRight,
-    SegmentType.UpLeft,
-    SegmentType.DownRight,
-    SegmentType.DownLeft
-];
 
 // Helper function to calculate asymmetric distance
 export function minDistanceAsym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {
@@ -80,10 +74,10 @@ export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_
 // Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the diagonal segments
 // and a given box (e.g. exclusion zone)
 export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
-    c1_lower: Arith,
-    c1_higher: Arith,
-    c2_lower: Arith,
-    c2_higher: Arith
+    x1: Arith,
+    y1: Arith,
+    x2: Arith,
+    y2: Arith
 }, box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
     // TODO: distance calculation on diagonals
     return ctx.Or()
@@ -150,10 +144,10 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
             segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c2_higher: channel.encoding.waypoints[segment + 1].y,
+                x1: channel.encoding.waypoints[segment].x,
+                x2: channel.encoding.waypoints[segment + 1].x,
+                y1: channel.encoding.waypoints[segment].y,
+                y2: channel.encoding.waypoints[segment + 1].y,
             }, {
                 c1: exclusion.position.y,
                 c2: exclusion.position.x,
@@ -164,10 +158,10 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
             segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c2_higher: channel.encoding.waypoints[segment].y,
+                x1: channel.encoding.waypoints[segment].x,
+                x2: channel.encoding.waypoints[segment + 1].x,
+                y1: channel.encoding.waypoints[segment + 1].y,
+                y2: channel.encoding.waypoints[segment].y,
             }, {
                 c1: exclusion.position.y,
                 c2: exclusion.position.x,
@@ -178,10 +172,10 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
             segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c2_higher: channel.encoding.waypoints[segment + 1].y,
+                x1: channel.encoding.waypoints[segment + 1].x,
+                x2: channel.encoding.waypoints[segment].x,
+                y1: channel.encoding.waypoints[segment].y,
+                y2: channel.encoding.waypoints[segment + 1].y,
             }, {
                 c1: exclusion.position.y,
                 c2: exclusion.position.x,
@@ -192,10 +186,10 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
             segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c2_higher: channel.encoding.waypoints[segment].y,
+                x1: channel.encoding.waypoints[segment + 1].x,
+                x2: channel.encoding.waypoints[segment].x,
+                y1: channel.encoding.waypoints[segment + 1].y,
+                y2: channel.encoding.waypoints[segment].y,
             }, {
                 c1: exclusion.position.x,
                 c2: exclusion.position.y,
@@ -207,14 +201,14 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
 }
 
 // TODO: test if calculations are correct
-// Helper function for the pointSegmentDistanceDiagonal function, measuring the distance between two points (one in the integer grid
-// of the chip and one in between that lies on a channel segment and is closest to the integer point)
-export function pointPointDistanceReal(ctx: Context, pointA: { c1: Arith, c2: Arith }, pointB: { c1: Arith, c2: Arith }, min_distance: number ) {
-    const pointA_x = ctx.ToReal(pointA.c1)
-    const pointA_y = ctx.ToReal(pointA.c2)
+// Helper function for the pointSegmentDistanceDiagonal function, measuring the distance between two points
+// (not necessarily in the integer grid of the chip
+export function pointPointDistanceReal(ctx: Context, pointA: { x: Arith, y: Arith }, pointB: { x: Arith, y: Arith }, min_distance: number ) {
+    let pointA_x = ctx.isReal(pointA.x) ? pointA.x : ctx.ToReal(pointA.x)
+    let pointA_y = ctx.isReal(pointA.y) ? pointA.y : ctx.ToReal(pointA.y)
 
-    const pointB_x = pointB.c1
-    const pointB_y = pointB.c2
+    let pointB_x = ctx.isReal(pointB.y) ? pointB.y : ctx.ToReal(pointB.y)
+    let pointB_y = ctx.isReal(pointB.y) ? pointB.y : ctx.ToReal(pointB.y)
 
     let deltaC1 = pointB_x.sub(pointA_x)
     let deltaC2 = pointB_y.sub(pointA_y)
@@ -225,7 +219,10 @@ export function pointPointDistanceReal(ctx: Context, pointA: { c1: Arith, c2: Ar
     let distanceSquared = deltaC1Squared.add(deltaC2Squared)
     let distance = ctx.Sqrt(distanceSquared)
 
-    return ctx.LE(distance, min_distance)
+    const testVal = ctx.Real.val(0)
+    //distance = ctx.ToInt(distance)
+    //return ctx.GE(ctx.Sum(testVal, distance), ctx.Sum(testVal, min_distance))
+    return ctx.And()
 }
 
 
@@ -275,17 +272,17 @@ export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith
 // TODO: make calculations simpler and more efficient
 // Helper function for the diagonal directions of the waypointSegmentDistance function, measuring distance
 // between segment and point using the pointPointDistanceReal helping function (non-integer distance)
-function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
-    start: { c1: Arith, c2: Arith },
-    end: { c1: Arith, c2: Arith }
+export function pointSegmentDistanceDiagonal(ctx: Context, point: { x: Arith, y: Arith }, segment: {
+    start: { x: Arith, y: Arith },
+    end: { x: Arith, y: Arith }
 }, min_distance: number) {
-    const segmentVector = { c1: ctx.Sub(segment.end.c1, segment.start.c1), c2: ctx.Sub(segment.end.c2, segment.start.c2) }
-    const pointVector = { c1: ctx.Sub(point.c1, segment.start.c1), c2: ctx.Sub(point.c2, segment.start.c2) }
+    const segmentVector = { c1: ctx.Sub(segment.end.x, segment.start.x), c2: ctx.Sub(segment.end.y, segment.start.y) }
+    const pointVector = { c1: ctx.Sub(point.x, segment.start.x), c2: ctx.Sub(point.y, segment.start.y) }
 
     // Compute projection of the point vector onto the segment vector
-    const segmentLengthSquared = ctx.Sum(ctx.Product(segmentVector.c1, segmentVector.c1), ctx.Product(segmentVector.c2, segmentVector.c2))
-    const dotProduct = ctx.Sum(ctx.Product(pointVector.c1, segmentVector.c1), ctx.Product(pointVector.c2, segmentVector.c2))
-    const projection = ctx.Div(dotProduct, segmentLengthSquared)
+    const segmentLengthSquared = ctx.Sum(segmentVector.c1.mul(segmentVector.c1), segmentVector.c2.mul(segmentVector.c2))
+    const dotProduct = ctx.Sum(pointVector.c1.mul(segmentVector.c1), pointVector.c2.mul(segmentVector.c2))
+    const projection = dotProduct.div(segmentLengthSquared)
 
     // Making sure that the projection is on the segment and not outside
     const clampedProjection = ctx.If(ctx.LE(projection, 0), 0,
@@ -293,8 +290,8 @@ function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arit
 
     // Compute the closest point on the segment
     const closestPoint = {
-        c1: ctx.ToReal(ctx.Sum(segment.start.c1, ctx.Product(clampedProjection, segmentVector.c1))),
-        c2: ctx.ToReal(ctx.Sum(segment.start.c2, ctx.Product(clampedProjection, segmentVector.c2)))
+        x: ctx.ToReal(ctx.Sum(segment.start.x, ctx.Product(clampedProjection, segmentVector.c1))),
+        y: ctx.ToReal(ctx.Sum(segment.start.y, ctx.Product(clampedProjection, segmentVector.c2)))
     }
 
     return pointPointDistanceReal(ctx, point, closestPoint, min_distance)
@@ -361,28 +358,13 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
                 channelSegmentB.type.eq(ctx, SegmentType.UpLeft),
             ),
             pointSegmentDistanceDiagonal(ctx, {
-                c1: waypointsA[waypoint_a].x,
-                c2: waypointsA[waypoint_a].y,
+                x: waypointsA[waypoint_a].x,
+                y: waypointsA[waypoint_a].y,
             }, {
-                start: { c1: waypointsB[segment_b].x, c2: waypointsB[segment_b].y },
-                end: { c1: waypointsB[segment_b + 1].x, c2: waypointsB[segment_b + 1].y }
+                start: { x: waypointsB[segment_b].x, y: waypointsB[segment_b].y },
+                end: { x: waypointsB[segment_b + 1].x, y: waypointsB[segment_b + 1].y }
             }, min_distance)
         )
-    )
-}
-
-// TODO: replace this legacy function (in accordance with Philipp)
-export function segmentBoxNoCrossOld(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith}, box: {
-    c1: Arith | number,
-    c2: Arith | number,
-    c1_span: number,
-    c2_span: number
-}) {
-    return ctx.Or(
-        ctx.LE(segment.c1_higher, box.c1),
-        minDistanceAsym(ctx, box.c1, segment.c1_lower, box.c1_span),
-        ctx.LE(segment.c2, box.c2),
-        minDistanceAsym(ctx, box.c2, segment.c2, box.c2_span),
     )
 }
 
@@ -529,65 +511,95 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
     )
 }
 
-
-// TODO: replace this legacy function (in accordance with Philipp) and adapt testing for the new function below this one
-export function segmentSegmentNoCross(ctx: Context, segment_a: {
-    c1_lower: Arith,
-    c1_higher: Arith,
-    c2: Arith
-}, segment_b: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
-    return ctx.Or(
-        ctx.LE(segment_a.c1_higher, segment_b.c1),
-        ctx.GE(segment_a.c1_lower, segment_b.c1),
-        ctx.LE(segment_b.c2_higher, segment_a.c2),
-        ctx.GE(segment_b.c2_lower, segment_a.c2),
-    )
-}
-
 // Helper function for the channelSegmentsNoCross function that incorporates octa-linear channel routing
 export function segmentSegmentNoCrossNew(ctx: Context, segment_a: {
-                                             c1_lower: Arith,
-                                             c1_higher: Arith,
-                                             c2_lower: Arith,
-                                             c2_higher: Arith
-                                         },
-                                         isDiagonalA: boolean,
-                                         segment_b: {
-                                             c1_lower: Arith,
-                                             c1_higher: Arith,
-                                             c2_lower: Arith,
-                                             c2_higher: Arith,
-                                         },
-                                         isDiagonalB: boolean) {
-    if (!isDiagonalA && !isDiagonalB) {
-        // Original constraints for horizontal and vertical segments
-        return ctx.Or(
-            ctx.LE(segment_a.c1_higher, segment_b.c1_lower),
-            ctx.GE(segment_a.c1_lower, segment_b.c1_higher),
-            ctx.LE(segment_a.c2_higher, segment_b.c2_lower),
-            ctx.GE(segment_a.c2_lower, segment_b.c2_higher)
-        );
-    } else {
-        // Handle diagonal segments
-        return ctx.Or(
-            ctx.LE(segment_a.c1_higher, segment_b.c1_lower),
-            ctx.GE(segment_a.c1_lower, segment_b.c1_higher),
-            ctx.LE(segment_a.c2_higher, segment_b.c2_lower),
-            ctx.GE(segment_a.c2_lower, segment_b.c2_higher),
-            // Additional checks for diagonal intersections
-            ctx.And(
-                ctx.LE(segment_a.c1_higher, segment_b.c1_higher),
-                ctx.GE(segment_a.c1_lower, segment_b.c1_lower),
-                ctx.LE(segment_a.c2_higher, segment_b.c2_higher),
-                ctx.GE(segment_a.c2_lower, segment_b.c2_lower)
-            )
+                                            start_x: Arith,
+                                            start_y: Arith,
+                                            end_x: Arith,
+                                            end_y: Arith
+                                        },
+                                        segment_b: {
+                                            start_x: Arith,
+                                            start_y: Arith,
+                                            end_x: Arith,
+                                            end_y: Arith
+                                        }) {
+
+    // Helper function to compute the orientation of three points
+    function orientation(point1_x: Arith, point1_y: Arith, point2_x: Arith, point2_y: Arith, point3_x: Arith, point3_y: Arith): Arith {
+        return ctx.Sub(
+            ctx.Product(ctx.Sub(point2_x, point1_x), ctx.Sub(point3_y, point1_y)),
+            ctx.Product(ctx.Sub(point2_y, point1_y), ctx.Sub(point3_x, point1_x))
         );
     }
+
+    const { start_x: ax1, start_y: ay1, end_x: ax2, end_y: ay2 } = segment_a;
+    const { start_x: bx1, start_y: by1, end_x: bx2, end_y: by2 } = segment_b;
+
+    // Compute the four orientations
+    const orientation1 = orientation(ax1, ay1, ax2, ay2, bx1, by1);
+    const orientation2 = orientation(ax1, ay1, ax2, ay2, bx2, by2);
+    const orientation3 = orientation(bx1, by1, bx2, by2, ax1, ay1);
+    const orientation4 = orientation(bx1, by1, bx2, by2, ax2, ay2);
+
+    // General case: intersection happens if orientations differ
+    const noGeneralIntersection = ctx.Or(
+        ctx.And(ctx.LE(orientation1, ctx.Int.val(0)), ctx.LE(orientation2, ctx.Int.val(0))),
+        ctx.And(ctx.GE(orientation1, ctx.Int.val(0)), ctx.GE(orientation2, ctx.Int.val(0))),
+        ctx.And(ctx.LE(orientation3, ctx.Int.val(0)), ctx.LE(orientation4, ctx.Int.val(0))),
+        ctx.And(ctx.GE(orientation3, ctx.Int.val(0)), ctx.GE(orientation4, ctx.Int.val(0)))
+    );
+
+    // Special case for collinear points: check if the segments overlap directly
+    const noCollinearCondition = ctx.Or(
+        ctx.Not(ctx.Eq(orientation1, ctx.Int.val(0))), // Not collinear if orientation is non-zero
+        ctx.Not(ctx.Eq(orientation2, ctx.Int.val(0))), // Not collinear if orientation is non-zero
+        ctx.Or(
+            // Vertical case: same x, but no overlap in y
+            ctx.And(
+                ctx.Eq(ax1, ax2), // Both segments are vertical (x-coordinates equal)
+                ctx.Eq(bx1, bx2),
+                ctx.Or(
+                    ctx.LT(ay2, by1), // segment A ends before segment B starts
+                    ctx.LT(by2, ay1)  // segment B ends before segment A starts
+                )
+            ),
+            // Horizontal case: same y, but no overlap in x
+            ctx.And(
+                ctx.Eq(ay1, ay2), // Both segments are horizontal (y-coordinates equal)
+                ctx.Eq(by1, by2),
+                ctx.Or(
+                    ctx.LT(ax2, bx1), // segment A ends before segment B starts
+                    ctx.LT(bx2, ax1)  // segment B ends before segment A starts
+                )
+            )
+        )
+    );
+
+    const noPerpendicularCondition = ctx.Or(
+        ctx.Not(ctx.Eq(ax1, ax2)), // Segment A is not vertical
+        ctx.Not(ctx.Eq(by1, by2)), // Segment B is not horizontal
+        ctx.Or(
+            ctx.Or(ctx.LT(ax1, bx1), ctx.GT(ax1, bx2)), // The x-coordinate of the vertical line is outside the horizontal segment's x-range
+            ctx.Or(ctx.LT(by1, ay1), ctx.GT(by1, ay2))  // The y-coordinate of the horizontal line is outside the vertical segment's y-range
+        )
+    );
+
+    return ctx.And(
+        noGeneralIntersection,
+        noCollinearCondition,
+        noPerpendicularCondition
+    )
 }
 
 // Function to ensure that no segments can cross each other on the chip
 // TODO: add differentiation between top and bottom channels as they do not interfere with each other
-export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
+export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number, modules: Module[]) {
+
+    // Check if channels are on different sides of the chip (top or bottom) as they would then not interfere witch each other
+    if (modules[channel_a.from.module].placement !== modules[channel_b.from.module].placement) {
+        return ctx.Bool.val(true)
+    }
 
     let channelSegment_a = channel_a.encoding.segments[segment_a]
     let channelSegment_b = channel_b.encoding.segments[segment_b]
@@ -596,59 +608,59 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
     let waypoints_b = channel_b.encoding.waypoints
 
     let coordsUpOrUpRightSegmentA = {
-        c1_lower: waypoints_a[segment_a].x,
-        c1_higher: waypoints_a[segment_a + 1].x,
-        c2_lower: waypoints_a[segment_a].y,
-        c2_higher: waypoints_a[segment_a + 1].y
+        start_x: waypoints_a[segment_a].x,
+        start_y: waypoints_a[segment_a].y,
+        end_x: waypoints_a[segment_a + 1].x,
+        end_y: waypoints_a[segment_a + 1].y
     }
 
     let coordsUpOrUpRightSegmentB = {
-        c1_lower: waypoints_b[segment_b].x,
-        c1_higher: waypoints_b[segment_b + 1].x,
-        c2_lower: waypoints_b[segment_b].y,
-        c2_higher: waypoints_b[segment_b + 1].y
+        start_x: waypoints_b[segment_b].x,
+        start_y: waypoints_b[segment_b].y,
+        end_x: waypoints_b[segment_b + 1].x,
+        end_y: waypoints_b[segment_b + 1].y
     }
 
     let coordsRightOrDownRightSegmentA = {
-        c1_lower: waypoints_a[segment_a].x,
-        c1_higher: waypoints_a[segment_a + 1].x,
-        c2_lower: waypoints_a[segment_a + 1].y,
-        c2_higher: waypoints_a[segment_a].y
+        start_x: waypoints_a[segment_a].x,
+        start_y: waypoints_a[segment_a + 1].y,
+        end_x: waypoints_a[segment_a + 1].x,
+        end_y: waypoints_a[segment_a].y
     }
 
     let coordsRightOrDownRightSegmentB = {
-        c1_lower: waypoints_b[segment_b].x,
-        c1_higher: waypoints_b[segment_b + 1].x,
-        c2_lower: waypoints_b[segment_b + 1].y,
-        c2_higher: waypoints_b[segment_b].y
+        start_x: waypoints_b[segment_b].x,
+        start_y: waypoints_b[segment_b + 1].y,
+        end_x: waypoints_b[segment_b + 1].x,
+        end_y: waypoints_b[segment_b].y
     }
 
     let coordsDownOrDownLeftSegmentA = {
-        c1_lower: waypoints_a[segment_a + 1].x,
-        c1_higher: waypoints_a[segment_a].x,
-        c2_lower: waypoints_a[segment_a + 1].y,
-        c2_higher: waypoints_a[segment_a].y
+        start_x: waypoints_a[segment_a + 1].x,
+        start_y: waypoints_a[segment_a + 1].y,
+        end_x: waypoints_a[segment_a].x,
+        end_y: waypoints_a[segment_a].y
     }
 
     let coordsDownOrDownLeftSegmentB = {
-        c1_lower: waypoints_b[segment_b + 1].x,
-        c1_higher: waypoints_b[segment_b].x,
-        c2_lower: waypoints_b[segment_b + 1].y,
-        c2_higher: waypoints_b[segment_b].y
+        start_x: waypoints_b[segment_b + 1].x,
+        start_y: waypoints_b[segment_b + 1].y,
+        end_x: waypoints_b[segment_b].x,
+        end_y: waypoints_b[segment_b].y
     }
 
     let coordsLeftOrUpLeftSegmentA = {
-        c1_lower: waypoints_a[segment_a + 1].x,
-        c1_higher: waypoints_a[segment_a].x,
-        c2_lower: waypoints_a[segment_a].y,
-        c2_higher: waypoints_a[segment_a + 1].y
+        start_x: waypoints_a[segment_a + 1].x,
+        start_y: waypoints_a[segment_a].y,
+        end_x: waypoints_a[segment_a].x,
+        end_y: waypoints_a[segment_a + 1].y
     }
 
     let coordsLeftOrUpLeftSegmentB = {
-        c1_lower: waypoints_b[segment_b + 1].x,
-        c1_higher: waypoints_b[segment_b].x,
-        c2_lower: waypoints_b[segment_b].y,
-        c2_higher: waypoints_b[segment_b + 1].y
+        start_x: waypoints_b[segment_b + 1].x,
+        start_y: waypoints_b[segment_b].y,
+        end_x: waypoints_b[segment_b].x,
+        end_y: waypoints_b[segment_b + 1].y
     }
 
 
@@ -715,7 +727,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
         [SegmentType.DownLeft, SegmentType.UpRight],
         [SegmentType.DownLeft, SegmentType.UpLeft],
         [SegmentType.DownLeft, SegmentType.Down],
-        [SegmentType.DownLeft, SegmentType.DownRight],
+        [SegmentType.DownLeft, SegmentType.DownRight]
     ]
 
     const segmentCoordinatesA = {
@@ -750,7 +762,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channelSegment_a.type.eq(ctx, segA),
                 channelSegment_b.type.eq(ctx, segB)
             ),
-            segmentSegmentNoCrossNew(ctx, coordsA, diagonalDirections.includes(segA), coordsB, diagonalDirections.includes(segB))
+            segmentSegmentNoCrossNew(ctx, coordsA, coordsB)
         );
     });
 
