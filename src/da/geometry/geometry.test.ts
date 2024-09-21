@@ -8,11 +8,9 @@ import {
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
 import {Channel} from "../channel"
-import {EncodedModule, Module, ModuleID} from "../module";
-import {Position} from "../position";
-import {Orientation} from "../orientation";
+import {EncodedModule} from "../module";
 import {Placement} from "../placement";
-import {EnumBitVec, EnumBitVecValue} from "../z3Helpers";
+import {EnumBitVecValue} from "../z3Helpers";
 
 function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
@@ -1190,29 +1188,29 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
 
 
 describe('pointSegmentDistanceDiagonal', () => {
-    async function testPointSegmentDistanceDiagonal(point: { c1: number, c2: number },
+    async function testPointSegmentDistanceDiagonal(point: { x: number, y: number },
                                                     segment: {
-                                                        start: { c1: number, c2: number },
-                                                        end: { c1: number, c2: number }
+                                                        start: { x: number, y: number },
+                                                        end: { x: number, y: number }
                                                     }, min_distance: number) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            const [pc1, pc2, ssc1, ssc2, sec1, sec2] = get_int_vars(ctx, 6)
+            const [px, py, ssx, ssy, sex, sey] = get_int_vars(ctx, 6)
             solver.add(pointSegmentDistanceDiagonal(ctx, {
-                x: pc1,
-                y: pc2
+                x: px,
+                y: py
             }, {
-                start: {x: ssc1, y: ssc2},
-                end: {x: sec1, y: sec2}
+                start: {x: ssx, y: ssy},
+                end: {x: sex, y: sey}
             }, min_distance))
-            solver.add(pc1.eq(point.c1))
-            solver.add(pc2.eq(point.c2))
-            solver.add(ssc1.eq(segment.start.c1))
-            solver.add(ssc2.eq(segment.start.c2))
-            solver.add(sec1.eq(segment.end.c1))
-            solver.add(sec2.eq(segment.end.c2))
+            solver.add(px.eq(point.x))
+            solver.add(py.eq(point.y))
+            solver.add(ssx.eq(segment.start.x))
+            solver.add(ssy.eq(segment.start.y))
+            solver.add(sex.eq(segment.end.x))
+            solver.add(sey.eq(segment.end.y))
             let check = await solver.check()
             if (check === 'sat') {
                 return true
@@ -1226,25 +1224,115 @@ describe('pointSegmentDistanceDiagonal', () => {
         }
     }
 
-    test('distance less than min_distance', async () => {
+    // Ensuring the correct distance calculation by narrowing down with the following two tests
+    test('base case #1 higher than min', async () => {
         const d = await testPointSegmentDistanceDiagonal({
-            c1: 0,
-            c2: 0
+            x: 0,
+            y: 0
         }, {
-            start: {c1: 2, c2: 0},
-            end: {c1: 0, c2: 2}
-        }, 5)
+            start: {x: 2, y: 0},
+            end: {x: 0, y: 2} // actual distance = sqrt(2) = 1,414
+        }, 1.4)
         expect(d).toBeTruthy()
     })
 
-    test('distance greater than min_distance', async () => {
+    test('base case #1 lower than min', async () => {
         const d = await testPointSegmentDistanceDiagonal({
-            c1: 0,
-            c2: 0
+            x: 0,
+            y: 0
         }, {
-            start: {c1: 2, c2: 0},
-            end: {c1: 0, c2: 2}
-        }, 1)
+            start: {x: 2, y: 0},
+            end: {x: 0, y: 2}  // actual distance = sqrt(2) = 1,414
+        }, 1.42)
+        expect(d).toBeFalsy()
+    })
+
+    // Ensuring the correct distance calculation by narrowing down with the following two tests
+    test('base case #2 higher than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 9,
+            y: 5
+        }, {
+            start: {x: 9, y: -3},
+            end: {x: -2, y: 8}  // actual distance = 4 * sqrt(2) = 5,6569
+        }, 5.656)
+        expect(d).toBeTruthy()
+    })
+
+    test('base case #2 lower than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 9,
+            y: 5
+        }, {
+            start: {x: 9, y: -3},
+            end: {x: -2, y: 8}  // actual distance = 4 * sqrt(2) = 5,6569
+        }, 5.657)
+        expect(d).toBeFalsy()
+    })
+
+    test('special case #1 no sqrt(2) multiple, higher than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 8,
+            y: 4
+        }, {
+            start: {x: 7, y: -2},
+            end: {x: -1, y: 6}  // actual distance = 3.5 * sqrt(2) = 4,9497
+        }, 4.94)
+        expect(d).toBeTruthy()
+    })
+
+    test('special case #1 no sqrt(2) multiple, lower than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 8,
+            y: 4
+        }, {
+            start: {x: 7, y: -2},
+            end: {x: -1, y: 6}  // actual distance = 3.5 * sqrt(2) = 4,9497
+        }, 4.95)
+        expect(d).toBeFalsy()
+    })
+
+    test('special case #2 sideA and sideB same length, higher than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 8,
+            y: 8
+        }, {
+            start: {x: 8, y: -2},
+            end: {x: -2, y: 8}  // actual distance = 5 * sqrt(2) = 7,0711
+        }, 7.06)
+        expect(d).toBeTruthy()
+    })
+
+    test('special case #2 sideA and sideB same length, lower than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 8,
+            y: 8
+        }, {
+            start: {x: 8, y: -2},
+            end: {x: -2, y: 8}  // actual distance = 5 * sqrt(2) = 7,0711
+        }, 7.072)
+        expect(d).toBeFalsy()
+    })
+
+    test('special case #3 A and B same length opposite signs, higher than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 4,
+            y: -2
+        }, {
+            start: {x: -4, y: -2},
+            end: {x: 4, y: 6}  // // actual distance = 4 * sqrt(2) = 5,6569
+        }, 5.656)
+        expect(d).toBeTruthy()
+    })
+
+    test('special case #3 A and B same length opposite signs, lower than min', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            x: 4,
+            y: -2
+        }, {
+            start: {x: -4, y: -2},
+            end: {x: 4, y: 6}  // actual distance = 4 * sqrt(2) = 5,6569
+        }, 5.657)
         expect(d).toBeFalsy()
     })
 })
@@ -1290,7 +1378,7 @@ describe('pointPointDistanceReal', () => {
         }
     }
 
-    test('distance less than min_distance', async () => {
+    test('actual distance greater than min_distance #1', async () => {
         const d = await testPointPointDistanceReal(
             {c1: 0, c2: 0},
             {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
@@ -1299,31 +1387,52 @@ describe('pointPointDistanceReal', () => {
         expect(d).toBeTruthy()
     })
 
-    test('distance greater than min_distance', async () => {
+    test('actual distance less than min_distance', async () => {
         const d = await testPointPointDistanceReal(
             {c1: 0, c2: 0},
             {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
-            7
+            6
         )
-        expect(d).toBeFalsy() // should return false since 5 > 4
+        expect(d).toBeFalsy()
     })
 
-    test('distance less than min_distance', async () => {
+    test('actual distance slightly greater than min_distance', async () => {
         const d = await testPointPointDistanceReal(
             {c1: 0, c2: 0},
-            {c1: 2, c2: 2}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
-            1
+            {c1: 1, c2: 1}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
+            1.40
         )
         expect(d).toBeTruthy()
     })
 
-    test('distance less than min_distance', async () => {
+    test('actual distance slightly less than than min_distance', async () => {
         const d = await testPointPointDistanceReal(
             {c1: 0, c2: 0},
-            {c1: 3, c2: 3}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
-            4
+            {c1: 1, c2: 1}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
+            1.43
+        )
+        expect(d).toBeFalsy()
+    })
+
+    test('distance equal to min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 6, c2: 8}, // distance between (0, 0) and (6, 8) = 10
+            10
         )
         expect(d).toBeTruthy()
     })
+
+    test('distance equal to float min_distance', async () => {
+        const d = await testPointPointDistanceReal(
+            {c1: 0, c2: 0},
+            {c1: 6, c2: 8}, // distance between (0, 0) and (6, 8) = 10
+            10.0
+        )
+        expect(d).toBeTruthy()
+    })
+
+
+
 })
 

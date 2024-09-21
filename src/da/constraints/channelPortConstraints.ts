@@ -16,7 +16,7 @@ export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChann
             ctx.Eq(channel.encoding.waypoints[channel.maxSegments].y, toPortPosition.y),
         )
     } else {
-        clauses.push(ctx.Bool.val(false))
+        throw 'From-port and to-Port of one channel cannot be on different sides of the chip.'
     }
     return clauses
 }
