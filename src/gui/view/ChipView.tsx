@@ -93,7 +93,7 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
     const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
     const ports = [...(props.ports ?? [])]
 
-    if (props.module.placement == 0 || props.module.placement == undefined) {
+    if (props.module.placement === 0 || props.module.placement === undefined) {
         return (
             <g>
                 <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
@@ -165,26 +165,40 @@ function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidt
     )
 }
 
-function ClampInstance(props: { module: ResultModule, placement: Placement | undefined, spacing: number, color?: string }) {
+function ClampInstance(props: { module: ResultModule | undefined, placement: Placement | undefined, spacing: number | undefined, color?: string }) {
     const strokeWidth = 500
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#6e6e6e'
 
     const strokeDashArray = "300, 300";
     const strokeDashColor = "#b8b8b8"
+    let spacing
 
-    const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+    if (!props.spacing) {
+        spacing = 1000
+    } else {
+        spacing = props.spacing
+    }
 
-    if (props.module.placement == 0 || props.module.placement == undefined) {
-        return (
-            <g>
-                <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
-            </g>
-        )
+    if (props.module) {
+        const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+        if (props.module.placement === 0 || props.module.placement === undefined) {
+
+            return (
+                <g>
+                    <rect x={props.module.results.positionX + strokeOffset - spacing} y={props.module.results.positionY + strokeOffset - spacing} width={width - strokeWidth + 2 * spacing} height={height - strokeWidth + 2 * spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
+                </g>
+            )
+        } else {
+            return (
+                <g>
+                    <rect x={props.module.results.positionX + strokeOffset - spacing} y={props.module.results.positionY + strokeOffset - spacing} width={width - strokeWidth + 2 * spacing} height={height - strokeWidth + 2 * spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
+                </g>
+            )
+        }
     } else {
         return (
             <g>
-                <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
             </g>
         )
     }

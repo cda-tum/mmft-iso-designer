@@ -11,7 +11,7 @@ import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusi
 import { encodeModuleConstraints } from "./constraints/moduleConstraints"
 import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
-import { EncodedModule, Module, ResultModule } from "./module"
+import {EncodedModule, Module, ModuleID, ResultModule} from "./module"
 import { Channel, EncodedChannel, ResultChannel } from "./channel"
 import {Clamp} from "./clamp";
 import {encodeClampConstraints} from "./constraints/clampConstraints";
@@ -73,7 +73,6 @@ class Input {
         /* Encode clamps */
         clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
 
-
         return new EncodedInput({
             ...this,
             modules,
@@ -87,12 +86,17 @@ class Input {
             throw ''
         }
 
+        // fill clamps array with a clamp for each module
+        o.modules?.forEach((c, i) => {
+            o.clamps?.push(new Clamp({ clampID: i, clampingModuleID: c.id, placement: c.placement}))
+        })
+
         return new Input({
             chip: new Chip(o.chip),
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
             routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
-            clamps: o.clamps?.map(d => new Clamp(d)) ?? []
+            clamps: o.clamps ?? []
         })
     }
 }
