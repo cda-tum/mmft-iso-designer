@@ -67,6 +67,10 @@ export function ChipView(props: { chip: Output | undefined }) {
                 {props.chip &&
                     props.chip.routingExclusions.map((e, i) => <RoutingExclusion exclusion={e}></RoutingExclusion>)
                 }
+
+                {props.chip &&
+                    props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
+                }
             </g>
         </svg>
     )
@@ -118,7 +122,6 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
             </g>
         )
     }
-
 }
 
 function Channel(props: { channel: ResultChannel, color?: string, placement?: Placement | undefined }) {
@@ -160,4 +163,29 @@ function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidt
             <rect x={props.exclusion.position.x + offset} y={props.exclusion.position.y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
         </g>
     )
+}
+
+function ClampInstance(props: { module: ResultModule, placement: Placement | undefined, spacing: number, color?: string }) {
+    const strokeWidth = 500
+    const strokeOffset = strokeWidth / 2
+    const strokeColor = '#6e6e6e'
+
+    const strokeDashArray = "300, 300";
+    const strokeDashColor = "#b8b8b8"
+
+    const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+
+    if (props.module.placement == 0 || props.module.placement == undefined) {
+        return (
+            <g>
+                <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
+            </g>
+        )
+    } else {
+        return (
+            <g>
+                <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
+            </g>
+        )
+    }
 }

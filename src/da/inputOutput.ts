@@ -13,6 +13,8 @@ import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstra
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
 import { EncodedModule, Module, ResultModule } from "./module"
 import { Channel, EncodedChannel, ResultChannel } from "./channel"
+import {Clamp} from "./clamp";
+import {encodeClampConstraints} from "./constraints/clampConstraints";
 
 export { Input, Output }
 
@@ -21,6 +23,7 @@ class Input {
     modules!: Module[]
     channels!: Channel[]
     routingExclusions!: StaticRoutingExclusion[]
+    clamps!: Clamp[]
 
     constructor(obj: Partial<Input>) {
         Object.assign(this, obj)
@@ -67,6 +70,10 @@ class Input {
         /* Encode routing exclusion zones */
         clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
+        /* Encode clamps */
+        clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
+
+
         return new EncodedInput({
             ...this,
             modules,
@@ -84,7 +91,8 @@ class Input {
             chip: new Chip(o.chip),
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
-            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? []
+            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
+            clamps: o.clamps?.map(d => new Clamp(d)) ?? []
         })
     }
 }
@@ -105,7 +113,8 @@ class EncodedInput extends Input {
             ...this,
             success: true,
             modules: this.modules.map(b => b.result(m)),
-            channels: this.channels.map(c => c.result(m))
+            channels: this.channels.map(c => c.result(m)),
+            clamps: this.clamps
         }
     }
 }
