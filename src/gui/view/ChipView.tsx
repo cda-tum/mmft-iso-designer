@@ -51,7 +51,6 @@ export function ChipView(props: { chip: Output | undefined }) {
                             const fromModule = props.chip.modules[c.from.module];
                             const toModule = props.chip.modules[c.to.module];
 
-                            let placement;
                             if (fromModule.placement === toModule.placement && fromModule.placement === Placement.Bottom) {
                                 return (
                                     <Channel channel={c} placement={Placement.Bottom} ></Channel>

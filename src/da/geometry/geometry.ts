@@ -248,9 +248,8 @@ export function vectorLength(ctx: Context, vector: { deltaX: Arith, deltaY: Arit
 
 
 // TESTED
-// Helper function for the pointSegmentDistanceDiagonal function, measuring the distance between two points
-// (not necessarily in the integer grid of the chip
-export function pointPointDistanceReal(ctx: Context, pointA: { x: Arith, y: Arith }, pointB: { x: Arith, y: Arith }, min_distance: number ) {
+// Helper function measuring the distance between two points mathematically by taking the vector length
+export function pointPointDistance(ctx: Context, pointA: { x: Arith, y: Arith }, pointB: { x: Arith, y: Arith }, min_distance: number ) {
     let pointA_x = ctx.isReal(pointA.x) ? pointA.x : ctx.ToReal(pointA.x)
     let pointA_y = ctx.isReal(pointA.y) ? pointA.y : ctx.ToReal(pointA.y)
 

@@ -9,7 +9,6 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
     /* Minimal inter-module distance */
     {
         const min_distance = Math.max(a.spacing, b.spacing)
-
             if (a.placement == b.placement) {
                 clauses.push(
                     ctx.Or(
@@ -23,8 +22,6 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
             else {
                 clauses.push(ctx.Bool.val(true))
             }
-
     }
-    
     return clauses
 }

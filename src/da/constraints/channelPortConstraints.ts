@@ -5,7 +5,7 @@ import { EncodedChannel } from "../channel";
 export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannel, fromModule: EncodedModule, toModule: EncodedModule) {
     const clauses = []
 
-    if (toModule.placement == fromModule.placement) {
+    if (toModule.placement === fromModule.placement === undefined || toModule.placement === toModule.placement) {
         const fromPortPosition = fromModule.portPosition(ctx, channel.from.port[0], channel.from.port[1])
         const toPortPosition = toModule.portPosition(ctx, channel.to.port[0], channel.to.port[1])
 

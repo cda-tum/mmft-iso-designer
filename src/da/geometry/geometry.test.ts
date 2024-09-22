@@ -1,9 +1,9 @@
-import {Arith, Bool, Context, init} from "z3-solver"
+import {Bool, Context, init} from "z3-solver"
 import {Chip} from "../chip"
 import {
     channelSegmentsNoCross,
     pointSegmentDistanceDiagonal,
-    pointPointDistanceReal,
+    pointPointDistance,
     segmentSegmentNoCrossNew
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
@@ -1349,7 +1349,7 @@ describe('pointPointDistanceReal', () => {
             const solver = new ctx.Solver()
             const [ac1, ac2, bc1, bc2] = get_int_vars(ctx, 4)
 
-            solver.add(pointPointDistanceReal(ctx, {
+            solver.add(pointPointDistance(ctx, {
                 x: ac1,
                 y: ac2
             }, {
@@ -1431,8 +1431,5 @@ describe('pointPointDistanceReal', () => {
         )
         expect(d).toBeTruthy()
     })
-
-
-
 })
 
