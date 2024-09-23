@@ -19,6 +19,14 @@ export function diagonalChannelDistance(ctx: Context, delta: Arith) {
     return ctx.Product(delta, ctx.Real.val(1.4142))
 }
 
+export function approxEqual(ctx: Context, number1: Arith, number2: Arith) {
+    // Du to the diagonal distances always being multiples of sqrt(2) or 1/2 sqrt(2) this loosens the constraint of
+    // channel length and improves performance as well as positive solver outcome without compromising requirements too much
+    const threshold = 0.99;
+    const difference = number1.sub(number2)
+    return ctx.LE(difference, threshold)
+}
+
 
 export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules: EncodedModule[]) {
     const clauses = []
@@ -275,7 +283,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                 ctx.Or(
                     //minDistanceSym(ctx, wa.x, wb.x, min_waypoint_distance),
                     //minDistanceSym(ctx, wa.y, wb.y, min_waypoint_distance)
-                    pointPointDistance(ctx, { x: wa.x, y: wa.y }, { x: wb.x, y: wb.y }, min_waypoint_distance ),
+                    pointPointDistance(ctx, {x: wa.x, y: wa.y}, {x: wb.x, y: wb.y}, min_waypoint_distance),
                 )
             )
         }))
@@ -329,7 +337,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
 
         const encodedChannelLength = ctx.isReal(channel.encoding.length) ? channel.encoding.length : ctx.ToReal(channel.encoding.length)
         clauses.push(
-            ctx.Eq(totalDistance, encodedChannelLength)
+            ctx.And(approxEqual(ctx, totalDistance, encodedChannelLength))
         )
     }
 

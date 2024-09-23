@@ -548,7 +548,6 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
     )
 }
 
-
 // TESTED
 // Helper function for the channelSegmentsNoCross function that incorporates octa-linear channel routing
 export function segmentSegmentNoCrossNew(ctx: Context, segment_a: {

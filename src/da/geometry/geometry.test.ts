@@ -17,7 +17,7 @@ function get_int_vars(ctx: Context, n: number) {
 }
 
 // Testing all possible intersections of octa-directional segments to ensure proper functionality of the segmentSegmentNoCross method
-describe('segmentSegmentNoCross', () => {
+describe('segmentSegmentNoCrossNew', () => {
     async function testSegmentSegmentNoCross(a: {
                                                  start_x: number,
                                                  start_y: number,
