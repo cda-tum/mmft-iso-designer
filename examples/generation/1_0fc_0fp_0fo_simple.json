@@ -16,8 +16,9 @@
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
+      "orientation": 1,
       "spacing": 8000,
-      "placement": 0
+      "placement": 1
     },
     {
       "width": 30000,
@@ -27,6 +28,7 @@
       "placement": 0
     }
   ],
-  "channels": [],
+  "channels": [
+  ],
   "routingExclusions": []
 }

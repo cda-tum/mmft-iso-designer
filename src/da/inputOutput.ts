@@ -71,7 +71,7 @@ class Input {
         clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
         /* Encode clamps */
-        clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
+        //clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
 
         return new EncodedInput({
             ...this,

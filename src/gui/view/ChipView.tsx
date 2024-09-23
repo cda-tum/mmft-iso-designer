@@ -81,7 +81,7 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
 
-    const strokeDashArray = "300, 300";
+    const strokeDashArray = "400, 200";
     const bottomPortDashArray = "150, 120";
     const strokeDashColor = "#87b7ff"
 
@@ -170,7 +170,7 @@ function ClampInstance(props: { module: ResultModule | undefined, placement: Pla
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#6e6e6e'
 
-    const strokeDashArray = "300, 300";
+    const strokeDashArray = "400, 200";
     const strokeDashColor = "#b8b8b8"
     let spacing
 
