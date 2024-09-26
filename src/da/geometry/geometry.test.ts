@@ -1,10 +1,7 @@
-import {Bool, Context, init} from "z3-solver"
+import {Arith, Bool, Context, init} from "z3-solver"
 import {Chip} from "../chip"
 import {
-    channelSegmentsNoCross,
-    pointSegmentDistanceDiagonal,
-    pointPointDistance,
-    segmentSegmentNoCrossNew
+    channelSegmentsNoCross, horizontalVerticalNoCross, verticalDiagonalNoCross, verticalHorizontalNoCross,
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
 import {Channel} from "../channel"
@@ -16,44 +13,38 @@ function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
 }
 
-// Testing all possible intersections of octa-directional segments to ensure proper functionality of the segmentSegmentNoCross method
-describe('segmentSegmentNoCrossNew', () => {
-    async function testSegmentSegmentNoCross(a: {
-                                                 start_x: number,
-                                                 start_y: number,
-                                                 end_x: number,
-                                                 end_y: number
-                                             },
-                                             b: {
-                                                 start_x: number,
-                                                 start_y: number,
-                                                 end_x: number,
-                                                 end_y: number
-                                             }) {
+
+describe('verticalHorizontalNoCross', () => {
+    async function testVerticalHorizontalNoCross(a: {
+                                                     c1: number,
+                                                     c2_lower: number,
+                                                     c2_higher: number
+                                                 },
+                                                 b: {
+                                                     c1_lower: number,
+                                                     c1_higher: number,
+                                                     c2: number,
+                                                 }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            const [ax1, ay1, ax2, ay2, bx1, by1, bx2, by2] = get_int_vars(ctx, 8)
-            solver.add(segmentSegmentNoCrossNew(ctx, {
-                start_x: ax1,
-                start_y: ay1,
-                end_x: ax2,
-                end_y: ay2
+            const [ac1, ac2l, ac2h, bc1l, bc1h, bc2] = get_int_vars(ctx, 6)
+            solver.add(verticalHorizontalNoCross(ctx, {
+                c1: ac1,
+                c2_lower: ac2l,
+                c2_higher: ac2h
             }, {
-                start_x: bx1,
-                start_y: by1,
-                end_x: bx2,
-                end_y: by2
+                c1_lower: bc1l,
+                c1_higher: bc1h,
+                c2: bc2,
             }))
-            solver.add(ax1.eq(a.start_x))
-            solver.add(ay1.eq(a.start_y))
-            solver.add(ax2.eq(a.end_x))
-            solver.add(ay2.eq(a.end_y))
-            solver.add(bx1.eq(b.start_x))
-            solver.add(by1.eq(b.start_y))
-            solver.add(bx2.eq(b.end_x))
-            solver.add(by2.eq(b.end_y))
+            solver.add(ac1.eq(a.c1))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2.eq(b.c2))
             let check = await solver.check()
             if (check === 'sat') {
                 return true
@@ -68,763 +59,285 @@ describe('segmentSegmentNoCrossNew', () => {
     }
 
 
-    test('up-right intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
+    test('#1 vertical-horizontal intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
         }, {
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
+            c1_lower: -5,
+            c1_higher: 5,
+            c2: 5,
         })
         expect(d).toBeFalsy()
     })
 
-    test('up-left intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
+    test('#2 vertical-horizontal intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 2,
+            c2_lower: 3,
+            c2_higher: 10
         }, {
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
+            c1_lower: 1,
+            c1_higher: 6,
+            c2: 4,
         })
         expect(d).toBeFalsy()
     })
 
-    test('up-upright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
+    test('#3 vertical-horizontal no intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
         }, {
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('up-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('up-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('up-downleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-right intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-left intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-upright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('down-downleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-up intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-down intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-upright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-downleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-up intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-down intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-upright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('left-downleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-up intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-down intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-left intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upright-right intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        }, {
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-up intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-down intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-left intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-downleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-upright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: -5,
-            start_y: 0,
-            end_x: 5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('upleft-right intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        }, {
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-up intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-down intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: 0,
-            start_y: 10,
-            end_x: 0,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-left intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 5,
-            end_x: -5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-upleft intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: 5,
-            start_y: 0,
-            end_x: -5,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-downright intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: -5,
-            start_y: 10,
-            end_x: 5,
-            end_y: 0
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('downleft-right intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 5,
-            start_y: 10,
-            end_x: -5,
-            end_y: 0
-        }, {
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-
-    // Edge case tests for no intersections
-
-    test('up-up aligned with no gap intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 5,
-            end_x: 0,
-            end_y: 10
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('right-right aligned with no gap intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 0,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
-        })
-        expect(d).toBeFalsy()
-    })
-
-
-    // Edge case tests without intersections to check if the method is just strict enough but detects non-intersections
-
-    test('up-right no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 10,
-            start_y: -5,
-            end_x: 10,
-            end_y: 5
-        }, {
-            start_x: 0,
-            start_y: 0,
-            end_x: 9,
-            end_y: 0
+            c1_lower: 1,
+            c1_higher: 10,
+            c2: 4,
         })
         expect(d).toBeTruthy()
     })
 
-    test('down-left no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: -10
+    test('#4 vertical-horizontal no intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
         }, {
-            start_x: 5,
-            start_y: 1,
-            end_x: -5,
-            end_y: 1
+            c1_lower: -5,
+            c1_higher: 5,
+            c2: 0,
         })
         expect(d).toBeTruthy()
     })
 
-    test('upright-downleft no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -4,
-            start_y: -3,
-            end_x: 2,
-            end_y: 3
+    test('#5 vertical-horizontal no intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 2,
+            c2_lower: -4,
+            c2_higher: 8
         }, {
-            start_x: 4,
-            start_y: 3,
-            end_x: -2,
-            end_y: -3
+            c1_lower: -5,
+            c1_higher: 2,
+            c2: 3,
         })
         expect(d).toBeTruthy()
     })
 
-    test('right-right parallel no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: -5,
-            start_y: 5,
-            end_x: 5,
-            end_y: 5
+    test('#6 vertical-horizontal no intersection', async () => {
+        const d = await testVerticalHorizontalNoCross({
+            c1: 2,
+            c2_lower: -4,
+            c2_higher: 8
         }, {
-            start_x: -5,
-            start_y: 3,
-            end_x: -5,
-            end_y: 3
+            c1_lower: -2,
+            c1_higher: 7,
+            c2: 8,
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('horizontalVerticalNoCross', () => {
+    async function testHorizontalVerticalNoCross(a: {
+                                                     c1_lower: number,
+                                                     c1_higher: number,
+                                                     c2: number,
+
+                                                 },
+                                                 b: {
+                                                     c1: number,
+                                                     c2_lower: number,
+                                                     c2_higher: number
+                                                 }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1l, ac1h, ac2, bc1, bc2l, bc2h] = get_int_vars(ctx, 6)
+            solver.add(horizontalVerticalNoCross(ctx, {
+                c1_lower: ac1l,
+                c1_higher: ac1h,
+                c2: ac2
+            }, {
+                c1: bc1,
+                c2_lower: bc2l,
+                c2_higher: bc2h,
+            }))
+            solver.add(ac1l.eq(a.c1_lower))
+            solver.add(ac1h.eq(a.c1_higher))
+            solver.add(ac2.eq(a.c2))
+            solver.add(bc1.eq(b.c1))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+
+    test('#1 horizontal-vertical intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: -3,
+            c1_higher: 3,
+            c2: 5,
+        }, {
+            c1: 1,
+            c2_lower: -1,
+            c2_higher: 8
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 horizontal-vertical intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 5,
+            c2: 5,
+        }, {
+            c1: 1,
+            c2_lower: 4,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 horizontal-vertical no intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 7,
+            c2: 7,
+        }, {
+            c1: 3,
+            c2_lower: -2,
+            c2_higher: 7
         })
         expect(d).toBeTruthy()
     })
 
-    test('up-left no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 5
+    test('#4 horizontal-vertical no intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 10,
         }, {
-            start_x: 5,
-            start_y: 6,
-            end_x: -5,
-            end_y: 6
+            c1: 5,
+            c2_lower: 0,
+            c2_higher: 8
         })
         expect(d).toBeTruthy()
     })
 
-    test('up-up aligned with gap no intersection', async () => {
-        const d = await testSegmentSegmentNoCross({
-            start_x: 0,
-            start_y: 0,
-            end_x: 0,
-            end_y: 5
+    test('#5 horizontal-vertical no intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5,
         }, {
-            start_x: 0,
-            start_y: 6,
-            end_x: 0,
-            end_y: 10
+            c1: 5,
+            c2_lower: 5,
+            c2_higher: 10
         })
         expect(d).toBeTruthy()
     })
 
+    test('#6 horizontal-vertical no intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5,
+        }, {
+            c1: 10,
+            c2_lower: -2,
+            c2_higher: 8
+        })
+        expect(d).toBeTruthy()
+    })
 
+    test('#7 horizontal-vertical no intersection', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5,
+        }, {
+            c1: 0,
+            c2_lower: -2,
+            c2_higher: 8
+        })
+        expect(d).toBeTruthy()
+    })
+
+})
+
+describe('verticalDiagonalNoCross', () => {
+    async function testVerticalDiagonalNoCross(a: {
+                                                     c1: number,
+                                                     c2_lower: number,
+                                                     c2_higher: number
+                                                 },
+                                                 b: {
+                                                     c1_lower: number,
+                                                     c2_lower: number,
+                                                     c1_higher: number,
+                                                     c2_higher: number
+                                                 }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1, ac2l, ac2h, bc1l, bc1h, bc2l, bc2h] = get_int_vars(ctx, 7)
+            solver.add(verticalDiagonalNoCross(ctx, {
+                c1: ac1,
+                c2_lower: ac2l,
+                c2_higher: ac2h
+            }, {
+                c1_lower: bc1l,
+                c2_lower: bc1h,
+                c1_higher: bc2l,
+                c2_higher: bc2h
+            }))
+            solver.add(ac1.eq(a.c1))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+
+    test('#1 vertical-horizontal intersection', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
+        }, {
+            c1_lower: -5,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
 
 })
 
@@ -880,7 +393,7 @@ describe('channelSegmentsNoCrossSameSide', () => {
                 positionX: 0,
                 positionY: 0,
                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-                placement: new EnumBitVecValue(ctx, "placement", 1),
+                placement: new EnumBitVecValue(ctx, "placement", 0),
                 clauses: clauses
             }
             const moduleProps0 = {
@@ -924,6 +437,7 @@ describe('channelSegmentsNoCrossSameSide', () => {
             solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
             solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
             solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
+
             let check1 = await solver.check()
             let sat1;
             if (check1 === 'sat') {
@@ -931,7 +445,7 @@ describe('channelSegmentsNoCrossSameSide', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
@@ -954,11 +468,14 @@ describe('channelSegmentsNoCrossSameSide', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#2', async () => {
+
+    // test case with same values in test "right-up intersection" passes
+    // still to be determined what's wrong here
+    test('#2 up-right intersection', async () => {
         const d = await testChannelSegmentsNoCross({
-            x1: 0, y1: 0, x2: 10, y2: 0,
+            x1: 0, y1: 0, x2: 0, y2: 10,
         }, {
-            x1: 5, y1: -5, x2: 5, y2: 5,
+            x1: -5, y1: 5, x2: 5, y2: 5,
         })
         expect(d).toBeFalsy()
     })
@@ -1153,7 +670,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
@@ -1187,180 +704,22 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
 })
 
 
-describe('pointSegmentDistanceDiagonal', () => {
-    async function testPointSegmentDistanceDiagonal(point: { x: number, y: number },
-                                                    segment: {
-                                                        start: { x: number, y: number },
-                                                        end: { x: number, y: number }
-                                                    }, min_distance: number) {
+describe('pointPointMinDistanceDiagonal', () => {
+    async function testPointPointMinDistance(pointA: { x: number, y: number }, pointB: {
+        x: number,
+        y: number
+    }, minDistance: number) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            const [px, py, ssx, ssy, sex, sey] = get_int_vars(ctx, 6)
-            solver.add(pointSegmentDistanceDiagonal(ctx, {
-                x: px,
-                y: py
-            }, {
-                start: {x: ssx, y: ssy},
-                end: {x: sex, y: sey}
-            }, min_distance))
-            solver.add(px.eq(point.x))
-            solver.add(py.eq(point.y))
-            solver.add(ssx.eq(segment.start.x))
-            solver.add(ssy.eq(segment.start.y))
-            solver.add(sex.eq(segment.end.x))
-            solver.add(sey.eq(segment.end.y))
-            let check = await solver.check()
-            if (check === 'sat') {
-                return true
-            } else {
-                return false
-            }
-        } catch (e) {
-            console.error('error', e);
-        } finally {
-            em.PThread.terminateAllThreads();
-        }
-    }
+            const [ax, ay, bx, by] = get_int_vars(ctx, 4)
 
-    // Ensuring the correct distance calculation by narrowing down with the following two tests
-    test('base case #1 higher than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 0,
-            y: 0
-        }, {
-            start: {x: 2, y: 0},
-            end: {x: 0, y: 2} // actual distance = sqrt(2) = 1,414
-        }, 1.4)
-        expect(d).toBeTruthy()
-    })
-
-    test('base case #1 lower than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 0,
-            y: 0
-        }, {
-            start: {x: 2, y: 0},
-            end: {x: 0, y: 2}  // actual distance = sqrt(2) = 1,414
-        }, 1.42)
-        expect(d).toBeFalsy()
-    })
-
-    // Ensuring the correct distance calculation by narrowing down with the following two tests
-    test('base case #2 higher than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 9,
-            y: 5
-        }, {
-            start: {x: 9, y: -3},
-            end: {x: -2, y: 8}  // actual distance = 4 * sqrt(2) = 5,6569
-        }, 5.656)
-        expect(d).toBeTruthy()
-    })
-
-    test('base case #2 lower than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 9,
-            y: 5
-        }, {
-            start: {x: 9, y: -3},
-            end: {x: -2, y: 8}  // actual distance = 4 * sqrt(2) = 5,6569
-        }, 5.657)
-        expect(d).toBeFalsy()
-    })
-
-    test('special case #1 no sqrt(2) multiple, higher than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 8,
-            y: 4
-        }, {
-            start: {x: 7, y: -2},
-            end: {x: -1, y: 6}  // actual distance = 3.5 * sqrt(2) = 4,9497
-        }, 4.94)
-        expect(d).toBeTruthy()
-    })
-
-    test('special case #1 no sqrt(2) multiple, lower than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 8,
-            y: 4
-        }, {
-            start: {x: 7, y: -2},
-            end: {x: -1, y: 6}  // actual distance = 3.5 * sqrt(2) = 4,9497
-        }, 4.95)
-        expect(d).toBeFalsy()
-    })
-
-    test('special case #2 sideA and sideB same length, higher than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 8,
-            y: 8
-        }, {
-            start: {x: 8, y: -2},
-            end: {x: -2, y: 8}  // actual distance = 5 * sqrt(2) = 7,0711
-        }, 7.06)
-        expect(d).toBeTruthy()
-    })
-
-    test('special case #2 sideA and sideB same length, lower than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 8,
-            y: 8
-        }, {
-            start: {x: 8, y: -2},
-            end: {x: -2, y: 8}  // actual distance = 5 * sqrt(2) = 7,0711
-        }, 7.072)
-        expect(d).toBeFalsy()
-    })
-
-    test('special case #3 A and B same length opposite signs, higher than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 4,
-            y: -2
-        }, {
-            start: {x: -4, y: -2},
-            end: {x: 4, y: 6}  // // actual distance = 4 * sqrt(2) = 5,6569
-        }, 5.656)
-        expect(d).toBeTruthy()
-    })
-
-    test('special case #3 A and B same length opposite signs, lower than min', async () => {
-        const d = await testPointSegmentDistanceDiagonal({
-            x: 4,
-            y: -2
-        }, {
-            start: {x: -4, y: -2},
-            end: {x: 4, y: 6}  // actual distance = 4 * sqrt(2) = 5,6569
-        }, 5.657)
-        expect(d).toBeFalsy()
-    })
-})
-
-
-describe('pointPointDistanceReal', () => {
-    async function testPointPointDistanceReal(a: { c1: number, c2: number }, b: {
-        c1: number,
-        c2: number
-    }, min_distance: number) {
-        const {Context, em} = await init()
-        const ctx = Context('main')
-        try {
-            const solver = new ctx.Solver()
-            const [ac1, ac2, bc1, bc2] = get_int_vars(ctx, 4)
-
-            solver.add(pointPointDistance(ctx, {
-                x: ac1,
-                y: ac2
-            }, {
-                x: bc1,
-                y: bc2
-            }, min_distance))
-
-            solver.add(ac1.eq(a.c1))
-            solver.add(ac2.eq(a.c2))
-            solver.add(bc1.eq(b.c1))
-            solver.add(bc2.eq(b.c2))
+            //solver.add(pointPointMinDistanceDiagonal(ctx, { x: ax, y: ay } , { x: bx, y: by } , minDistance))
+            solver.add(ax.eq(pointA.x))
+            solver.add(ay.eq(pointA.y))
+            solver.add(bx.eq(pointB.x))
+            solver.add(by.eq(pointB.y))
 
             let check = await solver.check()
             if (check === 'sat') {
@@ -1378,58 +737,57 @@ describe('pointPointDistanceReal', () => {
         }
     }
 
-    test('actual distance greater than min_distance #1', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
-            4
+    test('base case zero #1', async () => {
+        const d = await testPointPointMinDistance(
+            {x: 0, y: 0},
+            {x: 0, y: 0}, // actual distance = 0
+            0
         )
         expect(d).toBeTruthy()
     })
 
-    test('actual distance less than min_distance', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 3, c2: 4}, // distance between (0, 0) and (3, 4) is 5
-            6
+    test('base case same point #2', async () => {
+        const d = await testPointPointMinDistance(
+            {x: 3, y: 4},
+            {x: 3, y: 4}, // actual distance = 0
+            0
+        )
+        expect(d).toBeTruthy()
+    })
+
+    test('normal case #1', async () => {
+        const d = await testPointPointMinDistance(
+            {x: 0, y: 0},
+            {x: 4, y: 4}, // actual distance = 8
+            8
+        )
+        expect(d).toBeTruthy()
+    })
+
+    test('normal case #1', async () => {
+        const d = await testPointPointMinDistance(
+            {x: 0, y: 0},
+            {x: 4, y: 4}, // actual distance = 8
+            7
+        )
+        expect(d).toBeTruthy()
+    })
+
+    test('normal case #2', async () => {
+        const d = await testPointPointMinDistance(
+            {x: 0, y: 0},
+            {x: 5, y: 5}, // actual distance = 10
+            11
         )
         expect(d).toBeFalsy()
     })
 
-    test('actual distance slightly greater than min_distance', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 1, c2: 1}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
-            1.40
-        )
-        expect(d).toBeTruthy()
-    })
-
-    test('actual distance slightly less than than min_distance', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 1, c2: 1}, // distance between (0, 0) and (1, 1) sqrt(2) = 1,414
-            1.43
-        )
-        expect(d).toBeFalsy()
-    })
-
-    test('distance equal to min_distance', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 6, c2: 8}, // distance between (0, 0) and (6, 8) = 10
-            10
-        )
-        expect(d).toBeTruthy()
-    })
-
-    test('distance equal to float min_distance', async () => {
-        const d = await testPointPointDistanceReal(
-            {c1: 0, c2: 0},
-            {c1: 6, c2: 8}, // distance between (0, 0) and (6, 8) = 10
-            10.0
+    test('normal case #3', async () => {
+        const d = await testPointPointMinDistance(
+            {x: -1, y: 2},
+            {x: 4, y: -3}, // actual distance = 10
+            9
         )
         expect(d).toBeTruthy()
     })
 })
-

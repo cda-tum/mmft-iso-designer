@@ -48,6 +48,46 @@
       },
       "maxSegments": 3,
       "length": 88500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          0,
+          5
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          0,
+          5
+        ]
+      },
+      "maxSegments": 3,
+      "length": 88500
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          6,
+          2
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          4,
+          5
+        ]
+      },
+      "maxSegments": 5,
+      "length": 88500
     }
   ],
   "routingExclusions": []

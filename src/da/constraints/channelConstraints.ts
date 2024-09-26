@@ -4,28 +4,10 @@ import {EncodedChannel, SegmentType} from "../channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
 import {
     channelSegmentsNoCross,
-    minDistanceAsym,
-    minDistanceSym,
-    pointPointDistance,
+    minDistanceAsym, minDistanceSym,
     waypointSegmentDistance
 } from "../geometry/geometry";
 import {EncodedModule} from "../module";
-
-
-export function diagonalChannelDistance(ctx: Context, delta: Arith) {
-    // Calculate distance according to simplified distance function (dist = delta * sqrt(2))
-    // with delta = delta_x = delta_y (because only 45-angled diagonals exist)
-    delta = ctx.isReal(delta) ? delta : ctx.ToReal(delta)
-    return ctx.Product(delta, ctx.Real.val(1.4142))
-}
-
-export function approxEqual(ctx: Context, number1: Arith, number2: Arith) {
-    // Du to the diagonal distances always being multiples of sqrt(2) or 1/2 sqrt(2) this loosens the constraint of
-    // channel length and improves performance as well as positive solver outcome without compromising requirements too much
-    const threshold = 0.99;
-    const difference = number1.sub(number2)
-    return ctx.LE(difference, threshold)
-}
 
 
 export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules: EncodedModule[]) {
@@ -111,7 +93,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                 ctx.GT(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i + 1].y),
                                 ctx.Eq(
                                     ctx.Sub(channel.encoding.waypoints[i + 1].x, channel.encoding.waypoints[i].x),
-                                    ctx.Sub(channel.encoding.waypoints[i + 1].y, channel.encoding.waypoints[i].y)
+                                    ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i + 1].y)
                                 )
                             )
                         ),
@@ -121,7 +103,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                 ctx.GT(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i + 1].x),
                                 ctx.LT(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i + 1].y),
                                 ctx.Eq(
-                                    ctx.Sub(channel.encoding.waypoints[i + 1].x, channel.encoding.waypoints[i].x),
+                                    ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i + 1].x),
                                     ctx.Sub(channel.encoding.waypoints[i + 1].y, channel.encoding.waypoints[i].y)
                                 )
                             )
@@ -132,8 +114,8 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                 ctx.GT(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i + 1].x),
                                 ctx.GT(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i + 1].y),
                                 ctx.Eq(
-                                    ctx.Sub(channel.encoding.waypoints[i + 1].x, channel.encoding.waypoints[i].x),
-                                    ctx.Sub(channel.encoding.waypoints[i + 1].y, channel.encoding.waypoints[i].y)
+                                    ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i + 1].x),
+                                    ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i + 1].y)
                                 )
                             )
                         )
@@ -268,11 +250,12 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                     channel.encoding.segments[ia].active,
                     channel.encoding.segments[ib].active
                 ),
-                channelSegmentsNoCross(ctx, channel, ia, channel, ib, modules)
+                channelSegmentsNoCross(ctx, channel, ia, channel, ib)
             )
         }))
     }
 
+    /* Specify waypoint distance to other waypoints of this channel */
     /* Specify waypoint distance to other waypoints of this channel */
     {
         const min_waypoint_distance = Math.ceil(channel.width + channel.spacing)
@@ -281,9 +264,8 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
             return ctx.Implies(
                 channel.encoding.segments[s].active,
                 ctx.Or(
-                    //minDistanceSym(ctx, wa.x, wb.x, min_waypoint_distance),
-                    //minDistanceSym(ctx, wa.y, wb.y, min_waypoint_distance)
-                    pointPointDistance(ctx, {x: wa.x, y: wa.y}, {x: wb.x, y: wb.y}, min_waypoint_distance),
+                    minDistanceSym(ctx, wa.x, wb.x, min_waypoint_distance),
+                    minDistanceSym(ctx, wa.y, wb.y, min_waypoint_distance)
                 )
             )
         }))
@@ -306,38 +288,32 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
 
     /* Channel length */
     {
-        let totalDistance = ctx.Sum(
-            ctx.Real.val(0),
-            ...[
-                ...[...Array(channel.maxSegments).keys()].slice(1).map(i =>
-                    ctx.If(
-                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Up),
-                        ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y),
+        clauses.push(
+            ctx.Eq(
+                ctx.Sum(
+                    ctx.Int.val(0),
+                    ...[...Array(channel.maxSegments).keys()].slice(1).map(i =>
                         ctx.If(
-                            channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Right),
-                            ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i - 1].x),
+                            channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Up),
+                            ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y),
                             ctx.If(
-                                channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Down),
+                                channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Right),
                                 ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y),
                                 ctx.If(
                                     channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Left),
                                     ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),
                                     ctx.If(
                                         ctx.Or(channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight), channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft)),
-                                        diagonalChannelDistance(ctx, ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y)),
-                                        diagonalChannelDistance(ctx, ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y))
+                                        // Manhattan distance manually -> for diagonal segments it delta_x and delta_y is the same -> double that is the Manhattan distance
+                                        ctx.Sum(channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y), channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y)),
+                                        ctx.Sum(channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y), channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y))
                                     )
                                 )
                             )
                         )
-                    )
-                )
-            ]
-        )
-
-        const encodedChannelLength = ctx.isReal(channel.encoding.length) ? channel.encoding.length : ctx.ToReal(channel.encoding.length)
-        clauses.push(
-            ctx.And(approxEqual(ctx, totalDistance, encodedChannelLength))
+                    )),
+                channel.encoding.length
+            )
         )
     }
 
