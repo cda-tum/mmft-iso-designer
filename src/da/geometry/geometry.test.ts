@@ -1,7 +1,11 @@
 import {Arith, Bool, Context, init} from "z3-solver"
 import {Chip} from "../chip"
 import {
-    channelSegmentsNoCross, horizontalVerticalNoCross, verticalDiagonalNoCross, verticalHorizontalNoCross,
+    channelSegmentsNoCross, diagonalDiagonalNoCross, diagonalHorizontalNoCross, diagonalVerticalNoCross,
+    horizontalDiagonalNoCross,
+    horizontalVerticalNoCross,
+    verticalDiagonalNoCross,
+    verticalHorizontalNoCross,
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
 import {Channel} from "../channel"
@@ -59,7 +63,7 @@ describe('verticalHorizontalNoCross', () => {
     }
 
 
-    test('#1 vertical-horizontal intersection', async () => {
+    test('#1 vertical-horizontal cross', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 0,
             c2_lower: 0,
@@ -72,7 +76,7 @@ describe('verticalHorizontalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#2 vertical-horizontal intersection', async () => {
+    test('#2 vertical-horizontal cross', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 2,
             c2_lower: 3,
@@ -85,7 +89,7 @@ describe('verticalHorizontalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#3 vertical-horizontal no intersection', async () => {
+    test('#3 vertical-horizontal no cross B right', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 0,
             c2_lower: 0,
@@ -98,7 +102,7 @@ describe('verticalHorizontalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#4 vertical-horizontal no intersection', async () => {
+    test('#4 vertical-horizontal no cross B below', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 0,
             c2_lower: 0,
@@ -111,7 +115,7 @@ describe('verticalHorizontalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#5 vertical-horizontal no intersection', async () => {
+    test('#5 vertical-horizontal no intersection B left', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 2,
             c2_lower: -4,
@@ -124,7 +128,7 @@ describe('verticalHorizontalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#6 vertical-horizontal no intersection', async () => {
+    test('#6 vertical-horizontal no intersection B above', async () => {
         const d = await testVerticalHorizontalNoCross({
             c1: 2,
             c2_lower: -4,
@@ -184,7 +188,7 @@ describe('horizontalVerticalNoCross', () => {
     }
 
 
-    test('#1 horizontal-vertical intersection', async () => {
+    test('#1 horizontal-vertical cross', async () => {
         const d = await testHorizontalVerticalNoCross({
             c1_lower: -3,
             c1_higher: 3,
@@ -197,7 +201,7 @@ describe('horizontalVerticalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#2 horizontal-vertical intersection', async () => {
+    test('#2 horizontal-vertical cross', async () => {
         const d = await testHorizontalVerticalNoCross({
             c1_lower: 0,
             c1_higher: 5,
@@ -210,46 +214,7 @@ describe('horizontalVerticalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#3 horizontal-vertical no intersection', async () => {
-        const d = await testHorizontalVerticalNoCross({
-            c1_lower: 0,
-            c1_higher: 7,
-            c2: 7,
-        }, {
-            c1: 3,
-            c2_lower: -2,
-            c2_higher: 7
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#4 horizontal-vertical no intersection', async () => {
-        const d = await testHorizontalVerticalNoCross({
-            c1_lower: 0,
-            c1_higher: 10,
-            c2: 10,
-        }, {
-            c1: 5,
-            c2_lower: 0,
-            c2_higher: 8
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#5 horizontal-vertical no intersection', async () => {
-        const d = await testHorizontalVerticalNoCross({
-            c1_lower: 0,
-            c1_higher: 10,
-            c2: 5,
-        }, {
-            c1: 5,
-            c2_lower: 5,
-            c2_higher: 10
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#6 horizontal-vertical no intersection', async () => {
+    test('#3 horizontal-vertical no cross B right', async () => {
         const d = await testHorizontalVerticalNoCross({
             c1_lower: 0,
             c1_higher: 10,
@@ -262,7 +227,20 @@ describe('horizontalVerticalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#7 horizontal-vertical no intersection', async () => {
+    test('#4 horizontal-vertical no cross B below', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 7,
+            c2: 7,
+        }, {
+            c1: 3,
+            c2_lower: -2,
+            c2_higher: 7
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 horizontal-vertical no cross B left', async () => {
         const d = await testHorizontalVerticalNoCross({
             c1_lower: 0,
             c1_higher: 10,
@@ -275,20 +253,32 @@ describe('horizontalVerticalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
+    test('#6 horizontal-vertical no cross B above', async () => {
+        const d = await testHorizontalVerticalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5,
+        }, {
+            c1: 5,
+            c2_lower: 5,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
 })
 
 describe('verticalDiagonalNoCross', () => {
     async function testVerticalDiagonalNoCross(a: {
-                                                     c1: number,
-                                                     c2_lower: number,
-                                                     c2_higher: number
-                                                 },
-                                                 b: {
-                                                     c1_lower: number,
-                                                     c2_lower: number,
-                                                     c1_higher: number,
-                                                     c2_higher: number
-                                                 }) {
+                                                   c1: number,
+                                                   c2_lower: number,
+                                                   c2_higher: number
+                                               },
+                                               b: {
+                                                   c1_lower: number,
+                                                   c2_lower: number,
+                                                   c1_higher: number,
+                                                   c2_higher: number
+                                               }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
@@ -300,8 +290,8 @@ describe('verticalDiagonalNoCross', () => {
                 c2_higher: ac2h
             }, {
                 c1_lower: bc1l,
-                c2_lower: bc1h,
-                c1_higher: bc2l,
+                c2_lower: bc2l,
+                c1_higher: bc1h,
                 c2_higher: bc2h
             }))
             solver.add(ac1.eq(a.c1))
@@ -325,20 +315,643 @@ describe('verticalDiagonalNoCross', () => {
     }
 
 
-    test('#1 vertical-horizontal intersection', async () => {
+    test('#1 vertical-diagonal cross', async () => {
         const d = await testVerticalDiagonalNoCross({
-            c1: 0,
+            c1: 5,
             c2_lower: 0,
             c2_higher: 10
         }, {
-            c1_lower: -5,
+            c1_lower: 0,
             c2_lower: 0,
-            c1_higher: 5,
+            c1_higher: 10,
             c2_higher: 10
         })
         expect(d).toBeFalsy()
     })
 
+    test('#2 vertical-diagonal cross', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 100,
+            c2_lower: 0,
+            c2_higher: 170
+        }, {
+            c1_lower: -20,
+            c2_lower: 20,
+            c1_higher: 120,
+            c2_higher: 160
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 vertical-diagonal no cross B right', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 15,
+            c2_lower: 0,
+            c2_higher: 20
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 15,
+            c2_higher: 15
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 vertical-diagonal no cross B below', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 5,
+            c2_lower: 5,
+            c2_higher: 20
+        }, {
+            c1_lower: 0,
+            c2_lower: 10,
+            c1_higher: -5,
+            c2_higher: 5
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#% vertical-diagonal no cross B left', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 20
+        }, {
+            c1_lower: -20,
+            c2_lower: 0,
+            c1_higher: 0,
+            c2_higher: 20
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#& vertical-diagonal no cross B above', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
+        }, {
+            c1_lower: -10,
+            c2_lower: 10,
+            c1_higher: 10,
+            c2_higher: 30
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('horizontalDiagonalNoCross', () => {
+    async function testHorizontalDiagonalNoCross(a: {
+                                                     c1_lower: number,
+                                                     c1_higher: number,
+                                                     c2: number
+                                                 },
+                                                 b: {
+                                                     c1_lower: number,
+                                                     c2_lower: number,
+                                                     c1_higher: number,
+                                                     c2_higher: number
+                                                 }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1l, ac1h, ac2, bc1l, bc1h, bc2l, bc2h] = get_int_vars(ctx, 7)
+            solver.add(horizontalDiagonalNoCross(ctx, {
+                c1_lower: ac1l,
+                c1_higher: ac1h,
+                c2: ac2
+            }, {
+                c1_lower: bc1l,
+                c2_lower: bc2l,
+                c1_higher: bc1h,
+                c2_higher: bc2h
+            }))
+            solver.add(ac1l.eq(a.c1_lower))
+            solver.add(ac1h.eq(a.c1_higher))
+            solver.add(ac2.eq(a.c2))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+
+    test('#1 horizontal-diagonal cross', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 horizontal-diagonal cross', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: -1,
+            c1_higher: 2,
+            c2_higher: 1
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 horizontal-diagonal no cross B right', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 0,
+            c1_higher: 5,
+            c2: 0
+        }, {
+            c1_lower: 5,
+            c2_lower: -5,
+            c1_higher: 15,
+            c2_higher: 5
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 horizontal-diagonal no cross B below', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 0,
+            c1_higher: 5,
+            c2: 0
+        }, {
+            c1_lower: 5,
+            c2_lower: -5,
+            c1_higher: 10,
+            c2_higher: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 horizontal-diagonal no cross B left', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 5,
+            c1_higher: 10,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#6 horizontal-diagonal no cross B above', async () => {
+        const d = await testHorizontalDiagonalNoCross({
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5
+        }, {
+            c1_lower: 0,
+            c2_lower: 5,
+            c1_higher: 5,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('diagonalVerticalNoCross', () => {
+    async function testDiagonalVerticalNoCross(a: {
+                                                          c1_lower: number,
+                                                          c2_lower: number,
+                                                          c1_higher: number,
+                                                          c2_higher: number
+                                                      },
+                                                      b: {
+                                                          c1: number,
+                                                          c2_lower: number,
+                                                          c2_higher: number
+                                                      }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1l, ac1h, ac2l, ac2h, bc1, bc2l, bc2h] = get_int_vars(ctx, 7)
+            solver.add(diagonalVerticalNoCross(ctx, {
+                c1_lower: ac1l,
+                c2_lower: ac2l,
+                c1_higher: ac1h,
+                c2_higher: ac2h
+            }, {
+                c1: bc1,
+                c2_lower: bc2l,
+                c2_higher: bc2h
+            }))
+            solver.add(ac1l.eq(a.c1_lower))
+            solver.add(ac1h.eq(a.c1_higher))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1.eq(b.c1))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('#1 diagonal-vertical cross', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1: 5,
+            c2_lower: 0,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 diagonal-vertical cross', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1: 0,
+            c2_lower: -5,
+            c2_higher: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 diagonal-vertical no cross B right', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1: 5,
+            c2_lower: -5,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 diagonal-vertical no cross B below', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1: 3,
+            c2_lower: -10,
+            c2_higher: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 diagonal-vertical no cross B left', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1: 0,
+            c2_lower: -1,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#6 diagonal-vertical no cross B above', async () => {
+        const d = await testDiagonalVerticalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1: 5,
+            c2_lower: 10,
+            c2_higher: 20
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('diagonalHorizontalNoCross', () => {
+    async function testDiagonalHorizontalNoCross(a: {
+                                                          c1_lower: number,
+                                                          c2_lower: number,
+                                                          c1_higher: number,
+                                                          c2_higher: number
+                                                      },
+                                                      b: {
+                                                          c1_lower: number,
+                                                          c1_higher: number,
+                                                          c2: number
+                                                      }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1l, ac1h, ac2l, ac2h, bc1l, bc1h, bc2] = get_int_vars(ctx, 7)
+            solver.add(diagonalHorizontalNoCross(ctx, {
+                c1_lower: ac1l,
+                c2_lower: ac2l,
+                c1_higher: ac1h,
+                c2_higher: ac2h
+            }, {
+                c1_lower: bc1l,
+                c1_higher: bc1h,
+                c2: bc2
+            }))
+            solver.add(ac1l.eq(a.c1_lower))
+            solver.add(ac1h.eq(a.c1_higher))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2.eq(b.c2))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('#1 diagonal-horizontal cross', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: 0,
+            c1_higher: 10,
+            c2: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 diagonal-horizontal cross', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: -10,
+            c2_lower: -10,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: -10,
+            c1_higher: 10,
+            c2: 9
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 diagonal-horizontal no cross B right', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: -10,
+            c2_lower: -10,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: 10,
+            c1_higher: 15,
+            c2: 9
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 diagonal-horizontal no cross B below', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: -10,
+            c2_lower: -10,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: -10,
+            c1_higher: 10,
+            c2: -10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 diagonal-horizontal no cross B left', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1_lower: -10,
+            c1_higher: -5,
+            c2: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#6 diagonal-horizontal no cross B above', async () => {
+        const d = await testDiagonalHorizontalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1_lower: -10,
+            c1_higher: 10,
+            c2: 5
+        })
+        expect(d).toBeTruthy()
+    })
+
+})
+
+describe('diagonalDiagonalNoCross', () => {
+    async function testDiagonalDiagonalNoCross(a: {
+                                                     c1_lower: number,
+                                                     c2_lower: number,
+                                                     c1_higher: number,
+                                                     c2_higher: number
+                                                 },
+                                                 b: {
+                                                     c1_lower: number,
+                                                     c1_higher: number,
+                                                     c2_lower: number,
+                                                     c2_higher: number
+                                                 }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1l, ac1h, ac2l, ac2h, bc1l, bc1h, bc2l, bc2h] = get_int_vars(ctx, 8)
+            solver.add(diagonalDiagonalNoCross(ctx, {
+                c1_lower: ac1l,
+                c2_lower: ac2l,
+                c1_higher: ac1h,
+                c2_higher: ac2h
+            }, {
+                c1_lower: bc1l,
+                c2_lower: bc2l,
+                c1_higher: bc1h,
+                c2_higher: bc2h
+            }))
+            solver.add(ac1l.eq(a.c1_lower))
+            solver.add(ac1h.eq(a.c1_higher))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('#1 diagonal-horizontal cross', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#1 diagonal-horizontal cross', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 5,
+            c2_higher: 5
+        }, {
+            c1_lower: -10,
+            c2_lower: -10,
+            c1_higher: 10,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 diagonal-horizontal cross', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: -9,
+            c2_lower: -9,
+            c1_higher: 1,
+            c2_higher: 1
+        }, {
+            c1_lower: -2,
+            c2_lower: -2,
+            c1_higher: 10,
+            c2_higher: 10
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#4 diagonal-horizontal no cross B right', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: -9,
+            c2_lower: -7,
+            c1_higher: 1,
+            c2_higher: 3
+        }, {
+            c1_lower: 1,
+            c2_lower: 1,
+            c1_higher: 10,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 diagonal-horizontal no cross B below', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: -1,
+            c2_lower: -2,
+            c1_higher: 1,
+            c2_higher: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#6 diagonal-horizontal no cross B left', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: -10,
+            c2_lower: 0,
+            c1_higher: 0,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#7 diagonal-horizontal no cross B above', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1_lower: 0,
+            c2_lower: 10,
+            c1_higher: 10,
+            c2_higher: 20
+        })
+        expect(d).toBeTruthy()
+    })
 })
 
 describe('channelSegmentsNoCrossSameSide', () => {
@@ -468,9 +1081,6 @@ describe('channelSegmentsNoCrossSameSide', () => {
         expect(d).toBeTruthy()
     })
 
-
-    // test case with same values in test "right-up intersection" passes
-    // still to be determined what's wrong here
     test('#2 up-right intersection', async () => {
         const d = await testChannelSegmentsNoCross({
             x1: 0, y1: 0, x2: 0, y2: 10,
@@ -561,7 +1171,6 @@ describe('channelSegmentsNoCrossSameSide', () => {
         expect(d).toBeTruthy()
     })
 })
-
 
 describe('channelSegmentsNoCrossDifferentSides', () => {
     async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {

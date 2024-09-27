@@ -382,6 +382,7 @@ export function verticalHorizontalNoCross(ctx: Context, segment_a: {
     )
 }
 
+// TESTED
 export function horizontalVerticalNoCross(ctx: Context, segment_a: {
     c1_lower: Arith,
     c1_higher: Arith,
@@ -395,6 +396,7 @@ export function horizontalVerticalNoCross(ctx: Context, segment_a: {
     )
 }
 
+// TESTED
 export function verticalDiagonalNoCross(ctx: Context,
                                         segA: { c1: Arith, c2_lower: Arith, c2_higher: Arith },
                                         segB: {
@@ -416,7 +418,7 @@ export function verticalDiagonalNoCross(ctx: Context,
     )
 }
 
-
+// TESTED
 export function horizontalDiagonalNoCross(ctx: Context,
                                           segA: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
                                           segB: {
@@ -438,14 +440,15 @@ export function horizontalDiagonalNoCross(ctx: Context,
     )
 }
 
-export function diagonalVerticalNoCrossGeneral(ctx: Context,
-                                               segA: {
+// TESTED
+export function diagonalVerticalNoCross(ctx: Context,
+                                        segA: {
                                                    c1_lower: Arith,
                                                    c1_higher: Arith,
                                                    c2_lower: Arith,
                                                    c2_higher: Arith
                                                },
-                                               segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                        segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
     return ctx.Or(
         // General constraints
         ctx.LE(segB.c2_higher, segA.c2_lower), // B entirely below A
@@ -455,14 +458,56 @@ export function diagonalVerticalNoCrossGeneral(ctx: Context,
     )
 }
 
+// TESTED
+export function diagonalHorizontalNoCross(ctx: Context,
+                                          segA: {
+                                                     c1_lower: Arith,
+                                                     c1_higher: Arith,
+                                                     c2_lower: Arith,
+                                                     c2_higher: Arith
+                                                 },
+                                          segB: { c1_lower: Arith, c1_higher: Arith, c2: Arith }) {
+    return ctx.Or(
+        // General constraints
+        ctx.LE(segB.c2, segA.c2_lower), // B entirely below A
+        ctx.LE(segB.c1_higher, segA.c1_lower), // B entirely left of A
+        ctx.GE(segB.c2, segA.c2_higher), // B entirely above A
+        ctx.GE(segB.c1_lower, segA.c1_higher), // B entirely right of A
+    )
+}
+
+// TESTED
+export function diagonalDiagonalNoCross(ctx: Context,
+                                        segA: {
+                                            c1_lower: Arith,
+                                            c1_higher: Arith,
+                                            c2_lower: Arith,
+                                            c2_higher: Arith
+                                        },
+                                        segB: {
+                                            c1_lower: Arith,
+                                            c1_higher: Arith,
+                                            c2_lower: Arith,
+                                            c2_higher: Arith
+                                        }) {
+    return ctx.Or(
+        // General constraints
+        ctx.LE(segB.c2_higher, segA.c2_lower), // B entirely below A
+        ctx.LE(segB.c1_higher, segA.c1_lower), // B entirely left of A
+        ctx.GE(segB.c2_lower, segA.c2_higher), // B entirely above A
+        ctx.GE(segB.c1_lower, segA.c1_higher), // B entirely right of A
+    )
+}
+
+// EXTRA CONSTRAINTS STILL TO BE ADAPTED FOR LESS STRICTNESS AND MORE ACCURACY
 export function UpRiDoLeVerticalNoCrossExtra(ctx: Context,
-                                         segA: {
-                                             c1_lower: Arith,
-                                             c1_higher: Arith,
-                                             c2_lower: Arith,
-                                             c2_higher: Arith
-                                         },
-                                         segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                             segA: {
+                                                 c1_lower: Arith,
+                                                 c1_higher: Arith,
+                                                 c2_lower: Arith,
+                                                 c2_higher: Arith
+                                             },
+                                             segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
     return ctx.Or(
         // Extra constraints
         ctx.LT(segB.c2_higher, (segB.c1.sub(segA.c1_lower)).add(segA.c2_lower)), // A and B can barely touch (one is spiked by the other)
@@ -471,35 +516,18 @@ export function UpRiDoLeVerticalNoCrossExtra(ctx: Context,
 }
 
 export function UpLeDoRiVerticalNoCrossExtra(ctx: Context,
-                                               segA: {
-                                                   c1_lower: Arith,
-                                                   c1_higher: Arith,
-                                                   c2_lower: Arith,
-                                                   c2_higher: Arith
-                                               },
-                                               segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                             segA: {
+                                                 c1_lower: Arith,
+                                                 c1_higher: Arith,
+                                                 c2_lower: Arith,
+                                                 c2_higher: Arith
+                                             },
+                                             segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
 
     return ctx.Or(
         // Extra constraints
         ctx.LT(segB.c2_higher, (segA.c1_lower.sub(segB.c1)).add(segA.c2_lower)), // A and B can barely touch (one is spiked by the other)
         ctx.GT(segB.c2_lower, (segA.c1_higher.sub(segB.c1)).sub(segA.c2_higher)) // A and B can barely touch (one is spiked by the other)
-    )
-}
-
-export function diagonalHorizontalNoCrossGeneral(ctx: Context,
-                                                 segA: {
-                                                     c1_lower: Arith,
-                                                     c1_higher: Arith,
-                                                     c2_lower: Arith,
-                                                     c2_higher: Arith
-                                                 },
-                                                 segB: { c1_lower: Arith, c1_higher: Arith, c2: Arith }) {
-    return ctx.Or(
-        // General constraints
-        ctx.LE(segB.c2, segA.c2_lower), // B entirely below A
-        ctx.LE(segB.c1_higher, segA.c1_lower), // B entirely left of A
-        ctx.GE(segB.c2, segA.c2_higher), // B entirely above A
-        ctx.GE(segB.c1_lower, segA.c1_higher), // B entirely right of A
     )
 }
 
@@ -533,33 +561,14 @@ export function UpLeDoRiHorizontalNoCrossExtra(ctx: Context,
     )
 }
 
-export function diagonalDiagonalNoCrossGeneral(ctx: Context,
-                                                 segA: {
-                                                     c1_lower: Arith,
-                                                     c1_higher: Arith,
-                                                     c2_lower: Arith,
-                                                     c2_higher: Arith
-                                                 },
-                                                 segB: {
-                                                     c1_lower: Arith,
-                                                     c1_higher: Arith,
-                                                     c2_lower: Arith,
-                                                     c2_higher: Arith
-                                                 }) {
-    return ctx.Or(
-        // General constraints
-        ctx.LE(segB.c2_higher, segA.c2_lower), // B entirely below A
-        ctx.LE(segB.c1_higher, segA.c1_lower), // B entirely left of A
-        ctx.GE(segB.c2_lower, segA.c2_higher), // B entirely above A
-        ctx.GE(segB.c1_lower, segA.c1_higher), // B entirely right of A
-    )
-}
 
-
-/** CHANNEL INTERSECTION METHOD */
+/** CHANNEL INTERSECTION METHOD **/
 // adds constraints for all possible segment crossings (6x8 = 48 possible intersections)
 
 export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
+
+    console.log(channel_a.encoding.segments[segment_a].type)
+    console.log(channel_b.encoding.segments[segment_b].type)
 
     // Defining segments A and B for further use and saving of duplicated code lines
 
@@ -878,7 +887,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, upRightSegmentA, upSegmentB),
+                diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB),
             )
         ),
         ctx.Implies(
@@ -887,7 +896,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, upRightSegmentA, downSegmentB),
+                diagonalVerticalNoCross(ctx, upRightSegmentA, downSegmentB),
             )
         ),
         ctx.Implies(
@@ -896,7 +905,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, downLeftSegmentA, upSegmentB),
+                diagonalVerticalNoCross(ctx, downLeftSegmentA, upSegmentB),
             )
         ),
         ctx.Implies(
@@ -905,7 +914,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, downLeftSegmentA, downSegmentB),
+                diagonalVerticalNoCross(ctx, downLeftSegmentA, downSegmentB),
             )
         ),
         ctx.Implies(
@@ -914,7 +923,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, upLeftSegmentA, upSegmentB),
+                diagonalVerticalNoCross(ctx, upLeftSegmentA, upSegmentB),
             )
         ),
         ctx.Implies(
@@ -923,7 +932,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, upLeftSegmentA, downSegmentB),
+                diagonalVerticalNoCross(ctx, upLeftSegmentA, downSegmentB),
             )
         ),
         ctx.Implies(
@@ -932,7 +941,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, downRightSegmentA, upSegmentB),
+                diagonalVerticalNoCross(ctx, downRightSegmentA, upSegmentB),
             )
         ),
         ctx.Implies(
@@ -941,7 +950,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
             ctx.Or(
-                diagonalVerticalNoCrossGeneral(ctx, downRightSegmentA, downSegmentB),
+                diagonalVerticalNoCross(ctx, downRightSegmentA, downSegmentB),
             )
         ),
         ctx.Implies(
@@ -950,7 +959,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, upRightSegmentA, rightSegmentB),
+                diagonalHorizontalNoCross(ctx, upRightSegmentA, rightSegmentB),
             )
         ),
         ctx.Implies(
@@ -959,7 +968,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, upRightSegmentA, leftSegmentB),
+                diagonalHorizontalNoCross(ctx, upRightSegmentA, leftSegmentB),
 
             )
         ),
@@ -969,7 +978,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, downLeftSegmentA, rightSegmentB),
+                diagonalHorizontalNoCross(ctx, downLeftSegmentA, rightSegmentB),
             )
         ),
         ctx.Implies(
@@ -978,7 +987,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, downLeftSegmentA, leftSegmentB),
+                diagonalHorizontalNoCross(ctx, downLeftSegmentA, leftSegmentB),
             )
         ),
         ctx.Implies(
@@ -987,7 +996,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, upLeftSegmentA, rightSegmentB),
+                diagonalHorizontalNoCross(ctx, upLeftSegmentA, rightSegmentB),
             )
         ),
         ctx.Implies(
@@ -996,7 +1005,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, upLeftSegmentA, leftSegmentB),
+                diagonalHorizontalNoCross(ctx, upLeftSegmentA, leftSegmentB),
             )
         ),
         ctx.Implies(
@@ -1005,7 +1014,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, downRightSegmentA, rightSegmentB),
+                diagonalHorizontalNoCross(ctx, downRightSegmentA, rightSegmentB),
             )
         ),
         ctx.Implies(
@@ -1014,7 +1023,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
             ctx.Or(
-                diagonalHorizontalNoCrossGeneral(ctx, downRightSegmentA, leftSegmentB),
+                diagonalHorizontalNoCross(ctx, downRightSegmentA, leftSegmentB),
             )
         ),
         ctx.Implies(
@@ -1023,7 +1032,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, upRightSegmentA, upLeftSegmentB),
+                diagonalDiagonalNoCross(ctx, upRightSegmentA, upLeftSegmentB),
             )
         ),
         ctx.Implies(
@@ -1032,7 +1041,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, upRightSegmentA, downRightSegmentB)
+                diagonalDiagonalNoCross(ctx, upRightSegmentA, downRightSegmentB)
             )
         ),
         ctx.Implies(
@@ -1041,7 +1050,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, downLeftSegmentA, upLeftSegmentB)
+                diagonalDiagonalNoCross(ctx, downLeftSegmentA, upLeftSegmentB)
             )
         ),
         ctx.Implies(
@@ -1050,7 +1059,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, downLeftSegmentA, downRightSegmentB)
+                diagonalDiagonalNoCross(ctx, downLeftSegmentA, downRightSegmentB)
             )
         ),
         ctx.Implies(
@@ -1059,7 +1068,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, upLeftSegmentA, upRightSegmentB),
+                diagonalDiagonalNoCross(ctx, upLeftSegmentA, upRightSegmentB),
             )
         ),
         ctx.Implies(
@@ -1068,7 +1077,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, upLeftSegmentA, downLeftSegmentB)
+                diagonalDiagonalNoCross(ctx, upLeftSegmentA, downLeftSegmentB)
             )
         ),
         ctx.Implies(
@@ -1077,7 +1086,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, downRightSegmentA, upRightSegmentB)
+                diagonalDiagonalNoCross(ctx, downRightSegmentA, upRightSegmentB)
             )
         ),
         ctx.Implies(
@@ -1086,7 +1095,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
             ctx.Or(
-                diagonalDiagonalNoCrossGeneral(ctx, downRightSegmentA, downLeftSegmentB)
+                diagonalDiagonalNoCross(ctx, downRightSegmentA, downLeftSegmentB)
             )
         )
 }
