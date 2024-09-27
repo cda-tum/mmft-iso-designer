@@ -3,7 +3,7 @@ import {Chip} from "../chip"
 import {
     channelSegmentsNoCross, diagonalDiagonalNoCross, diagonalHorizontalNoCross, diagonalVerticalNoCross,
     horizontalDiagonalNoCross,
-    horizontalVerticalNoCross,
+    horizontalVerticalNoCross, segmentBoxNoCrossSlopePos,
     verticalDiagonalNoCross,
     verticalHorizontalNoCross,
 } from "./geometry"
@@ -535,16 +535,16 @@ describe('horizontalDiagonalNoCross', () => {
 
 describe('diagonalVerticalNoCross', () => {
     async function testDiagonalVerticalNoCross(a: {
-                                                          c1_lower: number,
-                                                          c2_lower: number,
-                                                          c1_higher: number,
-                                                          c2_higher: number
-                                                      },
-                                                      b: {
-                                                          c1: number,
-                                                          c2_lower: number,
-                                                          c2_higher: number
-                                                      }) {
+                                                   c1_lower: number,
+                                                   c2_lower: number,
+                                                   c1_higher: number,
+                                                   c2_higher: number
+                                               },
+                                               b: {
+                                                   c1: number,
+                                                   c2_lower: number,
+                                                   c2_higher: number
+                                               }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
@@ -667,16 +667,16 @@ describe('diagonalVerticalNoCross', () => {
 
 describe('diagonalHorizontalNoCross', () => {
     async function testDiagonalHorizontalNoCross(a: {
-                                                          c1_lower: number,
-                                                          c2_lower: number,
-                                                          c1_higher: number,
-                                                          c2_higher: number
-                                                      },
-                                                      b: {
-                                                          c1_lower: number,
-                                                          c1_higher: number,
-                                                          c2: number
-                                                      }) {
+                                                     c1_lower: number,
+                                                     c2_lower: number,
+                                                     c1_higher: number,
+                                                     c2_higher: number
+                                                 },
+                                                 b: {
+                                                     c1_lower: number,
+                                                     c1_higher: number,
+                                                     c2: number
+                                                 }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
@@ -800,17 +800,17 @@ describe('diagonalHorizontalNoCross', () => {
 
 describe('diagonalDiagonalNoCross', () => {
     async function testDiagonalDiagonalNoCross(a: {
-                                                     c1_lower: number,
-                                                     c2_lower: number,
-                                                     c1_higher: number,
-                                                     c2_higher: number
-                                                 },
-                                                 b: {
-                                                     c1_lower: number,
-                                                     c1_higher: number,
-                                                     c2_lower: number,
-                                                     c2_higher: number
-                                                 }) {
+                                                   c1_lower: number,
+                                                   c2_lower: number,
+                                                   c1_higher: number,
+                                                   c2_higher: number
+                                               },
+                                               b: {
+                                                   c1_lower: number,
+                                                   c1_higher: number,
+                                                   c2_lower: number,
+                                                   c2_higher: number
+                                               }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
@@ -1314,21 +1314,42 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
 
 
 describe('pointPointMinDistanceDiagonal', () => {
-    async function testPointPointMinDistance(pointA: { x: number, y: number }, pointB: {
-        x: number,
-        y: number
-    }, minDistance: number) {
+    async function testSegmentBoxNoCrossSlopePos(segment: {
+        c1_lower: number,
+        c2_lower: number,
+        c1_higher: number,
+        c2_higher: number
+    }, box: {
+        c1: number,
+        c2: number,
+        c1_span: number,
+        c2_span: number
+    }) {
         const {Context, em} = await init()
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            const [ax, ay, bx, by] = get_int_vars(ctx, 4)
+            const [sc1l, sc2l, sc1h, sc2h, bc1, bc2, bc1s, bc2s] = get_int_vars(ctx, 8)
 
-            //solver.add(pointPointMinDistanceDiagonal(ctx, { x: ax, y: ay } , { x: bx, y: by } , minDistance))
-            solver.add(ax.eq(pointA.x))
-            solver.add(ay.eq(pointA.y))
-            solver.add(bx.eq(pointB.x))
-            solver.add(by.eq(pointB.y))
+            solver.add(sc1l.eq(segment.c1_lower))
+            solver.add(sc2l.eq(segment.c2_lower))
+            solver.add(sc1h.eq(segment.c1_higher))
+            solver.add(sc2h.eq(segment.c2_higher))
+            solver.add(bc1.eq(box.c1))
+            solver.add(bc2.eq(box.c2))
+            solver.add(bc1s.eq(box.c1_span))
+            solver.add(bc2s.eq(box.c2_span))
+            solver.add(segmentBoxNoCrossSlopePos(ctx, {
+                c1_lower: sc1l,
+                c2_lower: sc2l,
+                c1_higher: sc1h,
+                c2_higher: sc2h
+            }, {
+                c1: bc1,
+                c2: bc2,
+                c1_span: box.c1_span,
+                c2_span: box.c2_span,
+            }))
 
             let check = await solver.check()
             if (check === 'sat') {
@@ -1346,57 +1367,78 @@ describe('pointPointMinDistanceDiagonal', () => {
         }
     }
 
-    test('base case zero #1', async () => {
-        const d = await testPointPointMinDistance(
-            {x: 0, y: 0},
-            {x: 0, y: 0}, // actual distance = 0
-            0
-        )
+    test('#1 segment no cross upper corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopePos({
+            c1_lower: -1,
+            c2_lower: 0,
+            c1_higher: 19,
+            c2_higher: 20
+        }, {
+            c1: 10,
+            c2: 0,
+            c1_span: 10,
+            c2_span: 10
+        })
         expect(d).toBeTruthy()
     })
 
-    test('base case same point #2', async () => {
-        const d = await testPointPointMinDistance(
-            {x: 3, y: 4},
-            {x: 3, y: 4}, // actual distance = 0
-            0
-        )
-        expect(d).toBeTruthy()
-    })
-
-    test('normal case #1', async () => {
-        const d = await testPointPointMinDistance(
-            {x: 0, y: 0},
-            {x: 4, y: 4}, // actual distance = 8
-            8
-        )
-        expect(d).toBeTruthy()
-    })
-
-    test('normal case #1', async () => {
-        const d = await testPointPointMinDistance(
-            {x: 0, y: 0},
-            {x: 4, y: 4}, // actual distance = 8
-            7
-        )
-        expect(d).toBeTruthy()
-    })
-
-    test('normal case #2', async () => {
-        const d = await testPointPointMinDistance(
-            {x: 0, y: 0},
-            {x: 5, y: 5}, // actual distance = 10
-            11
-        )
+    test('#2 segment cross upper corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopePos({
+            c1_lower: 1,
+            c2_lower: 1,
+            c1_higher: 15,
+            c2_higher: 15
+        }, {
+            c1: 5,
+            c2: 0,
+            c1_span: 10,
+            c2_span: 10
+        })
         expect(d).toBeFalsy()
     })
 
-    test('normal case #3', async () => {
-        const d = await testPointPointMinDistance(
-            {x: -1, y: 2},
-            {x: 4, y: -3}, // actual distance = 10
-            9
-        )
+    test('#3 segment no cross lower corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopePos({
+            c1_lower: 0,
+            c2_lower: -11,
+            c1_higher: 20,
+            c2_higher: 9
+        }, {
+            c1: 0,
+            c2: 0,
+            c1_span: 10,
+            c2_span: 10
+        })
         expect(d).toBeTruthy()
+    })
+
+    test('#4 segment cross lower corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopePos({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1: 0,
+            c2: -4,
+            c1_span: 12,
+            c2_span: 8
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#5 segment cross end inside', async () => {
+        const d = await testSegmentBoxNoCrossSlopePos({
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 10,
+            c2_higher: 10
+        }, {
+            c1: 0,
+            c2: -5,
+            c1_span: 10,
+            c2_span: 5
+        })
+        expect(d).toBeFalsy()
     })
 })
