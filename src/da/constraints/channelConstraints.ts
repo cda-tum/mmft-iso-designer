@@ -10,7 +10,7 @@ import {
 import {EncodedModule} from "../module";
 
 
-export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules: EncodedModule[]) {
+export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules?: EncodedModule[]) {
     const clauses = []
 
     /* Specify active/inactive segments */
@@ -125,7 +125,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
         }
     }
 
-    /* Specify segment type alternation with octilinear routing of avoiding sharp turns smaller than 90 degrees */
+    /* Specify segment type alternation with octilinear routing, avoiding sharp turns smaller than 90 degrees */
     {
         for (let i = 1; i < channel.maxSegments; i++) {
             clauses.push(
@@ -255,7 +255,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
         }))
     }
 
-    /* Specify waypoint distance to other waypoints of this channel */
+    // TODO: adjust to calculate Manhattan distance for diagonal segments
     /* Specify waypoint distance to other waypoints of this channel */
     {
         const min_waypoint_distance = Math.ceil(channel.width + channel.spacing)

@@ -808,9 +808,6 @@ export function UpLeDoRiHorizontalNoCrossExtra(ctx: Context,
 
 export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
 
-    console.log(channel_a.encoding.segments[segment_a].type)
-    console.log(channel_b.encoding.segments[segment_b].type)
-
     // Defining segments A and B for further use and saving of duplicated code lines
 
     // SEGMENTS A //
@@ -992,352 +989,277 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, upSegmentA, downLeftSegmentB))
-        )
-    ),
+            verticalDiagonalNoCross(ctx, upSegmentA, downLeftSegmentB)
+        ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, downSegmentA, upRightSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, downSegmentA, upRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, downSegmentA, downLeftSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, downSegmentA, downLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, upSegmentA, downRightSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, upSegmentA, downRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, upSegmentA, upLeftSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, upSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, downSegmentA, upLeftSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, downSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight)
             ),
-            ctx.Or(
-                verticalDiagonalNoCross(ctx, downSegmentA, downRightSegmentB)
-            )
+            verticalDiagonalNoCross(ctx, downSegmentA, downRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, rightSegmentA, upRightSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, rightSegmentA, upRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, rightSegmentA, downLeftSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, rightSegmentA, downLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, leftSegmentA, upRightSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, leftSegmentA, upRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, leftSegmentA, downLeftSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, leftSegmentA, downLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, rightSegmentA, upLeftSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, rightSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, rightSegmentA, downRightSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, rightSegmentA, downRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, leftSegmentA, upLeftSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, leftSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            ctx.Or(
-                horizontalDiagonalNoCross(ctx, leftSegmentA, downRightSegmentB)
-            )
+            horizontalDiagonalNoCross(ctx, leftSegmentA, downRightSegmentB)
+
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB)
+
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, upRightSegmentA, downSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, upRightSegmentA, downSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, downLeftSegmentA, upSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, downLeftSegmentA, upSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, downLeftSegmentA, downSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, downLeftSegmentA, downSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, upLeftSegmentA, upSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, upLeftSegmentA, upSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, upLeftSegmentA, downSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, upLeftSegmentA, downSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, downRightSegmentA, upSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, downRightSegmentA, upSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            ctx.Or(
-                diagonalVerticalNoCross(ctx, downRightSegmentA, downSegmentB),
-            )
+            diagonalVerticalNoCross(ctx, downRightSegmentA, downSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, upRightSegmentA, rightSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, upRightSegmentA, rightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, upRightSegmentA, leftSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, upRightSegmentA, leftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, downLeftSegmentA, rightSegmentB),
-            )
+                diagonalHorizontalNoCross(ctx, downLeftSegmentA, rightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, downLeftSegmentA, leftSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, downLeftSegmentA, leftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, upLeftSegmentA, rightSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, upLeftSegmentA, rightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, upLeftSegmentA, leftSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, upLeftSegmentA, leftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, downRightSegmentA, rightSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, downRightSegmentA, rightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            ctx.Or(
-                diagonalHorizontalNoCross(ctx, downRightSegmentA, leftSegmentB),
-            )
+            diagonalHorizontalNoCross(ctx, downRightSegmentA, leftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, upRightSegmentA, upLeftSegmentB),
-            )
+            diagonalDiagonalNoCross(ctx, upRightSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, upRightSegmentA, downRightSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, upRightSegmentA, downRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, downLeftSegmentA, upLeftSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, downLeftSegmentA, upLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, downLeftSegmentA, downRightSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, downLeftSegmentA, downRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, upLeftSegmentA, upRightSegmentB),
-            )
+            diagonalDiagonalNoCross(ctx, upLeftSegmentA, upRightSegmentB),
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, upLeftSegmentA, downLeftSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, upLeftSegmentA, downLeftSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, downRightSegmentA, upRightSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, downRightSegmentA, upRightSegmentB)
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            ctx.Or(
-                diagonalDiagonalNoCross(ctx, downRightSegmentA, downLeftSegmentB)
-            )
+            diagonalDiagonalNoCross(ctx, downRightSegmentA, downLeftSegmentB)
         )
+    )
 }
 
 
