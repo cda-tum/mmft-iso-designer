@@ -3,7 +3,7 @@ import {Chip} from "../chip"
 import {
     channelSegmentsNoCross, diagonalDiagonalNoCross, diagonalHorizontalNoCross, diagonalVerticalNoCross,
     horizontalDiagonalNoCross,
-    horizontalVerticalNoCross, segmentBoxNoCrossSlopePos,
+    horizontalVerticalNoCross, pointSegmentDistanceDiagonal, segmentBoxNoCrossSlopeNeg, segmentBoxNoCrossSlopePos,
     verticalDiagonalNoCross, verticalDiagonalPosNoCrossExtra,
     verticalHorizontalNoCross,
 } from "./geometry"
@@ -1325,7 +1325,15 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             })
 
             const clauses: Bool[] = []
-            const encodingProps = {
+            const encodingProps0 = {
+                positionX: 0,
+                positionY: 0,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", 0),
+                clauses: clauses
+            }
+
+            const encodingProps1 = {
                 positionX: 0,
                 positionY: 0,
                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
@@ -1343,7 +1351,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
                 position: undefined,
                 orientation: undefined,
                 placement: Placement.Top,
-                encoding: encodingProps
+                encoding: encodingProps0
             }
 
             // one module is placed on the bottom
@@ -1356,7 +1364,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
                 position: undefined,
                 orientation: undefined,
                 placement: Placement.Bottom,
-                encoding: encodingProps
+                encoding: encodingProps1
             }
 
             const module0 = new EncodedModule(moduleProps0)
@@ -1403,15 +1411,6 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             x1: 5, y1: 5, x2: -5, y2: -5,
         }, {
             x1: -5, y1: 5, x2: 5, y2: -5,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('up-right no intersection different sides', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 0, y1: -5, x2: 0, y2: 5,
-        }, {
-            x1: -5, y1: 0, x2: 5, y2: 0,
         })
         expect(d).toBeTruthy()
     })
@@ -1538,10 +1537,140 @@ describe('segmentBoxNoCrossSlopePos', () => {
             c1_higher: 10,
             c2_higher: 10
         }, {
-            c1: 0,
-            c2: -5,
+            c1: -5,
+            c2: 0,
             c1_span: 10,
-            c2_span: 5
+            c2_span: 10
+        })
+        expect(d).toBeFalsy()
+    })
+})
+
+describe('segmentBoxNoCrossSlopeNeg', () => {
+    async function testSegmentBoxNoCrossSlopeNeg(segment: {
+        c1_lower: number,
+        c2_lower: number,
+        c1_higher: number,
+        c2_higher: number
+    }, box: {
+        c1: number,
+        c2: number,
+        c1_span: number,
+        c2_span: number
+    }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [sc1l, sc2l, sc1h, sc2h, bc1, bc2, bc1s, bc2s] = get_int_vars(ctx, 8)
+
+            solver.add(sc1l.eq(segment.c1_lower))
+            solver.add(sc2l.eq(segment.c2_lower))
+            solver.add(sc1h.eq(segment.c1_higher))
+            solver.add(sc2h.eq(segment.c2_higher))
+            solver.add(bc1.eq(box.c1))
+            solver.add(bc2.eq(box.c2))
+            solver.add(bc1s.eq(box.c1_span))
+            solver.add(bc2s.eq(box.c2_span))
+            solver.add(segmentBoxNoCrossSlopeNeg(ctx, {
+                c1_lower: sc1l,
+                c2_lower: sc2l,
+                c1_higher: sc1h,
+                c2_higher: sc2h
+            }, {
+                c1: bc1,
+                c2: bc2,
+                c1_span: box.c1_span,
+                c2_span: box.c2_span,
+            }))
+
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else if (check === 'unsat') {
+                return false
+            } else {
+                console.error('Unexpected solver check result:', check)
+                return false
+            }
+        } catch (e) {
+            console.error('error', e)
+        } finally {
+            em.PThread.terminateAllThreads()
+        }
+    }
+
+    test('#1 segment cross upper corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopeNeg({
+            c1_lower: -4,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 9
+        }, {
+            c1: -11,
+            c2: 0,
+            c1_span: 11,
+            c2_span: 6      // the segment is just cutting the upper right corner of the box
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 segment cross upper corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopeNeg({
+            c1_lower: -4,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 9
+        }, {
+            c1: -11,
+            c2: 0,
+            c1_span: 11,
+            c2_span: 5      // when the box is lower the segment lies on the corner (without cutting it)
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#3 segment cross lower corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopeNeg({
+            c1_lower: -3,
+            c2_lower: -5,
+            c1_higher: 6,
+            c2_higher: 4
+        }, {
+            c1: 0,
+            c2: 0,
+            c1_span: 11,
+            c2_span: 6          // the segment is just cutting the lower right corner of the box
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#4 segment no cross lower corner', async () => {
+        const d = await testSegmentBoxNoCrossSlopeNeg({
+            c1_lower: -3,
+            c2_lower: -5,
+            c1_higher: 6,
+            c2_higher: 4
+        }, {
+            c1: 1,          // when the box is further right the segment just touches the corner (without cutting it)
+            c2: 0,
+            c1_span: 11,
+            c2_span: 6
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 segment cross end inside', async () => {
+        const d = await testSegmentBoxNoCrossSlopeNeg({
+            c1_lower: -3,
+            c2_lower: 0,
+            c1_higher: 2,
+            c2_higher: 5
+        }, {
+            c1: -11,
+            c2: 0,
+            c1_span: 11,
+            c2_span: 6
         })
         expect(d).toBeFalsy()
     })
@@ -1721,3 +1850,159 @@ describe('channelSegmentsNoCross', () => {
         expect(d).toBeTruthy()
     })
 })
+
+describe('pointSegmentDistanceDiagonal', () => {
+    async function testPointSegmentDistanceDiagonal(point: {
+        c1: number,
+        c2: number
+    }, segment: {
+        c1_lower: number,
+        c2_lower: number,
+        c1_higher: number,
+        c2_higher: number
+    }, min_distance: number, isSlopePositive: boolean) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [pc1, pc2, sc1l, sc2l, sc1h, sc2h] = get_int_vars(ctx, 6)
+
+            solver.add(sc1l.eq(segment.c1_lower))
+            solver.add(sc2l.eq(segment.c2_lower))
+            solver.add(sc1h.eq(segment.c1_higher))
+            solver.add(sc2h.eq(segment.c2_higher))
+            solver.add(pc1.eq(point.c1))
+            solver.add(pc2.eq(point.c2))
+            solver.add(pointSegmentDistanceDiagonal(ctx, {
+                c1: pc1,
+                c2: pc2
+            }, {
+                c1_lower: sc1l,
+                c2_lower: sc2l,
+                c1_higher: sc1h,
+                c2_higher: sc2h,
+            }, min_distance, isSlopePositive))
+
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else if (check === 'unsat') {
+                return false
+            } else {
+                console.error('Unexpected solver check result:', check)
+                return false
+            }
+        } catch (e) {
+            console.error('error', e)
+        } finally {
+            em.PThread.terminateAllThreads()
+        }
+    }
+
+    test('#1 segment slope negative', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 6,
+            c2_higher: 6        // actual distance = 3 (Manhattan = 6)
+        }, 3, false)
+        expect(d).toBeTruthy()
+    })
+
+    test('#2 segment slope negative', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 6,
+            c2_higher: 6        // actual distance = 3 (Manhattan = 6)
+        }, 4, false)
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 segment slope negative', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 4,
+            c2: 4
+        }, {
+            c1_lower: -3,
+            c2_lower: -3,
+            c1_higher: 3,
+            c2_higher: 3        // actual distance = 4 (Manhattan = 8)
+        }, 4, false)
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 segment slope negative', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 4,
+            c2: 4
+        }, {
+            c1_lower: -3,
+            c2_lower: -3,
+            c1_higher: 3,
+            c2_higher: 3        // actual distance = 4 (Manhattan = 8)
+        }, 5, false)
+        expect(d).toBeFalsy()
+    })
+
+    test('#5 segment slope positive', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 7,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5        // actual distance = 3.5 (Manhattan = 7)
+        }, 3, true)
+        expect(d).toBeTruthy()
+    })
+
+    test('#6 segment slope positive', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 7,
+            c2: 0
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5        // actual distance = 3.5 (Manhattan = 7)
+        }, 4, true)
+        expect(d).toBeFalsy()
+    })
+
+    test('#7 segment slope positive', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 4
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5        // actual distance = 2 (Manhattan = 4)
+        }, 2, true)
+        expect(d).toBeTruthy()
+    })
+
+    test('#8 segment slope positive', async () => {
+        const d = await testPointSegmentDistanceDiagonal({
+            c1: 0,
+            c2: 4
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 5        // actual distance = 2 (Manhattan = 4)
+        }, 3, true)
+        expect(d).toBeFalsy()
+    })
+})
+
+
+

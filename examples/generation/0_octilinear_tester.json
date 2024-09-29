@@ -53,53 +53,22 @@
   "channels": [
     {
       "width": 500,
-      "spacing": 1000,
+      "spacing": 100,
       "from": {
         "module": 0,
         "port": [
-          0,
-          0
+          1,
+          1
         ]
       },
       "to": {
         "module": 3,
         "port": [
-          0,
-          0
+          1,
+          1
         ]
       },
-      "maxSegments": 4,
-      "mandatoryWaypoints": [
-        {
-          "x": 64000,
-          "y": 42000
-        }
-      ]
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 1,
-        "port": [
-          0,
-          0
-        ]
-      },
-      "to": {
-        "module": 2,
-        "port": [
-          0,
-          0
-        ]
-      },
-      "maxSegments": 4,
-      "mandatoryWaypoints": [
-        {
-          "x": 60000,
-          "y": 40000
-        }
-      ]
+      "maxSegments": 2
     }
   ],
   "routingExclusions": []
