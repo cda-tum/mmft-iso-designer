@@ -4,7 +4,7 @@ import {EncodedChannel, SegmentType} from "../channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
 import {
     channelSegmentsNoCross,
-    minDistanceAsym, minDistanceSym,
+    minDistanceAsym, minDistancePointPoint, minDistanceSym,
     waypointSegmentDistance
 } from "../geometry/geometry";
 import {EncodedModule} from "../module";
@@ -255,7 +255,6 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
         }))
     }
 
-    // TODO: adjust to calculate Manhattan distance for diagonal segments
     /* Specify waypoint distance to other waypoints of this channel */
     {
         const min_waypoint_distance = Math.ceil(channel.width + channel.spacing)

@@ -2,8 +2,7 @@ import {Arith, Context} from "z3-solver";
 import {StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
-import {Simulate} from "react-dom/test-utils";
-import load = Simulate.load;
+import {min} from "d3";
 
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -58,6 +57,22 @@ export function minDistanceSym(ctx: Context, c1: Arith | number, c2: Arith | num
     )
 }
 
+export function minDistancePointPoint(ctx: Context, pointA: { c1: Arith , c2: Arith }, pointB: { c1: Arith , c2: Arith }, min_distance: number) {
+
+    const lowerLeft_x = pointA.c1.sub(min_distance)
+    const lowerLeft_y = pointA.c2.sub(min_distance)
+
+    const lowerRight_x = lowerLeft_x.add(2 * min_distance)
+    const upperRight_y = lowerLeft_y.add(2 * min_distance)
+
+    return ctx.Or(
+        ctx.GE(pointB.c1, lowerRight_x),
+        ctx.GE(pointB.c2, upperRight_y),
+        ctx.LE(pointB.c1, lowerLeft_x),
+        ctx.LE(pointB.c2, lowerLeft_y)
+    )
+}
+
 
 /** MINIMUM POINT-SEGMENT DISTANCE CALCULATION METHODS */
 
@@ -73,12 +88,14 @@ export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith
     )
 }
 
+// solving the point-segment distance problem by creating a square around the point with 2 * min_distance as the square length
+// and then delegating that box and segment to the segmentBoxNoCross functions for diagonal elements
 export function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arith }, segment: {
     c1_lower: Arith,
     c2_lower: Arith,
     c1_higher: Arith,
     c2_higher: Arith
-}, min_distance: number) {
+}, min_distance: number, isSlopePositive: boolean) {
     const lowerLeft_x = point.c1.sub(min_distance)
     const lowerLeft_y = point.c2.sub(min_distance)
     const squareSpan = min_distance * 2
@@ -89,7 +106,7 @@ export function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c
         c1_span: squareSpan,
         c2_span: squareSpan
     }
-    return segmentBoxNoCrossSlopePos(ctx, segment, pointBox)
+    return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, pointBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, pointBox)
 }
 
 export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel, waypoint_a: number, channel_b: EncodedChannel, segment_b: number, min_distance: number) {
@@ -148,7 +165,7 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
                 c2_lower: channel_b.encoding.waypoints[segment_b].y,
                 c1_higher: channel_b.encoding.waypoints[segment_b + 1].x,
                 c2_higher: channel_b.encoding.waypoints[segment_b + 1].y,
-            }, min_distance)
+            }, min_distance, true)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
@@ -160,7 +177,7 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
                 c2_lower: channel_b.encoding.waypoints[segment_b + 1].y,
                 c1_higher: channel_b.encoding.waypoints[segment_b + 1].x,
                 c2_higher: channel_b.encoding.waypoints[segment_b].y,
-            }, min_distance)
+            }, min_distance, false)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
@@ -172,7 +189,7 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
                 c2_lower: channel_b.encoding.waypoints[segment_b + 1].y,
                 c1_higher: channel_b.encoding.waypoints[segment_b].x,
                 c2_higher: channel_b.encoding.waypoints[segment_b].y,
-            }, min_distance)
+            }, min_distance, true)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
@@ -184,13 +201,29 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
                 c2_lower: channel_b.encoding.waypoints[segment_b].y,
                 c1_higher: channel_b.encoding.waypoints[segment_b].x,
                 c2_higher: channel_b.encoding.waypoints[segment_b + 1].y,
-            }, min_distance)
+            }, min_distance, false)
         )
     )
 }
 
 
-/** ROUTING EXCLUSION ZONE METHODS AND HELPER METHODS */
+/** MIN DISTANCE METHODS AND HELPER METHODS */
+
+// Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
+// using minDistanceAsym
+export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: {
+    c1: Arith | number,
+    c2: Arith | number,
+    c1_span: number,
+    c2_span: number
+}, min_distance: number) {
+    return ctx.Or(
+        minDistanceAsym(ctx, point.c1, box.c1, min_distance),
+        minDistanceAsym(ctx, point.c2, box.c2, min_distance),
+        minDistanceAsym(ctx, box.c1, point.c1, min_distance + box.c1_span),
+        minDistanceAsym(ctx, box.c2, point.c2, min_distance + box.c2_span)
+    )
+}
 
 // Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the vertical/horizontal segments
 // and a given box (e.g. exclusion zone)
@@ -206,6 +239,72 @@ export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_
         minDistanceAsym(ctx, segment.c2, box.c2, min_distance),
         minDistanceAsym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
     )
+}
+
+// Helper function for the channelSegmentRoutingExclusionDistance function, ensuring that the minimum distance between a segment
+// and a given box (e.g. exclusion zone) is kept for all points of the segment
+export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
+                                               c1_lower: Arith,
+                                               c2_lower: Arith,
+                                               c1_higher: Arith,
+                                               c2_higher: Arith
+                                           }, isSlopePositive: boolean,
+                                           box: {
+                                               c1: Arith | number,
+                                               c2: Arith | number,
+                                               c1_span: number,
+                                               c2_span: number
+                                           }, min_distance: number) {
+
+    if (typeof box.c1 == 'number') {
+        if (typeof box.c2 == 'number') {
+            const expandedBox = {
+                c1: box.c1 - min_distance,
+                c2: box.c2 - min_distance,
+                c1_span: box.c1_span + min_distance,
+                c2_span: box.c2_span + min_distance,
+            }
+            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
+        } else {
+            const expandedBox = {
+                c1: box.c1 - min_distance,
+                c2: box.c2.sub(min_distance),
+                c1_span: box.c1_span + min_distance,
+                c2_span: box.c2_span + min_distance
+            }
+            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
+        }
+    } else if (typeof box.c2 != 'number') {
+        const expandedBox = {
+            c1: box.c1.sub(min_distance),
+            c2: box.c2.sub(min_distance),
+            c1_span: box.c1_span + min_distance,
+            c2_span: box.c2_span + min_distance
+        }
+        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
+    } else {
+        const expandedBox = {
+            c1: box.c1.sub(min_distance),
+            c2: box.c2 - min_distance,
+            c1_span: box.c1_span + min_distance,
+            c2_span: box.c2_span + min_distance
+        }
+        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
+    }
+}
+
+
+// Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
+export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+    return pointBoxDistance(ctx, {
+        c1: channel.encoding.waypoints[waypoint].x,
+        c2: channel.encoding.waypoints[waypoint].y
+    }, {
+        c1: exclusion.position.x,
+        c2: exclusion.position.y,
+        c1_span: exclusion.width,
+        c2_span: exclusion.height
+    }, min_distance)
 }
 
 export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
@@ -261,26 +360,82 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
                 c1_span: exclusion.width,
                 c2_span: exclusion.height
             }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+            segmentBoxDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].x,
+                c2_lower: channel.encoding.waypoints[segment].y,
+                c1_higher: channel.encoding.waypoints[segment + 1].x,
+                c2_higher: channel.encoding.waypoints[segment + 1].y
+            }, true, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+            segmentBoxDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].x,
+                c2_lower: channel.encoding.waypoints[segment + 1].y,
+                c1_higher: channel.encoding.waypoints[segment + 1].x,
+                c2_higher: channel.encoding.waypoints[segment].y
+            }, false, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+            segmentBoxDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].x,
+                c2_lower: channel.encoding.waypoints[segment + 1].y,
+                c1_higher: channel.encoding.waypoints[segment].x,
+                c2_higher: channel.encoding.waypoints[segment].y
+            }, true, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+            segmentBoxDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].x,
+                c2_lower: channel.encoding.waypoints[segment].y,
+                c1_higher: channel.encoding.waypoints[segment].x,
+                c2_higher: channel.encoding.waypoints[segment + 1].y
+            }, false, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
         )
     )
 }
 
-// Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
-// using minDistanceAsym
-export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith }, box: {
+
+/** SEGMENT AND BOX / EXCLUSION ZONE - NO CROSS METHODS AND HELPER METHODS */
+
+export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: {
     c1: Arith | number,
     c2: Arith | number,
     c1_span: number,
     c2_span: number
-}, min_distance: number) {
+}) {
     return ctx.Or(
-        minDistanceAsym(ctx, point.c1, box.c1, min_distance),
-        minDistanceAsym(ctx, point.c2, box.c2, min_distance),
-        minDistanceAsym(ctx, box.c1, point.c1, min_distance + box.c1_span),
-        minDistanceAsym(ctx, box.c2, point.c2, min_distance + box.c2_span)
+        ctx.LE(segment.c1_higher, box.c1),
+        minDistanceAsym(ctx, box.c1, segment.c1_lower, box.c1_span),
+        ctx.LE(segment.c2, box.c2),
+        minDistanceAsym(ctx, box.c2, segment.c2, box.c2_span),
     )
 }
-
 
 // Helper function for several functions to check whether an UpRight/DownLeft segment crosses a given box (e.g. exclusion zone)
 export function segmentBoxNoCrossSlopePos(ctx: Context, segment: {
@@ -412,86 +567,7 @@ export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
     }
 }
 
-// Helper function for the channelSegmentRoutingExclusionDistance function, ensuring that the minimum distance between a segment
-// and a given box (e.g. exclusion zone) is kept for all points of the segment
-export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
-                                               c1_lower: Arith,
-                                               c2_lower: Arith,
-                                               c1_higher: Arith,
-                                               c2_higher: Arith
-                                           }, isSlopePositive: boolean,
-                                           box: {
-                                               c1: Arith | number,
-                                               c2: Arith | number,
-                                               c1_span: number,
-                                               c2_span: number
-                                           }, min_distance: number) {
-
-    if (typeof box.c1 == 'number') {
-        if (typeof box.c2 == 'number') {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2 - min_distance,
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance,
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        } else {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2.sub(min_distance),
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        }
-    } else if (typeof box.c2 != 'number') {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2.sub(min_distance),
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-    } else {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2 - min_distance,
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-    }
-}
-
-
-// Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
-export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
-    return pointBoxDistance(ctx, {
-        c1: channel.encoding.waypoints[waypoint].x,
-        c2: channel.encoding.waypoints[waypoint].y
-    }, {
-        c1: exclusion.position.x,
-        c2: exclusion.position.y,
-        c1_span: exclusion.width,
-        c2_span: exclusion.height
-    }, min_distance)
-}
-
-export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith }, box: {
-    c1: Arith | number,
-    c2: Arith | number,
-    c1_span: number,
-    c2_span: number
-}) {
-    return ctx.Or(
-        ctx.LE(segment.c1_higher, box.c1),
-        minDistanceAsym(ctx, box.c1, segment.c1_lower, box.c1_span),
-        ctx.LE(segment.c2, box.c2),
-        minDistanceAsym(ctx, box.c2, segment.c2, box.c2_span),
-    )
-}
-
+// function ensuring that a given segment does not cross a static routing exclusion (e.g. cutout piece on the chip)
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion) {
     return ctx.And(
         ctx.Implies(
@@ -652,10 +728,6 @@ export function verticalDiagonalNoCross(ctx: Context,
         ctx.LE(segB.c1_higher, segA.c1), // B entirely left of A
         ctx.GE(segB.c2_lower, segA.c2_higher), // B entirely above A
         ctx.GE(segB.c1_lower, segA.c1), // B entirely right of A
-
-        // Extra constraints
-        //ctx.GT(segB.c1_higher, (segB.c2_higher.sub(segA.c2_lower)).add(segA.c1)), // A and B can barely touch (one is spiked by the other)
-        //ctx.LT(segB.c1_lower, (segA.c2_higher.sub(segB.c2_lower)).sub(segA.c1)) // A and B can barely touch (one is spiked by the other)
     )
 }
 
@@ -740,7 +812,39 @@ export function diagonalDiagonalNoCross(ctx: Context,
     )
 }
 
-// EXTRA CONSTRAINTS STILL TO BE ADAPTED FOR LESS STRICTNESS AND MORE ACCURACY
+
+// EXTRA CONSTRAINTS FOR LESS STRICTNESS AND MORE ACCURACY
+
+export function verticalDiagonalNoCrossExtra(ctx: Context,
+                                             segA: { c1: Arith, c2_lower: Arith, c2_higher: Arith },
+                                             segB: {
+                                                 c1_lower: Arith,
+                                                 c2_lower: Arith,
+                                                 c1_higher: Arith,
+                                                 c2_higher: Arith
+                                             }) {
+
+    return ctx.Or(
+        ctx.GT(segB.c1_higher, (segB.c2_higher.sub(segA.c2_lower)).add(segA.c1)), // A and B can barely touch (one is spiked by the other)
+        ctx.LT(segB.c1_lower, (segA.c2_higher.sub(segB.c2_lower)).sub(segA.c1)) // A and B can barely touch (one is spiked by the other)
+    )
+}
+
+export function horizontalDiagonalNoCrossExtra(ctx: Context,
+                                               segA: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
+                                               segB: {
+                                                   c1_lower: Arith,
+                                                   c2_lower: Arith,
+                                                   c1_higher: Arith,
+                                                   c2_higher: Arith
+                                               }) {
+    return ctx.Or(
+        // Extra constraints
+        ctx.GT(segB.c2_higher, (segB.c1_higher.sub(segA.c1_lower)).add(segA.c2)), // A and B can barely touch (one is spiked by the other)
+        ctx.LT(segB.c2_lower, (segA.c1_higher.sub(segB.c1_lower)).sub(segA.c2)) // A and B can barely touch (one is spiked by the other)
+    )
+}
+
 export function UpRiDoLeVerticalNoCrossExtra(ctx: Context,
                                              segA: {
                                                  c1_lower: Arith,
@@ -764,7 +868,6 @@ export function UpLeDoRiVerticalNoCrossExtra(ctx: Context,
                                                  c2_higher: Arith
                                              },
                                              segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
-
     return ctx.Or(
         // Extra constraints
         ctx.LT(segB.c2_higher, (segA.c1_lower.sub(segB.c1)).add(segA.c2_lower)), // A and B can barely touch (one is spiked by the other)
@@ -804,8 +907,9 @@ export function UpLeDoRiHorizontalNoCrossExtra(ctx: Context,
 
 
 /** CHANNEL INTERSECTION METHOD **/
-// adds constraints for all possible segment crossings (6x8 = 48 possible intersections)
 
+
+// adds constraints for all possible segment crossings (6x8 = 48 possible intersections)
 export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
 
     // Defining segments A and B for further use and saving of duplicated code lines
@@ -982,112 +1086,112 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight)
             ),
-            verticalDiagonalNoCross(ctx, upSegmentA, upRightSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, upSegmentA, upRightSegmentB), verticalDiagonalNoCrossExtra(ctx, upSegmentA, upRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft)
             ),
-            verticalDiagonalNoCross(ctx, upSegmentA, downLeftSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, upSegmentA, downLeftSegmentB), verticalDiagonalNoCrossExtra(ctx, upSegmentA, downLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight)
             ),
-            verticalDiagonalNoCross(ctx, downSegmentA, upRightSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, downSegmentA, upRightSegmentB), verticalDiagonalNoCrossExtra(ctx, downSegmentA, upRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft)
             ),
-            verticalDiagonalNoCross(ctx, downSegmentA, downLeftSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, downSegmentA, downLeftSegmentB), verticalDiagonalNoCrossExtra(ctx, downSegmentA, downLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight)
             ),
-            verticalDiagonalNoCross(ctx, upSegmentA, downRightSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, upSegmentA, downRightSegmentB), verticalDiagonalNoCrossExtra(ctx, upSegmentA, downRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Up),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft)
             ),
-            verticalDiagonalNoCross(ctx, upSegmentA, upLeftSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, upSegmentA, upLeftSegmentB), verticalDiagonalNoCrossExtra(ctx, upSegmentA, upLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft)
             ),
-            verticalDiagonalNoCross(ctx, downSegmentA, upLeftSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, downSegmentA, upLeftSegmentB), verticalDiagonalNoCrossExtra(ctx, downSegmentA, upLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Down),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight)
             ),
-            verticalDiagonalNoCross(ctx, downSegmentA, downRightSegmentB)
+            ctx.Or(verticalDiagonalNoCross(ctx, downSegmentA, downRightSegmentB), verticalDiagonalNoCrossExtra(ctx, downSegmentA, downRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            horizontalDiagonalNoCross(ctx, rightSegmentA, upRightSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, rightSegmentA, upRightSegmentB), horizontalDiagonalNoCrossExtra(ctx, rightSegmentA, upRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            horizontalDiagonalNoCross(ctx, rightSegmentA, downLeftSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, rightSegmentA, downLeftSegmentB), horizontalDiagonalNoCrossExtra(ctx, rightSegmentA, downLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            horizontalDiagonalNoCross(ctx, leftSegmentA, upRightSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, leftSegmentA, upRightSegmentB), horizontalDiagonalNoCrossExtra(ctx, leftSegmentA, upRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            horizontalDiagonalNoCross(ctx, leftSegmentA, downLeftSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, leftSegmentA, downLeftSegmentB), horizontalDiagonalNoCrossExtra(ctx, leftSegmentA, downLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            horizontalDiagonalNoCross(ctx, rightSegmentA, upLeftSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, rightSegmentA, upLeftSegmentB), horizontalDiagonalNoCrossExtra(ctx, rightSegmentA, upLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Right),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            horizontalDiagonalNoCross(ctx, rightSegmentA, downRightSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, rightSegmentA, downRightSegmentB), horizontalDiagonalNoCrossExtra(ctx, rightSegmentA, downRightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            horizontalDiagonalNoCross(ctx, leftSegmentA, upLeftSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, leftSegmentA, upLeftSegmentB), horizontalDiagonalNoCrossExtra(ctx, leftSegmentA, upLeftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.Left),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            horizontalDiagonalNoCross(ctx, leftSegmentA, downRightSegmentB)
+            ctx.Or(horizontalDiagonalNoCross(ctx, leftSegmentA, downRightSegmentB), horizontalDiagonalNoCrossExtra(ctx, leftSegmentA, downRightSegmentB))
 
         ),
         ctx.Implies(
@@ -1095,7 +1199,7 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB), UpRiDoLeVerticalNoCrossExtra(ctx, upRightSegmentA, upSegmentB))
 
         ),
         ctx.Implies(
@@ -1103,105 +1207,105 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            diagonalVerticalNoCross(ctx, upRightSegmentA, downSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, upRightSegmentA, downSegmentB), UpRiDoLeVerticalNoCrossExtra(ctx, upRightSegmentA, downSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            diagonalVerticalNoCross(ctx, downLeftSegmentA, upSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, downLeftSegmentA, upSegmentB), UpRiDoLeVerticalNoCrossExtra(ctx, downLeftSegmentA, upSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            diagonalVerticalNoCross(ctx, downLeftSegmentA, downSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, downLeftSegmentA, downSegmentB), UpRiDoLeVerticalNoCrossExtra(ctx, downLeftSegmentA, downSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            diagonalVerticalNoCross(ctx, upLeftSegmentA, upSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, upLeftSegmentA, upSegmentB), UpLeDoRiVerticalNoCrossExtra(ctx, upLeftSegmentA, upSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            diagonalVerticalNoCross(ctx, upLeftSegmentA, downSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, upLeftSegmentA, downSegmentB), UpLeDoRiVerticalNoCrossExtra(ctx, upLeftSegmentA, downSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
-            diagonalVerticalNoCross(ctx, downRightSegmentA, upSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, downRightSegmentA, upSegmentB), UpLeDoRiVerticalNoCrossExtra(ctx, downRightSegmentA, upSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
             ),
-            diagonalVerticalNoCross(ctx, downRightSegmentA, downSegmentB)
+            ctx.Or(diagonalVerticalNoCross(ctx, downRightSegmentA, downSegmentB), UpLeDoRiVerticalNoCrossExtra(ctx, downRightSegmentA, downSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            diagonalHorizontalNoCross(ctx, upRightSegmentA, rightSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, upRightSegmentA, rightSegmentB), UpRiDoLeHorizontalNoCrossExtra(ctx, upRightSegmentA, rightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            diagonalHorizontalNoCross(ctx, upRightSegmentA, leftSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, upRightSegmentA, leftSegmentB), UpRiDoLeHorizontalNoCrossExtra(ctx, upRightSegmentA, leftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-                diagonalHorizontalNoCross(ctx, downLeftSegmentA, rightSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, downLeftSegmentA, rightSegmentB), UpRiDoLeHorizontalNoCrossExtra(ctx, downLeftSegmentA, rightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            diagonalHorizontalNoCross(ctx, downLeftSegmentA, leftSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, downLeftSegmentA, leftSegmentB), UpRiDoLeHorizontalNoCrossExtra(ctx, downLeftSegmentA, leftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            diagonalHorizontalNoCross(ctx, upLeftSegmentA, rightSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, upLeftSegmentA, rightSegmentB), UpLeDoRiHorizontalNoCrossExtra(ctx, upLeftSegmentA, rightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            diagonalHorizontalNoCross(ctx, upLeftSegmentA, leftSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, upLeftSegmentA, leftSegmentB), UpLeDoRiHorizontalNoCrossExtra(ctx, upLeftSegmentA, leftSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
             ),
-            diagonalHorizontalNoCross(ctx, downRightSegmentA, rightSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, downRightSegmentA, rightSegmentB), UpLeDoRiHorizontalNoCrossExtra(ctx, downRightSegmentA, rightSegmentB))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
             ),
-            diagonalHorizontalNoCross(ctx, downRightSegmentA, leftSegmentB)
+            ctx.Or(diagonalHorizontalNoCross(ctx, downRightSegmentA, leftSegmentB), UpLeDoRiHorizontalNoCrossExtra(ctx, downRightSegmentA, leftSegmentB))
         ),
         ctx.Implies(
             ctx.And(

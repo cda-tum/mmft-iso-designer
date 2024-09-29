@@ -1081,7 +1081,7 @@ describe('channelSegmentsNoCrossSameSide', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#2 up-right intersection', async () => {
+    test('#2', async () => {
         const d = await testChannelSegmentsNoCross({
             x1: 0, y1: 0, x2: 0, y2: 10,
         }, {
