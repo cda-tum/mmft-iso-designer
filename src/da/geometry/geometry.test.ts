@@ -4,7 +4,7 @@ import {
     channelSegmentsNoCross, diagonalDiagonalNoCross, diagonalHorizontalNoCross, diagonalVerticalNoCross,
     horizontalDiagonalNoCross,
     horizontalVerticalNoCross, segmentBoxNoCrossSlopePos,
-    verticalDiagonalNoCross,
+    verticalDiagonalNoCross, verticalDiagonalPosNoCrossExtra,
     verticalHorizontalNoCross,
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
@@ -397,6 +397,111 @@ describe('verticalDiagonalNoCross', () => {
             c2_higher: 30
         })
         expect(d).toBeTruthy()
+    })
+})
+
+describe('verticalDiagonalNoCrossExtra', () => {
+    async function testVerticalDiagonalNoCross(a: {
+                                                   c1: number,
+                                                   c2_lower: number,
+                                                   c2_higher: number
+                                               },
+                                               b: {
+                                                   c1_lower: number,
+                                                   c2_lower: number,
+                                                   c1_higher: number,
+                                                   c2_higher: number
+                                               }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [ac1, ac2l, ac2h, bc1l, bc1h, bc2l, bc2h] = get_int_vars(ctx, 7)
+            solver.add(verticalDiagonalPosNoCrossExtra(ctx, {
+                c1: ac1,
+                c2_lower: ac2l,
+                c2_higher: ac2h
+            }, {
+                c1_lower: bc1l,
+                c2_lower: bc2l,
+                c1_higher: bc1h,
+                c2_higher: bc2h
+            }))
+            solver.add(ac1.eq(a.c1))
+            solver.add(ac2l.eq(a.c2_lower))
+            solver.add(ac2h.eq(a.c2_higher))
+            solver.add(bc1l.eq(b.c1_lower))
+            solver.add(bc1h.eq(b.c1_higher))
+            solver.add(bc2l.eq(b.c2_lower))
+            solver.add(bc2h.eq(b.c2_higher))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+
+    test('#1 vertical-diagonal no cross B below', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 15
+        }, {
+            c1_lower: -5,
+            c2_lower: -5,
+            c1_higher: 10,
+            c2_higher: 10
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#2 vertical-diagonal no cross B above', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 10
+        }, {
+            c1_lower: -10,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 15
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#3 vertical-diagonal cross bottom', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: -3,
+            c2_higher: 15
+        }, {
+            c1_lower: 0,
+            c2_lower: 0,
+            c1_higher: 20,
+            c2_higher: 20
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 vertical-diagonal cross top', async () => {
+        const d = await testVerticalDiagonalNoCross({
+            c1: 0,
+            c2_lower: 0,
+            c2_higher: 16
+        }, {
+            c1_lower: -10,
+            c2_lower: 0,
+            c1_higher: 5,
+            c2_higher: 15
+        })
+        expect(d).toBeFalsy()
     })
 })
 
