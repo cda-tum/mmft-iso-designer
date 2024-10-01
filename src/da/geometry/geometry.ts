@@ -57,22 +57,6 @@ export function minDistanceSym(ctx: Context, c1: Arith | number, c2: Arith | num
     )
 }
 
-export function minDistancePointPoint(ctx: Context, pointA: { c1: Arith , c2: Arith }, pointB: { c1: Arith , c2: Arith }, min_distance: number) {
-
-    const lowerLeft_x = pointA.c1.sub(min_distance)
-    const lowerLeft_y = pointA.c2.sub(min_distance)
-
-    const lowerRight_x = lowerLeft_x.add(2 * min_distance)
-    const upperRight_y = lowerLeft_y.add(2 * min_distance)
-
-    return ctx.Or(
-        ctx.GE(pointB.c1, lowerRight_x),
-        ctx.GE(pointB.c2, upperRight_y),
-        ctx.LE(pointB.c1, lowerLeft_x),
-        ctx.LE(pointB.c2, lowerLeft_y)
-    )
-}
-
 
 /** MINIMUM POINT-SEGMENT DISTANCE CALCULATION METHODS */
 
@@ -90,112 +74,134 @@ export function pointSegmentDistance(ctx: Context, point: { c1: Arith, c2: Arith
 
 // solving the point-segment distance problem by creating a square around the point with 2 * min_distance as the square length
 // and then delegating that box and segment to the segmentBoxNoCross functions for diagonal elements
-export function pointSegmentDistanceDiagonal(ctx: Context, point: { c1: Arith, c2: Arith },
-                                             segment: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }, min_distance: number, isSlopePositive: boolean) {
+export function pointSegmentDistanceDiag(ctx: Context, point: { c1: Arith, c2: Arith },
+                                         segment: {
+                                             c1_lower: Arith,
+                                             c2_lower: Arith,
+                                             c1_higher: Arith,
+                                             c2_higher: Arith
+                                         }, min_distance: number, isSlopePositive: boolean) {
     const lowerLeft_x = point.c1.sub(min_distance)
     const lowerLeft_y = point.c2.sub(min_distance)
     const squareSpan = min_distance * 2
 
-    const pointBox = { c1: lowerLeft_x, c2: lowerLeft_y, c1_span: squareSpan, c2_span: squareSpan }
+    const pointBox = {c1: lowerLeft_x, c2: lowerLeft_y, c1_span: squareSpan, c2_span: squareSpan}
     return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, pointBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, pointBox)
 }
 
-export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel, waypoint_a: number, channel_b: EncodedChannel, segment_b: number, min_distance: number) {
+// Helper function for the waypointSegmentDistance function to determine whether the waypoint is the start or end of the segment that it is
+// checked against --> obviously, it should then not be distanced from it
+export function isPointStartOrEnd(ctx: Context, point: { c1: Arith, c2: Arith },
+                                  segment: {
+                                      start_x: Arith,
+                                      start_y: Arith,
+                                      end_x: Arith,
+                                      end_y: Arith
+                                  }) {
+    return ctx.Or(
+        ctx.And(ctx.Eq(point.c1, segment.start_x), ctx.Eq(point.c2, segment.start_y)),      // point equal to start
+        ctx.And(ctx.Eq(point.c1, segment.end_x), ctx.Eq(point.c2, segment.end_y))           // point equal to end
+    )
+}
+
+// Function to ensure a given minimum distance between the waypoint of a channel and a segment of the same or another channel
+export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel, waypoint_a: number, channel_b: EncodedChannel,
+                                        segment_b: number, min_distance: number) {
+    const point_x = channel_a.encoding.waypoints[waypoint_a].x
+    const point_y = channel_a.encoding.waypoints[waypoint_a].y
+    const thisSeg_x = channel_b.encoding.waypoints[segment_b].x
+    const thisSeg_y = channel_b.encoding.waypoints[segment_b].y
+    const nextSeg_x = channel_b.encoding.waypoints[segment_b + 1].x
+    const nextSeg_y = channel_b.encoding.waypoints[segment_b + 1].y
+
+    const isStartOrEnd = isPointStartOrEnd(ctx, {c1: point_x, c2: point_y}, {
+        start_x: thisSeg_x,
+        start_y: thisSeg_y,
+        end_x: nextSeg_x,
+        end_y: nextSeg_y
+    })
+
     return ctx.And(
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
-            pointSegmentDistance(ctx, {
-                c1: channel_a.encoding.waypoints[waypoint_a].y,
-                c2: channel_a.encoding.waypoints[waypoint_a].x,
-            }, {
-                c1_lower: channel_b.encoding.waypoints[segment_b].y,
-                c1_higher: channel_b.encoding.waypoints[segment_b + 1].y,
-                c2: channel_b.encoding.waypoints[segment_b].x
+            pointSegmentDistance(ctx, {c1: point_y, c2: point_x}, {
+                c1_lower: thisSeg_y,
+                c1_higher: nextSeg_y,
+                c2: thisSeg_x
             }, min_distance)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Down),
-            pointSegmentDistance(ctx, {
-                c1: channel_a.encoding.waypoints[waypoint_a].y,
-                c2: channel_a.encoding.waypoints[waypoint_a].x,
-            }, {
-                c1_lower: channel_b.encoding.waypoints[segment_b + 1].y,
-                c1_higher: channel_b.encoding.waypoints[segment_b].y,
-                c2: channel_b.encoding.waypoints[segment_b].x
+            pointSegmentDistance(ctx, {c1: point_y, c2: point_x}, {
+                c1_lower: nextSeg_y,
+                c1_higher: thisSeg_y,
+                c2: thisSeg_x
             }, min_distance)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Right),
-            pointSegmentDistance(ctx, {
-                c1: channel_a.encoding.waypoints[waypoint_a].x,
-                c2: channel_a.encoding.waypoints[waypoint_a].y,
-            }, {
-                c1_lower: channel_b.encoding.waypoints[segment_b].x,
-                c1_higher: channel_b.encoding.waypoints[segment_b + 1].x,
-                c2: channel_b.encoding.waypoints[segment_b].y
+            pointSegmentDistance(ctx, {c1: point_x, c2: point_y}, {
+                c1_lower: thisSeg_x,
+                c1_higher: nextSeg_x,
+                c2: thisSeg_y
             }, min_distance)
         ),
         ctx.Implies(
             channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Left),
-            pointSegmentDistance(ctx, {
-                c1: channel_a.encoding.waypoints[waypoint_a].x,
-                c2: channel_a.encoding.waypoints[waypoint_a].y,
-            }, {
-                c1_lower: channel_b.encoding.waypoints[segment_b + 1].x,
-                c1_higher: channel_b.encoding.waypoints[segment_b].x,
-                c2: channel_b.encoding.waypoints[segment_b].y
+            pointSegmentDistance(ctx, {c1: point_x, c2: point_y}, {
+                c1_lower: nextSeg_x,
+                c1_higher: thisSeg_x,
+                c2: thisSeg_y
             }, min_distance)
         ),
-
-        // TODO: fix diagonal segments / find different even easier logic to solve min distance problem
-        // ctx.Implies(
-        //     channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
-        //     pointSegmentDistanceDiagonal(ctx, {
-        //         c1: channel_a.encoding.waypoints[waypoint_a].x,
-        //         c2: channel_a.encoding.waypoints[waypoint_a].y,
-        //     }, {
-        //         c1_lower: channel_b.encoding.waypoints[segment_b].x,
-        //         c2_lower: channel_b.encoding.waypoints[segment_b].y,
-        //         c1_higher: channel_b.encoding.waypoints[segment_b + 1].x,
-        //         c2_higher: channel_b.encoding.waypoints[segment_b + 1].y,
-        //     }, min_distance, true)
-        // ),
-        // ctx.Implies(
-        //     channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
-        //     pointSegmentDistanceDiagonal(ctx, {
-        //         c1: channel_a.encoding.waypoints[waypoint_a].x,
-        //         c2: channel_a.encoding.waypoints[waypoint_a].y,
-        //     }, {
-        //         c1_lower: channel_b.encoding.waypoints[segment_b].x,
-        //         c2_lower: channel_b.encoding.waypoints[segment_b + 1].y,
-        //         c1_higher: channel_b.encoding.waypoints[segment_b + 1].x,
-        //         c2_higher: channel_b.encoding.waypoints[segment_b].y,
-        //     }, min_distance, false)
-        // ),
-        // ctx.Implies(
-        //     channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
-        //     pointSegmentDistanceDiagonal(ctx, {
-        //         c1: channel_a.encoding.waypoints[waypoint_a].x,
-        //         c2: channel_a.encoding.waypoints[waypoint_a].y,
-        //     }, {
-        //         c1_lower: channel_b.encoding.waypoints[segment_b + 1].x,
-        //         c2_lower: channel_b.encoding.waypoints[segment_b + 1].y,
-        //         c1_higher: channel_b.encoding.waypoints[segment_b].x,
-        //         c2_higher: channel_b.encoding.waypoints[segment_b].y,
-        //     }, min_distance, true)
-        // ),
-        // ctx.Implies(
-        //     channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
-        //     pointSegmentDistanceDiagonal(ctx, {
-        //         c1: channel_a.encoding.waypoints[waypoint_a].x,
-        //         c2: channel_a.encoding.waypoints[waypoint_a].y,
-        //     }, {
-        //         c1_lower: channel_b.encoding.waypoints[segment_b + 1].x,
-        //         c2_lower: channel_b.encoding.waypoints[segment_b].y,
-        //         c1_higher: channel_b.encoding.waypoints[segment_b].x,
-        //         c2_higher: channel_b.encoding.waypoints[segment_b + 1].y,
-        //     }, min_distance, false)
-        // )
+        ctx.Implies(
+            channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
+            ctx.Or(
+                isStartOrEnd,
+                pointSegmentDistanceDiag(ctx, {c1: point_x, c2: point_y}, {
+                    c1_lower: thisSeg_x,
+                    c2_lower: thisSeg_y,
+                    c1_higher: nextSeg_x,
+                    c2_higher: nextSeg_y
+                }, min_distance, true)
+            )
+        ),
+        ctx.Implies(
+            channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
+            ctx.Or(
+                isStartOrEnd,
+                pointSegmentDistanceDiag(ctx, {c1: point_x, c2: point_y}, {
+                    c1_lower: thisSeg_x,
+                    c2_lower: nextSeg_y,
+                    c1_higher: nextSeg_x,
+                    c2_higher: thisSeg_y
+                }, min_distance, false)
+            )
+        ),
+        ctx.Implies(
+            channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
+            ctx.Or(
+                isStartOrEnd,
+                pointSegmentDistanceDiag(ctx, {c1: point_x, c2: point_y}, {
+                    c1_lower: nextSeg_x,
+                    c2_lower: nextSeg_y,
+                    c1_higher: thisSeg_x,
+                    c2_higher: thisSeg_y
+                }, min_distance, true)
+            )
+        ),
+        ctx.Implies(
+            channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
+            ctx.Or(
+                isStartOrEnd,
+                pointSegmentDistanceDiag(ctx, {c1: point_x, c2: point_y}, {
+                    c1_lower: nextSeg_x,
+                    c2_lower: thisSeg_y,
+                    c1_higher: thisSeg_x,
+                    c2_higher: nextSeg_y
+                }, min_distance, false)
+            )
+        )
     )
 }
 
@@ -204,7 +210,12 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
 // Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
 // using minDistanceAsym
 export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith },
-                                 box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
+                                 box: {
+                                     c1: Arith | number,
+                                     c2: Arith | number,
+                                     c1_span: number,
+                                     c2_span: number
+                                 }, min_distance: number) {
     return ctx.Or(
         minDistanceAsym(ctx, point.c1, box.c1, min_distance),
         minDistanceAsym(ctx, point.c2, box.c2, min_distance),
@@ -216,7 +227,12 @@ export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith },
 // Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the vertical/horizontal segments
 // and a given box (e.g. exclusion zone)
 export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                   box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
+                                   box: {
+                                       c1: Arith | number,
+                                       c2: Arith | number,
+                                       c1_span: number,
+                                       c2_span: number
+                                   }, min_distance: number) {
     return ctx.Or(
         minDistanceAsym(ctx, segment.c1_higher, box.c1, min_distance),
         minDistanceAsym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
@@ -227,8 +243,18 @@ export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_
 
 // Helper function for the channelSegmentRoutingExclusionDistance function, ensuring that the minimum distance between a segment
 // and a given box (e.g. exclusion zone) is kept for all points of the segment
-export function segmentBoxDistanceDiagonal(ctx: Context, segment: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }, isSlopePositive: boolean,
-                                           box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }, min_distance: number) {
+export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
+                                               c1_lower: Arith,
+                                               c2_lower: Arith,
+                                               c1_higher: Arith,
+                                               c2_higher: Arith
+                                           }, isSlopePositive: boolean,
+                                           box: {
+                                               c1: Arith | number,
+                                               c2: Arith | number,
+                                               c1_span: number,
+                                               c2_span: number
+                                           }, min_distance: number) {
 
     if (typeof box.c1 == 'number') {
         if (typeof box.c2 == 'number') {
@@ -408,8 +434,18 @@ export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_h
 }
 
 // Helper function for several functions to check whether an UpRight/DownLeft segment crosses a given box (e.g. exclusion zone)
-export function segmentBoxNoCrossSlopePos(ctx: Context, segment: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith },
-                                          box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }) {
+export function segmentBoxNoCrossSlopePos(ctx: Context, segment: {
+                                              c1_lower: Arith,
+                                              c2_lower: Arith,
+                                              c1_higher: Arith,
+                                              c2_higher: Arith
+                                          },
+                                          box: {
+                                              c1: Arith | number,
+                                              c2: Arith | number,
+                                              c1_span: number,
+                                              c2_span: number
+                                          }) {
     if (typeof box.c1 === 'number') {
         if (typeof box.c2 === 'number') {
             const boxTopSide_y = box.c2 + box.c2_span                   // y-value of the upper side of the box
@@ -464,8 +500,18 @@ export function segmentBoxNoCrossSlopePos(ctx: Context, segment: { c1_lower: Ari
 }
 
 // Helper function for several functions to check whether an UpRight/DownLeft segment crosses a given box (e.g. exclusion zone)
-export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith },
-                                          box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }) {
+export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
+                                              c1_lower: Arith,
+                                              c2_lower: Arith,
+                                              c1_higher: Arith,
+                                              c2_higher: Arith
+                                          },
+                                          box: {
+                                              c1: Arith | number,
+                                              c2: Arith | number,
+                                              c1_span: number,
+                                              c2_span: number
+                                          }) {
     if (typeof box.c1 === 'number') {
         if (typeof box.c2 === 'number') {
             const boxTopSide_y = box.c2 + box.c2_span                                       // y-value of the upper side of the box
@@ -653,7 +699,12 @@ export function horizontalVerticalNoCross(ctx: Context, segment_a: { c1_lower: A
 
 export function verticalDiagonalNoCross(ctx: Context,
                                         segA: { c1: Arith, c2_lower: Arith, c2_higher: Arith },
-                                        segB: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }) {
+                                        segB: {
+                                            c1_lower: Arith,
+                                            c2_lower: Arith,
+                                            c1_higher: Arith,
+                                            c2_higher: Arith
+                                        }) {
     return ctx.Or(
         // General constraints
         ctx.LE(segB.c2_higher, segA.c2_lower), // B entirely below A
@@ -671,7 +722,12 @@ export function diagonalVerticalNoCross(ctx: Context,
 
 export function horizontalDiagonalNoCross(ctx: Context,
                                           segA: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                          segB: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }) {
+                                          segB: {
+                                              c1_lower: Arith,
+                                              c2_lower: Arith,
+                                              c1_higher: Arith,
+                                              c2_higher: Arith
+                                          }) {
     return ctx.Or(
         // General constraints
         ctx.LE(segB.c2_higher, segA.c2), // B entirely below A
@@ -682,14 +738,24 @@ export function horizontalDiagonalNoCross(ctx: Context,
 }
 
 export function diagonalHorizontalNoCross(ctx: Context,
-                                          segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
+                                          segA: {
+                                              c1_lower: Arith,
+                                              c1_higher: Arith,
+                                              c2_lower: Arith,
+                                              c2_higher: Arith
+                                          },
                                           segB: { c1_lower: Arith, c1_higher: Arith, c2: Arith }) {
     return horizontalDiagonalNoCross(ctx, segB, segA)
 }
 
 export function diagonalDiagonalNoCross(ctx: Context,
                                         segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
-                                        segB: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                        segB: {
+                                            c1_lower: Arith,
+                                            c1_higher: Arith,
+                                            c2_lower: Arith,
+                                            c2_higher: Arith
+                                        }) {
     return ctx.Or(
         // General constraints
         ctx.LE(segB.c2_higher, segA.c2_lower), // B entirely below A
@@ -704,7 +770,12 @@ export function diagonalDiagonalNoCross(ctx: Context,
 
 export function verticalDiagonalPosNoCrossExtra(ctx: Context,
                                                 segA: { c1: Arith, c2_lower: Arith, c2_higher: Arith },
-                                                segB: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }) {
+                                                segB: {
+                                                    c1_lower: Arith,
+                                                    c2_lower: Arith,
+                                                    c1_higher: Arith,
+                                                    c2_higher: Arith
+                                                }) {
 
     const delta_x = segA.c1.sub(segB.c1_lower)
     const segB_y_at_segA_c1 = segB.c2_lower.add(delta_x)
@@ -715,14 +786,24 @@ export function verticalDiagonalPosNoCrossExtra(ctx: Context,
 }
 
 export function diagonalPosVerticalNoCrossExtra(ctx: Context,
-                                                segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
+                                                segA: {
+                                                    c1_lower: Arith,
+                                                    c1_higher: Arith,
+                                                    c2_lower: Arith,
+                                                    c2_higher: Arith
+                                                },
                                                 segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
     return verticalDiagonalPosNoCrossExtra(ctx, segB, segA)
 }
 
 export function horizontalDiagonalPosNoCrossExtra(ctx: Context,
                                                   segA: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                                  segB: { c1_lower: Arith, c2_lower: Arith, c1_higher: Arith, c2_higher: Arith }) {
+                                                  segB: {
+                                                      c1_lower: Arith,
+                                                      c2_lower: Arith,
+                                                      c1_higher: Arith,
+                                                      c2_higher: Arith
+                                                  }) {
     const delta_y = segA.c2.sub(segB.c2_lower)
     const segB_x_at_segA_c2 = segB.c1_lower.add(delta_y)
     return ctx.Or(
@@ -732,7 +813,12 @@ export function horizontalDiagonalPosNoCrossExtra(ctx: Context,
 }
 
 export function diagonalPosHorizontalNoCrossExtra(ctx: Context,
-                                                  segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
+                                                  segA: {
+                                                      c1_lower: Arith,
+                                                      c1_higher: Arith,
+                                                      c2_lower: Arith,
+                                                      c2_higher: Arith
+                                                  },
                                                   segB: { c1_lower: Arith, c1_higher: Arith, c2: Arith }) {
     return horizontalDiagonalPosNoCrossExtra(ctx, segB, segA)
 }
@@ -740,7 +826,12 @@ export function diagonalPosHorizontalNoCrossExtra(ctx: Context,
 
 export function verticalDiagonalNegNoCrossExtra(ctx: Context,
                                                 segA: { c1: Arith, c2_lower: Arith, c2_higher: Arith },
-                                                segB: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                                segB: {
+                                                    c1_lower: Arith,
+                                                    c1_higher: Arith,
+                                                    c2_lower: Arith,
+                                                    c2_higher: Arith
+                                                }) {
     const delta_x = segB.c1_higher.sub(segA.c1)
     const segB_y_at_segA_c1 = segB.c2_lower.add(delta_x)
     return ctx.Or(
@@ -750,16 +841,25 @@ export function verticalDiagonalNegNoCrossExtra(ctx: Context,
 }
 
 export function diagonalNegVerticalNoCrossExtra(ctx: Context,
-                                                segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
+                                                segA: {
+                                                    c1_lower: Arith,
+                                                    c1_higher: Arith,
+                                                    c2_lower: Arith,
+                                                    c2_higher: Arith
+                                                },
                                                 segB: { c1: Arith, c2_lower: Arith, c2_higher: Arith }) {
     return verticalDiagonalNegNoCrossExtra(ctx, segB, segA)
 }
 
 
-
 export function horizontalDiagonalNegNoCrossExtra(ctx: Context,
                                                   segA: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                                  segB: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith }) {
+                                                  segB: {
+                                                      c1_lower: Arith,
+                                                      c1_higher: Arith,
+                                                      c2_lower: Arith,
+                                                      c2_higher: Arith
+                                                  }) {
     const delta_y = segB.c2_higher.sub(segA.c2)
     const segB_x_at_segA_c2 = segB.c1_lower.add(delta_y)
     return ctx.Or(
@@ -769,7 +869,12 @@ export function horizontalDiagonalNegNoCrossExtra(ctx: Context,
 }
 
 export function diagonalNegHorizontalNoCrossExtra(ctx: Context,
-                                                  segA: { c1_lower: Arith, c1_higher: Arith, c2_lower: Arith, c2_higher: Arith },
+                                                  segA: {
+                                                      c1_lower: Arith,
+                                                      c1_higher: Arith,
+                                                      c2_lower: Arith,
+                                                      c2_higher: Arith
+                                                  },
                                                   segB: { c1_lower: Arith, c1_higher: Arith, c2: Arith }) {
     return horizontalDiagonalNegNoCrossExtra(ctx, segB, segA)
 }
@@ -1068,7 +1173,6 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
             ctx.Or(horizontalDiagonalNoCross(ctx, leftSegmentA, downRightSegmentB), horizontalDiagonalNegNoCrossExtra(ctx, leftSegmentA, downRightSegmentB))
-
         ),
         ctx.Implies(
             ctx.And(
@@ -1076,7 +1180,6 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.Up),
             ),
             ctx.Or(diagonalVerticalNoCross(ctx, upRightSegmentA, upSegmentB), diagonalPosVerticalNoCrossExtra(ctx, upRightSegmentA, upSegmentB))
-
         ),
         ctx.Implies(
             ctx.And(

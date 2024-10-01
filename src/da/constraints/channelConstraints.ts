@@ -4,8 +4,7 @@ import {EncodedChannel, SegmentType} from "../channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
 import {
     channelSegmentsNoCross,
-    minDistanceAsym, minDistancePointPoint, minDistanceSym,
-    waypointSegmentDistance
+    minDistanceAsym, minDistanceSym, waypointSegmentDistance,
 } from "../geometry/geometry";
 import {EncodedModule} from "../module";
 

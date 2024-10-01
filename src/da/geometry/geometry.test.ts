@@ -1,14 +1,21 @@
-import {Arith, Bool, Context, init} from "z3-solver"
+import {Bool, Context, init} from "z3-solver"
 import {Chip} from "../chip"
 import {
-    channelSegmentsNoCross, diagonalDiagonalNoCross, diagonalHorizontalNoCross, diagonalVerticalNoCross,
+    channelSegmentsNoCross,
+    diagonalDiagonalNoCross,
+    diagonalHorizontalNoCross,
+    diagonalVerticalNoCross,
     horizontalDiagonalNoCross,
-    horizontalVerticalNoCross, pointSegmentDistanceDiagonal, segmentBoxNoCrossSlopeNeg, segmentBoxNoCrossSlopePos,
-    verticalDiagonalNoCross, verticalDiagonalPosNoCrossExtra,
+    horizontalVerticalNoCross,
+    pointSegmentDistanceDiag,
+    segmentBoxNoCrossSlopeNeg,
+    segmentBoxNoCrossSlopePos,
+    verticalDiagonalNoCross,
+    verticalDiagonalPosNoCrossExtra,
     verticalHorizontalNoCross,
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
-import {Channel} from "../channel"
+import {Channel, SegmentType} from "../channel"
 import {EncodedModule} from "../module";
 import {Placement} from "../placement";
 import {EnumBitVecValue} from "../z3Helpers";
@@ -1873,7 +1880,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             solver.add(sc2h.eq(segment.c2_higher))
             solver.add(pc1.eq(point.c1))
             solver.add(pc2.eq(point.c2))
-            solver.add(pointSegmentDistanceDiagonal(ctx, {
+            solver.add(pointSegmentDistanceDiag(ctx, {
                 c1: pc1,
                 c2: pc2
             }, {
@@ -1908,7 +1915,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: 0,
             c1_higher: 6,
             c2_higher: 6        // actual distance = 3 (Manhattan = 6)
-        }, 3, false)
+        }, 3, true)
         expect(d).toBeTruthy()
     })
 
@@ -1921,7 +1928,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: 0,
             c1_higher: 6,
             c2_higher: 6        // actual distance = 3 (Manhattan = 6)
-        }, 4, false)
+        }, 4, true)
         expect(d).toBeFalsy()
     })
 
@@ -1934,7 +1941,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: -3,
             c1_higher: 3,
             c2_higher: 3        // actual distance = 4 (Manhattan = 8)
-        }, 4, false)
+        }, 4, true)
         expect(d).toBeTruthy()
     })
 
@@ -1947,7 +1954,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: -3,
             c1_higher: 3,
             c2_higher: 3        // actual distance = 4 (Manhattan = 8)
-        }, 5, false)
+        }, 5, true)
         expect(d).toBeFalsy()
     })
 
