@@ -880,6 +880,47 @@ export function diagonalNegHorizontalNoCrossExtra(ctx: Context,
 }
 
 
+// Helper methods for the diagonalDiagonalNoCrossExtra function that transform diagonal elements into corresponding horizontal and vertical segments
+function transformPoint(point: { x: Arith, y: Arith }) {
+    const newX = point.x.sub(point.y)
+    const newY = point.x.add(point.y)
+    return {x: newX, y: newY}
+}
+
+function transformSegment(seg: { start_x: Arith, start_y: Arith, end_x: Arith, end_y: Arith }) {
+    const newStart = transformPoint({x: seg.start_x, y: seg.start_y})
+    const newEnd = transformPoint({x: seg.end_x, y: seg.end_y})
+    return {start_x: newStart.x, start_y: newStart.y, end_x: newEnd.x, end_y: newEnd.y}
+}
+
+// Method than converts the two diagonal segments into horizontal/vertical ones so that checks for crossings are simpler and
+// existing functionality can be reused again
+export function diagonalDiagonalNoCrossExtra(ctx: Context,
+                                             segPositiveSlope: {
+                                                 start_x: Arith,
+                                                 start_y: Arith,
+                                                 end_x: Arith,
+                                                 end_y: Arith
+                                             },
+                                             segNegativeSlope: {
+                                                 start_x: Arith,
+                                                 start_y: Arith,
+                                                 end_x: Arith,
+                                                 end_y: Arith
+                                             }) {
+
+    const newVerticalSeg = transformSegment(segPositiveSlope)
+    const newHorizontalSeg = transformSegment(segNegativeSlope)
+
+    return verticalHorizontalNoCross(ctx, {
+            c1: newVerticalSeg.start_x,
+            c2_lower: newVerticalSeg.start_y,
+            c2_higher: newVerticalSeg.end_y
+        },
+        {c1_lower: newHorizontalSeg.start_x, c1_higher: newHorizontalSeg.end_x, c2: newHorizontalSeg.start_y},)
+}
+
+
 /** CHANNEL INTERSECTION METHOD **/
 
 // adds constraints for all possible segment crossings (6x8 = 48 possible intersections)
@@ -893,6 +934,11 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
             return ctx.And()
         }
     }
+
+    // defining variables for waypoints for cleaner code
+    const waypointsA = channel_a.encoding.waypoints
+    const waypointsB = channel_b.encoding.waypoints
+
     // Defining segments A and B for further use and saving of duplicated code lines
 
     // SEGMENTS A //
@@ -1291,56 +1337,144 @@ export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, 
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            diagonalDiagonalNoCross(ctx, upRightSegmentA, upLeftSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, upRightSegmentA, upLeftSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsA[segment_a].x,
+                    start_y: waypointsA[segment_a].y,
+                    end_x: waypointsA[segment_a + 1].x,
+                    end_y: waypointsA[segment_a + 1].y
+                },
+                {
+                    start_x: waypointsB[segment_b + 1].x,
+                    start_y: waypointsB[segment_b + 1].y,
+                    end_x: waypointsB[segment_b].x,
+                    end_y: waypointsB[segment_b].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            diagonalDiagonalNoCross(ctx, upRightSegmentA, downRightSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, upRightSegmentA, downRightSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsA[segment_a].x,
+                    start_y: waypointsA[segment_a].y,
+                    end_x: waypointsA[segment_a + 1].x,
+                    end_y: waypointsA[segment_a + 1].y
+                },
+                {
+                    start_x: waypointsB[segment_b].x,
+                    start_y: waypointsB[segment_b].y,
+                    end_x: waypointsB[segment_b + 1].x,
+                    end_y: waypointsB[segment_b + 1].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpLeft),
             ),
-            diagonalDiagonalNoCross(ctx, downLeftSegmentA, upLeftSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, downLeftSegmentA, upLeftSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsA[segment_a + 1].x,
+                    start_y: waypointsA[segment_a + 1].y,
+                    end_x: waypointsA[segment_a].x,
+                    end_y: waypointsA[segment_a].y
+                },
+                {
+                    start_x: waypointsB[segment_b + 1].x,
+                    start_y: waypointsB[segment_b + 1].y,
+                    end_x: waypointsB[segment_b].x,
+                    end_y: waypointsB[segment_b].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownRight),
             ),
-            diagonalDiagonalNoCross(ctx, downLeftSegmentA, downRightSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, downLeftSegmentA, downRightSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsA[segment_a + 1].x,
+                    start_y: waypointsA[segment_a + 1].y,
+                    end_x: waypointsA[segment_a].x,
+                    end_y: waypointsA[segment_a].y
+                },
+                {
+                    start_x: waypointsB[segment_b].x,
+                    start_y: waypointsB[segment_b].y,
+                    end_x: waypointsB[segment_b + 1].x,
+                    end_y: waypointsB[segment_b + 1].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            diagonalDiagonalNoCross(ctx, upLeftSegmentA, upRightSegmentB),
+            ctx.Or(diagonalDiagonalNoCross(ctx, upLeftSegmentA, upRightSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsB[segment_b].x,
+                    start_y: waypointsB[segment_b].y,
+                    end_x: waypointsB[segment_b + 1].x,
+                    end_y: waypointsB[segment_b + 1].y
+                },
+                {
+                    start_x: waypointsA[segment_a + 1].x,
+                    start_y: waypointsA[segment_a + 1].y,
+                    end_x: waypointsA[segment_a].x,
+                    end_y: waypointsA[segment_a].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.UpLeft),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            diagonalDiagonalNoCross(ctx, upLeftSegmentA, downLeftSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, upLeftSegmentA, downLeftSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsB[segment_b + 1].x,
+                    start_y: waypointsB[segment_b + 1].y,
+                    end_x: waypointsB[segment_b].x,
+                    end_y: waypointsB[segment_b].y
+                },
+                {
+                    start_x: waypointsA[segment_a + 1].x,
+                    start_y: waypointsA[segment_a + 1].y,
+                    end_x: waypointsA[segment_a].x,
+                    end_y: waypointsA[segment_a].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.UpRight),
             ),
-            diagonalDiagonalNoCross(ctx, downRightSegmentA, upRightSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, downRightSegmentA, upRightSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsB[segment_b].x,
+                    start_y: waypointsB[segment_b].y,
+                    end_x: waypointsB[segment_b + 1].x,
+                    end_y: waypointsB[segment_b + 1].y
+                },
+                {
+                    start_x: waypointsA[segment_a].x,
+                    start_y: waypointsA[segment_a].y,
+                    end_x: waypointsA[segment_a + 1].x,
+                    end_y: waypointsA[segment_a + 1].y
+                }))
         ),
         ctx.Implies(
             ctx.And(
                 channel_a.encoding.segments[segment_a].type.eq(ctx, SegmentType.DownRight),
                 channel_b.encoding.segments[segment_b].type.eq(ctx, SegmentType.DownLeft),
             ),
-            diagonalDiagonalNoCross(ctx, downRightSegmentA, downLeftSegmentB)
+            ctx.Or(diagonalDiagonalNoCross(ctx, downRightSegmentA, downLeftSegmentB), diagonalDiagonalNoCrossExtra(ctx, {
+                    start_x: waypointsB[segment_b + 1].x,
+                    start_y: waypointsB[segment_b + 1].y,
+                    end_x: waypointsB[segment_b].x,
+                    end_y: waypointsB[segment_b].y
+                },
+                {
+                    start_x: waypointsA[segment_a].x,
+                    start_y: waypointsA[segment_a].y,
+                    end_x: waypointsA[segment_a + 1].x,
+                    end_y: waypointsA[segment_a + 1].y
+                }))
         )
     )
 }

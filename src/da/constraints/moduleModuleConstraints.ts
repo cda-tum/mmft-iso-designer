@@ -8,7 +8,8 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
 
     /* Minimal inter-module distance */
     {
-        const min_distance = Math.max(a.spacing, b.spacing)
+        // TODO: replace 1000 with actual clamp spacing given in the input
+        const min_distance = Math.max(a.spacing + 1000, b.spacing + 1000)
             if (a.placement == b.placement) {
                 clauses.push(
                     ctx.Or(

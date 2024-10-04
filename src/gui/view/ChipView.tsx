@@ -45,6 +45,11 @@ export function ChipView(props: { chip: Output | undefined }) {
                     })}></ModuleInstance>)
                 }
 
+                // TODO: replace spacing with specific clamp spacing
+                {props.chip &&
+                    props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
+                }
+
                 {props.chip &&
                     props.chip.channels.map((c, i) => {
                         if (props.chip) {
@@ -66,10 +71,6 @@ export function ChipView(props: { chip: Output | undefined }) {
 
                 {props.chip &&
                     props.chip.routingExclusions.map((e, i) => <RoutingExclusion exclusion={e}></RoutingExclusion>)
-                }
-
-                {props.chip &&
-                    props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
                 }
             </g>
         </svg>
@@ -165,20 +166,13 @@ function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidt
     )
 }
 
-function ClampInstance(props: { module: ResultModule | undefined, placement: Placement | undefined, spacing: number | undefined, color?: string }) {
+function ClampInstance(props: { module: ResultModule | undefined, placement: Placement | undefined, spacing: number, color?: string }) {
     const strokeWidth = 500
     const strokeOffset = strokeWidth / 2
-    const strokeColor = '#6e6e6e'
+    const strokeColor = '#afcfff'
 
     const strokeDashArray = "400, 200";
-    const strokeDashColor = "#b8b8b8"
-    let spacing
-
-    if (!props.spacing) {
-        spacing = 1000
-    } else {
-        spacing = props.spacing
-    }
+    const strokeDashColor = "#c6dfff"
 
     if (props.module) {
         const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
@@ -186,13 +180,13 @@ function ClampInstance(props: { module: ResultModule | undefined, placement: Pla
 
             return (
                 <g>
-                    <rect x={props.module.results.positionX + strokeOffset - spacing} y={props.module.results.positionY + strokeOffset - spacing} width={width - strokeWidth + 2 * spacing} height={height - strokeWidth + 2 * spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
+                    <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
                 </g>
             )
         } else {
             return (
                 <g>
-                    <rect x={props.module.results.positionX + strokeOffset - spacing} y={props.module.results.positionY + strokeOffset - spacing} width={width - strokeWidth + 2 * spacing} height={height - strokeWidth + 2 * spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
+                    <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
                 </g>
             )
         }

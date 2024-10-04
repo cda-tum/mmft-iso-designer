@@ -2,7 +2,7 @@ import {Bool, Context, init} from "z3-solver"
 import {Chip} from "../chip"
 import {
     channelSegmentsNoCross,
-    diagonalDiagonalNoCross,
+    diagonalDiagonalNoCross, diagonalDiagonalNoCrossExtra,
     diagonalHorizontalNoCross,
     diagonalVerticalNoCross,
     horizontalDiagonalNoCross,
@@ -960,7 +960,7 @@ describe('diagonalDiagonalNoCross', () => {
         }
     }
 
-    test('#1 diagonal-horizontal cross', async () => {
+    test('#1 diagonal-diagonal cross', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: -5,
             c2_lower: -5,
@@ -975,7 +975,7 @@ describe('diagonalDiagonalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#1 diagonal-horizontal cross', async () => {
+    test('#2 diagonal-diagonal cross', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: -5,
             c2_lower: -5,
@@ -990,7 +990,7 @@ describe('diagonalDiagonalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#3 diagonal-horizontal cross', async () => {
+    test('#3 diagonal-diagonal cross', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: -9,
             c2_lower: -9,
@@ -1005,22 +1005,22 @@ describe('diagonalDiagonalNoCross', () => {
         expect(d).toBeFalsy()
     })
 
-    test('#4 diagonal-horizontal no cross B right', async () => {
+    test('#4 diagonal-diagonal no cross B right', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: -9,
             c2_lower: -7,
             c1_higher: 1,
             c2_higher: 3
         }, {
-            c1_lower: 1,
-            c2_lower: 1,
+            c1_lower: 2,
+            c2_lower: 2,
             c1_higher: 10,
             c2_higher: 10
         })
         expect(d).toBeTruthy()
     })
 
-    test('#5 diagonal-horizontal no cross B below', async () => {
+    test('#5 diagonal-diagonal no cross B below', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: 0,
             c2_lower: 0,
@@ -1035,7 +1035,7 @@ describe('diagonalDiagonalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#6 diagonal-horizontal no cross B left', async () => {
+    test('#6 diagonal-diagonal no cross B left', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: 0,
             c2_lower: 0,
@@ -1050,7 +1050,7 @@ describe('diagonalDiagonalNoCross', () => {
         expect(d).toBeTruthy()
     })
 
-    test('#7 diagonal-horizontal no cross B above', async () => {
+    test('#7 diagonal-diagonal no cross B above', async () => {
         const d = await testDiagonalDiagonalNoCross({
             c1_lower: 0,
             c2_lower: 0,
@@ -1061,6 +1061,147 @@ describe('diagonalDiagonalNoCross', () => {
             c2_lower: 10,
             c1_higher: 10,
             c2_higher: 20
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('diagonalDiagonalNoCrossExtra', () => {
+    async function testDiagonalDiagonalNoCross(a: {
+                                                   start_x: number,
+                                                   start_y: number,
+                                                   end_x: number,
+                                                   end_y: number
+                                               },
+                                               b: {
+                                                   start_x: number,
+                                                   start_y: number,
+                                                   end_x: number,
+                                                   end_y: number
+                                               }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const [asx, asy, aex, aey, bsx, bsy, bex, bey] = get_int_vars(ctx, 8)
+            solver.add(diagonalDiagonalNoCrossExtra(ctx, {
+                start_x: asx,
+                start_y: asy,
+                end_x: aex,
+                end_y: aey
+            }, {
+                start_x: bsx,
+                start_y: bsy,
+                end_x: bex,
+                end_y: bey
+            }))
+            solver.add(asx.eq(a.start_x))
+            solver.add(asy.eq(a.start_y))
+            solver.add(aex.eq(a.end_x))
+            solver.add(aey.eq(a.end_y))
+            solver.add(bsx.eq(b.start_x))
+            solver.add(bsy.eq(b.start_y))
+            solver.add(bex.eq(b.end_x))
+            solver.add(bey.eq(b.end_y))
+            let check = await solver.check()
+            if (check === 'sat') {
+                return true
+            } else {
+                return false
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('#1 diagonal-diagonal cross', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: -3,
+            start_y: 0,
+            end_x: 3,
+            end_y: 6
+        }, {
+            start_x: -3,
+            start_y: 6,
+            end_x: 3,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#2 diagonal-diagonal cross', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: -3,
+            start_y: 0,
+            end_x: 3,
+            end_y: 6
+        }, {
+            start_x: -1,
+            start_y: 4,
+            end_x: 3,
+            end_y: 0
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3 diagonal-diagonal no cross B right below', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: -3,
+            start_y: 0,
+            end_x: 3,
+            end_y: 6
+        }, {
+            start_x: 1,
+            start_y: 2,
+            end_x: 5,
+            end_y: -2
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4 diagonal-diagonal no cross B right above', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: -3,
+            start_y: 0,
+            end_x: -1,
+            end_y: 2
+        }, {
+            start_x: -3,
+            start_y: 6,
+            end_x: 3,
+            end_y: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 diagonal-diagonal no cross B left below', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: 1,
+            start_y: 4,
+            end_x: 3,
+            end_y: 6
+        }, {
+            start_x: -3,
+            start_y: 6,
+            end_x: 3,
+            end_y: 0
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#5 diagonal-diagonal no cross B left above', async () => {
+        const d = await testDiagonalDiagonalNoCross({
+            start_x: -3,
+            start_y: 0,
+            end_x: 3,
+            end_y: 6
+        }, {
+            start_x: -4,
+            start_y: 7,
+            end_x: -1,
+            end_y: 4
         })
         expect(d).toBeTruthy()
     })
@@ -1399,7 +1540,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
@@ -1683,181 +1824,6 @@ describe('segmentBoxNoCrossSlopeNeg', () => {
     })
 })
 
-describe('channelSegmentsNoCross', () => {
-    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: { x1: number, y1: number, x2: number, y2: number }) {
-        const { Context, em } = await init()
-        const ctx = Context('main')
-        try {
-            const solver = new ctx.Solver()
-            const chip = new Chip({
-                originX: -5000,
-                originY: -5000,
-                width: 10000,
-                height: 10000
-            })
-            const channel_a = new Channel({
-                id: 0,
-                width: 1,
-                spacing: 1,
-                maxSegments: 1,
-                from: {
-                    module: 0,
-                    port: [0, 0]
-                },
-                to: {
-                    module: 0,
-                    port: [0, 0]
-                }
-            })
-            const ea = channel_a.encode(ctx)
-            const channel_b = new Channel({
-                id: 1,
-                width: 1,
-                spacing: 1,
-                maxSegments: 1,
-                from: {
-                    module: 0,
-                    port: [0, 0]
-                },
-                to: {
-                    module: 0,
-                    port: [0, 0]
-                }
-            })
-            const eb = channel_b.encode(ctx)
-            solver.add(...ea.encoding.clauses)
-            solver.add(...eb.encoding.clauses)
-            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
-            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
-            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
-            solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
-            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
-            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
-            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
-            solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
-            solver.add(...encodeChannelConstraints(ctx, ea, chip))
-            solver.add(...encodeChannelConstraints(ctx, eb, chip))
-            let check1 = await solver.check()
-            let sat1;
-            if (check1 === 'sat') {
-                sat1 = true
-            } else {
-                sat1 = false
-            }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
-            let check2 = await solver.check()
-            if (check2 === 'sat') {
-                return true
-            } else {
-                return !sat1
-            }
-        } catch (e) {
-            console.error('error', e);
-        } finally {
-            em.PThread.terminateAllThreads();
-        }
-    }
-
-    test('#1 identity', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 0, y1: 0, x2: 10, y2: 0,
-        }, {
-            x1: 0, y1: 0, x2: 10, y2: 0,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#2', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 0, y1: 0, x2: 10, y2: 0,
-        }, {
-            x1: 5, y1: -5, x2: 5, y2: 5,
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('#3', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 0, y1: 0, x2: 9, y2: 0,
-        }, {
-            x1: 10, y1: -5, x2: 10, y2: 5,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#4', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: -5, y1: 0, x2: 5, y2: 0,
-        }, {
-            x1: 0, y1: -5, x2: 0, y2: 5,
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('#5', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 5, y1: 0, x2: -5, y2: 0,
-        }, {
-            x1: 0, y1: -5, x2: 0, y2: 5,
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('#6', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 5, y1: 0, x2: -5, y2: 0,
-        }, {
-            x1: 0, y1: 5, x2: 0, y2: -5,
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('#7', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: -5, y1: 0, x2: 5, y2: 0,
-        }, {
-            x1: 0, y1: 5, x2: 0, y2: -5,
-        })
-        expect(d).toBeFalsy()
-    })
-
-    test('#8', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: -5, y1: 0, x2: 5, y2: 0,
-        }, {
-            x1: -5, y1: 10, x2: 5, y2: 10,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#9', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 5, y1: 0, x2: -5, y2: 0,
-        }, {
-            x1: -5, y1: 10, x2: 5, y2: 10,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#10', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: 5, y1: 0, x2: -5, y2: 0,
-        }, {
-            x1: 5, y1: 10, x2: -5, y2: 10,
-        })
-        expect(d).toBeTruthy()
-    })
-
-    test('#11', async () => {
-        const d = await testChannelSegmentsNoCross({
-            x1: -5, y1: 0, x2: 5, y2: 0,
-        }, {
-            x1: 5, y1: 10, x2: -5, y2: 10,
-        })
-        expect(d).toBeTruthy()
-    })
-})
-
 describe('pointSegmentDistanceDiagonal', () => {
     async function testPointSegmentDistanceDiagonal(point: {
         c1: number,
@@ -1915,7 +1881,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: 0,
             c1_higher: 6,
             c2_higher: 6        // actual distance = 3 (Manhattan = 6)
-        }, 3, true)
+        }, 3, false)
         expect(d).toBeTruthy()
     })
 
@@ -1928,7 +1894,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: 0,
             c1_higher: 6,
             c2_higher: 6        // actual distance = 3 (Manhattan = 6)
-        }, 4, true)
+        }, 4, false)
         expect(d).toBeFalsy()
     })
 
@@ -1941,7 +1907,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: -3,
             c1_higher: 3,
             c2_higher: 3        // actual distance = 4 (Manhattan = 8)
-        }, 4, true)
+        }, 4, false)
         expect(d).toBeTruthy()
     })
 
@@ -1954,7 +1920,7 @@ describe('pointSegmentDistanceDiagonal', () => {
             c2_lower: -3,
             c1_higher: 3,
             c2_higher: 3        // actual distance = 4 (Manhattan = 8)
-        }, 5, true)
+        }, 5, false)
         expect(d).toBeFalsy()
     })
 

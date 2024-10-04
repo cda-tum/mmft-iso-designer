@@ -26,7 +26,6 @@ export class Module {
     placement?: Placement
 
 
-
     pitchOffsetX: number
     pitchOffsetY: number
     pitchOffsetOddX: boolean

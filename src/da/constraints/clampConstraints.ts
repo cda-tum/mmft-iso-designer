@@ -1,7 +1,5 @@
 import {Bool, Context} from "z3-solver";
 import {EncodedChannel} from "../channel";
-import {StaticRoutingExclusion} from "../routingExclusion";
-import {channelSegmentRoutingExclusionDistance} from "../geometry/geometry";
 import {Clamp} from "../clamp";
 
 export function encodeClampConstraints(ctx: Context, module: EncodedChannel, clamp: Clamp): Bool[] {
