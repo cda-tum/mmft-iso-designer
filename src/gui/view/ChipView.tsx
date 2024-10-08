@@ -51,6 +51,10 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
 
                 {props.chip &&
+                    props.chip.modules.map((b, i) => b.position && <PinInstance module={b} ></PinInstance>)
+                }
+
+                {props.chip &&
                     props.chip.channels.map((c, i) => {
                         if (props.chip) {
                             const fromModule = props.chip.modules[c.from.module];
@@ -153,6 +157,28 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
             </g>
         )
     }
+}
+
+function PinInstance(props: { module: ResultModule, color?: string }) {
+    const color = props.color ?? '#87b7ff'
+    const pinRadius = 1000
+    const pinSpacing = pinRadius / 2
+    const pinStrokeWidth = pinRadius / 2
+
+    const leftX = props.module.results.positionX - pinSpacing
+    const rightX = props.module.results.positionX + props.module.width + pinSpacing
+    const topY = props.module.results.positionY + props.module.height + pinSpacing
+    const bottomY = props.module.results.positionY - pinSpacing
+
+    return (
+        <g>
+            <circle cx={leftX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={leftX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={rightX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={rightX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+        </g>
+
+    )
 }
 
 function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidth?: number, color?: string }) {
