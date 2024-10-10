@@ -1,5 +1,6 @@
 {
   "timing": 2907,
+  "softCorners": true,
   "chip": {
     "width": 128000,
     "height": 85500

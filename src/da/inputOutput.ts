@@ -11,7 +11,7 @@ import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusi
 import { encodeModuleConstraints } from "./constraints/moduleConstraints"
 import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
-import {EncodedModule, Module, ModuleID, ResultModule} from "./module"
+import {EncodedModule, Module, ResultModule} from "./module"
 import { Channel, EncodedChannel, ResultChannel } from "./channel"
 import {Clamp} from "./clamp";
 import {encodeClampConstraints} from "./constraints/clampConstraints";
@@ -24,6 +24,8 @@ class Input {
     channels!: Channel[]
     routingExclusions!: StaticRoutingExclusion[]
     clamps!: Clamp[]
+    softCorners?: boolean
+
 
     constructor(obj: Partial<Input>) {
         Object.assign(this, obj)
@@ -42,6 +44,7 @@ class Input {
             ...modules.flatMap(b => b.encoding.clauses),
             ...channels.flatMap(c => c.encoding.clauses)
         ]
+        const softCorners = this.softCorners
 
         /* Paper constraints */
         clauses.push(...encodePaperConstraints(ctx, this.chip, modules, channels))
@@ -50,7 +53,7 @@ class Input {
         clauses.push(...modules.flatMap(b => encodeModuleConstraints(ctx, b, this.chip)))
 
         /* Encode channel constraints */
-        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, modules)))
+        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, modules, softCorners)))
 
         /* Encode channel ports connections */
         clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, modules[c.from.module], modules[c.to.module])))
@@ -96,7 +99,8 @@ class Input {
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
             routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
-            clamps: o.clamps ?? []
+            clamps: o.clamps ?? [],
+            softCorners: o.softCorners
         })
     }
 }

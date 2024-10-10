@@ -1,4 +1,4 @@
-import {Arith, Context} from "z3-solver";
+import {Context} from "z3-solver";
 import {Chip} from "../chip";
 import {EncodedChannel, SegmentType} from "../channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
@@ -9,8 +9,11 @@ import {
 import {EncodedModule} from "../module";
 
 
-export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules?: EncodedModule[]) {
+export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules?: EncodedModule[], softCorners?: boolean) {
     const clauses = []
+    if (softCorners === undefined) {
+        softCorners = false
+    }
 
     /* Specify active/inactive segments */
     {
@@ -222,6 +225,90 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                     )
                 )
             )
+        }
+
+        if (softCorners) {
+            for (let i = 1; i < channel.maxSegments; i++) {
+                clauses.push(
+                    ctx.Implies(
+                        channel.encoding.segments[i - 1].active,
+                        ctx.And(
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Up),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Left),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Right)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Down),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Left),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Right)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Left),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Up),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Down)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Right),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Up),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Down)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.UpRight),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.DownRight)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.DownRight),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.DownLeft),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.UpLeft),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.DownLeft),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight)
+                                    )
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.DownLeft),
+                                ctx.Not(
+                                    ctx.Or(
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft),
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.DownRight)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            }
         }
     }
 
