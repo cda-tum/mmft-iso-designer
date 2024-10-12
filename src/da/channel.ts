@@ -140,5 +140,5 @@ export class ResultChannel extends EncodedChannel {
 }
 
 export enum SegmentType {
-    Up, Down, Left, Right
+    Up, Down, Left, Right, UpRight, DownRight, UpLeft, DownLeft
 }

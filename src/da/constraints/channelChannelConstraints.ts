@@ -1,9 +1,14 @@
 import { Bool, Context } from "z3-solver";
 import { cross } from "../utils";
-import { channelSegmentsNoCross, minDistanceSym, waypointSegmentDistance } from "../geometry/geometry";
+import {
+    channelSegmentsNoCross,
+    minDistanceSym,
+    waypointSegmentDistance
+} from "../geometry/geometry";
 import { EncodedChannel } from "../channel";
+import {EncodedModule} from "../module";
 
-export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel): Bool[] {
+export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel, modules: EncodedModule[]): Bool[] {
     const clauses = []
 
     /* Avoid segment crossings */

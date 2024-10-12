@@ -1,6 +1,5 @@
 {
   "timing": 15483,
-  "softCorners": true,
   "chip": {
     "width": 128000,
     "height": 85500
@@ -327,5 +326,22 @@
       "actualLength": 37000
     }
   ],
-  "routingExclusions": []
+  "routingExclusions": [
+    {
+      "position": {
+        "x": 40000,
+        "y": 3000
+      },
+      "width": 60000,
+      "height": 12000
+    },
+    {
+      "position": {
+        "x": 30000,
+        "y": 55000
+      },
+      "width": 60000,
+      "height": 10000
+    }
+  ]
 }

@@ -8,9 +8,9 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
 
     /* Minimal inter-module distance */
     {
-        const min_distance = Math.max(a.spacing, b.spacing)
-
-            if (a.placement == b.placement) {
+        // TODO: replace 1000 with actual clamp spacing given in the input
+        const min_distance = Math.max(a.spacing + 1000, b.spacing + 1000)
+            if (a.placement === b.placement) {
                 clauses.push(
                     ctx.Or(
                         minDistanceAsym(ctx, a.encoding.positionX, b.encoding.positionX, smtSum(ctx, a.spanX(ctx), min_distance)),
@@ -20,11 +20,6 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
                     )
                 )
             }
-            else {
-                clauses.push(ctx.Bool.val(true))
-            }
-
     }
-    
     return clauses
 }

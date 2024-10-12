@@ -1,6 +1,5 @@
 {
-  "timing": 15483,
-  "softCorners": true,
+  "timing": 2907,
   "chip": {
     "width": 128000,
     "height": 85500
@@ -43,8 +42,8 @@
           0
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 43500
+      "maxSegments": 3,
+      "length": 88500
     },
     {
       "width": 500,
@@ -63,8 +62,8 @@
           0
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 26500
+      "maxSegments": 1,
+      "actualLength": 0
     },
     {
       "width": 500,
@@ -83,7 +82,7 @@
           0
         ]
       },
-      "maxSegments": 4,
+      "maxSegments": 3,
       "actualLength": 37500
     },
     {
@@ -104,7 +103,7 @@
         ]
       },
       "maxSegments": 4,
-      "actualLength": 108000
+      "actualLength": 111000
     },
     {
       "width": 500,
@@ -124,7 +123,7 @@
         ]
       },
       "maxSegments": 4,
-      "actualLength": 36000
+      "actualLength": 34500
     },
     {
       "width": 500,
@@ -144,7 +143,7 @@
         ]
       },
       "maxSegments": 4,
-      "actualLength": 43000
+      "actualLength": 38500
     },
     {
       "width": 500,
@@ -164,7 +163,7 @@
         ]
       },
       "maxSegments": 4,
-      "actualLength": 96000
+      "actualLength": 93000
     },
     {
       "width": 500,
@@ -184,7 +183,7 @@
         ]
       },
       "maxSegments": 4,
-      "actualLength": 10500
+      "actualLength": 63000
     },
     {
       "width": 500,
@@ -203,8 +202,8 @@
           18
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 46000
+      "maxSegments": 3,
+      "actualLength": 41500
     },
     {
       "width": 500,
@@ -223,109 +222,26 @@
           18
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 54000
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          1,
-          18
-        ]
-      },
-      "to": {
-        "module": 2,
-        "port": [
-          5,
-          18
-        ]
-      },
-      "maxSegments": 4,
-      "actualLength": 100000
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          1,
-          17
-        ]
-      },
-      "to": {
-        "module": 0,
-        "port": [
-          0,
-          1
-        ]
-      },
-      "maxSegments": 4,
-      "actualLength": 7500
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 2,
-        "port": [
-          3,
-          0
-        ]
-      },
-      "to": {
-        "module": 0,
-        "port": [
-          2,
-          0
-        ]
-      },
-      "maxSegments": 4,
-      "actualLength": 86500
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          6,
-          1
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          1,
-          0
-        ]
-      },
-      "maxSegments": 4,
-      "actualLength": 28500
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 2,
-        "port": [
-          2,
-          17
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          6,
-          17
-        ]
-      },
-      "maxSegments": 4,
-      "actualLength": 37000
+      "maxSegments": 3,
+      "actualLength": 51000
     }
   ],
-  "routingExclusions": []
+  "routingExclusions": [
+    {
+      "position": {
+        "x": 40000,
+        "y": 3000
+      },
+      "width": 60000,
+      "height": 12000
+    },
+    {
+      "position": {
+        "x": 30000,
+        "y": 55000
+      },
+      "width": 60000,
+      "height": 10000
+    }
+  ]
 }

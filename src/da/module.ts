@@ -2,7 +2,7 @@ import { Arith, Bool, Context, Model } from "z3-solver";
 import { EnumBitVec, EnumBitVecValue, intVal } from "./z3Helpers";
 import { Orientation } from "./orientation";
 import { Position } from "./position";
-import {Placement} from "./placement";
+import { Placement } from "./placement";
 
 export type ModuleID = number
 type ModuleProperties = {
@@ -24,7 +24,6 @@ export class Module {
     position?: Position
     orientation?: Orientation
     placement?: Placement
-
 
 
     pitchOffsetX: number

@@ -11,8 +11,10 @@ import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusi
 import { encodeModuleConstraints } from "./constraints/moduleConstraints"
 import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
-import { EncodedModule, Module, ResultModule } from "./module"
+import {EncodedModule, Module, ResultModule} from "./module"
 import { Channel, EncodedChannel, ResultChannel } from "./channel"
+import {Clamp} from "./clamp";
+import {encodeClampConstraints} from "./constraints/clampConstraints";
 
 export { Input, Output }
 
@@ -21,6 +23,9 @@ class Input {
     modules!: Module[]
     channels!: Channel[]
     routingExclusions!: StaticRoutingExclusion[]
+    clamps!: Clamp[]
+    softCorners?: boolean
+
 
     constructor(obj: Partial<Input>) {
         Object.assign(this, obj)
@@ -39,15 +44,16 @@ class Input {
             ...modules.flatMap(b => b.encoding.clauses),
             ...channels.flatMap(c => c.encoding.clauses)
         ]
+        const softCorners = this.softCorners
 
         /* Paper constraints */
         clauses.push(...encodePaperConstraints(ctx, this.chip, modules, channels))
 
-        /* Encode module contraints */
+        /* Encode module constraints */
         clauses.push(...modules.flatMap(b => encodeModuleConstraints(ctx, b, this.chip)))
 
-        /* Encode channel contraints */
-        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip)))
+        /* Encode channel constraints */
+        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, modules, softCorners)))
 
         /* Encode channel ports connections */
         clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, modules[c.from.module], modules[c.to.module])))
@@ -59,13 +65,16 @@ class Input {
         clauses.push(...pairwiseUnique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
+        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b, modules)))
 
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
         /* Encode routing exclusion zones */
         clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
+
+        /* Encode clamps */
+        //clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
 
         return new EncodedInput({
             ...this,
@@ -80,11 +89,18 @@ class Input {
             throw ''
         }
 
+        // fill clamps array with a clamp for each module
+        o.modules?.forEach((c, i) => {
+            o.clamps?.push(new Clamp({ clampID: i, clampingModuleID: c.id, placement: c.placement}))
+        })
+
         return new Input({
             chip: new Chip(o.chip),
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
-            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? []
+            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
+            clamps: o.clamps ?? [],
+            softCorners: o.softCorners
         })
     }
 }
@@ -105,7 +121,8 @@ class EncodedInput extends Input {
             ...this,
             success: true,
             modules: this.modules.map(b => b.result(m)),
-            channels: this.channels.map(c => c.result(m))
+            channels: this.channels.map(c => c.result(m)),
+            clamps: this.clamps
         }
     }
 }

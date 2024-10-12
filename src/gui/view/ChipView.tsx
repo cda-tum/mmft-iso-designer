@@ -45,13 +45,21 @@ export function ChipView(props: { chip: Output | undefined }) {
                     })}></ModuleInstance>)
                 }
 
+                // TODO: replace spacing with specific clamp spacing
+                {props.chip &&
+                    props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
+                }
+
+                {props.chip &&
+                    props.chip.modules.map((b, i) => b.position && <PinInstance module={b} ></PinInstance>)
+                }
+
                 {props.chip &&
                     props.chip.channels.map((c, i) => {
                         if (props.chip) {
                             const fromModule = props.chip.modules[c.from.module];
                             const toModule = props.chip.modules[c.to.module];
 
-                            let placement;
                             if (fromModule.placement === toModule.placement && fromModule.placement === Placement.Bottom) {
                                 return (
                                     <Channel channel={c} placement={Placement.Bottom} ></Channel>
@@ -78,7 +86,7 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
     const strokeOffset = strokeWidth / 2
     const strokeColor = '#59f'
 
-    const strokeDashArray = "300, 300";
+    const strokeDashArray = "400, 200";
     const bottomPortDashArray = "150, 120";
     const strokeDashColor = "#87b7ff"
 
@@ -90,7 +98,7 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
     const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
     const ports = [...(props.ports ?? [])]
 
-    if (props.module.placement == 0 || props.module.placement == undefined) {
+    if (props.module.placement === 0 || props.module.placement === undefined) {
         return (
             <g>
                 <rect x={props.module.results.positionX + strokeOffset} y={props.module.results.positionY + strokeOffset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />
@@ -119,7 +127,6 @@ function ModuleInstance(props: { module: ResultModule, ports?: { port: [number, 
             </g>
         )
     }
-
 }
 
 function Channel(props: { channel: ResultChannel, color?: string, placement?: Placement | undefined }) {
@@ -152,6 +159,28 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     }
 }
 
+function PinInstance(props: { module: ResultModule, color?: string }) {
+    const color = props.color ?? '#87b7ff'
+    const pinRadius = 1000
+    const pinSpacing = pinRadius / 2
+    const pinStrokeWidth = pinRadius / 2
+
+    const leftX = props.module.results.positionX - pinSpacing
+    const rightX = props.module.results.positionX + props.module.width + pinSpacing
+    const topY = props.module.results.positionY + props.module.height + pinSpacing
+    const bottomY = props.module.results.positionY - pinSpacing
+
+    return (
+        <g>
+            <circle cx={leftX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={leftX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={rightX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={rightX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+        </g>
+
+    )
+}
+
 function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidth?: number, color?: string }) {
     const color = props.color ?? '#b00'
     const strokeWidth = props.strokeWidth ?? 300
@@ -161,4 +190,36 @@ function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidt
             <rect x={props.exclusion.position.x + offset} y={props.exclusion.position.y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
         </g>
     )
+}
+
+function ClampInstance(props: { module: ResultModule | undefined, placement: Placement | undefined, spacing: number, color?: string }) {
+    const strokeWidth = 500
+    const strokeOffset = strokeWidth / 2
+    const strokeColor = '#afcfff'
+
+    const strokeDashArray = "400, 200";
+    const strokeDashColor = "#c6dfff"
+
+    if (props.module) {
+        const [width, height] = (props.module.results.orientation === Orientation.Up || props.module.results.orientation === Orientation.Down) ? [props.module.width, props.module.height] : [props.module.height, props.module.width]
+        if (props.module.placement === 0 || props.module.placement === undefined) {
+
+            return (
+                <g>
+                    <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeColor} strokeWidth={strokeWidth} />{}
+                </g>
+            )
+        } else {
+            return (
+                <g>
+                    <rect x={props.module.results.positionX + strokeOffset - props.spacing} y={props.module.results.positionY + strokeOffset - props.spacing} width={width - strokeWidth + 2 * props.spacing} height={height - strokeWidth + 2 * props.spacing} fill='none' stroke={strokeDashColor} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray}/>{}
+                </g>
+            )
+        }
+    } else {
+        return (
+            <g>
+            </g>
+        )
+    }
 }

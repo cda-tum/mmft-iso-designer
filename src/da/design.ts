@@ -7,7 +7,7 @@ async function design(input: Input) {
     const { Context, em, Z3 } = await init()
     // Comes out unsat if more than one thread ...
     //Z3.global_param_set('parallel.enable', 'true')
-    //Z3.global_param_set('smt.threads', '1') fails if > 1
+    //Z3.global_param_set('smt.threads', '1') // fails if > 1
     //Z3.global_param_set('smt.random_seed', '1000') //no apparent effect
     //Z3.global_param_set('smt.arith.random_initial_value', 'true') //no apparent effect
 
@@ -18,9 +18,9 @@ async function design(input: Input) {
         const solver = new ctx.Solver()
         solver.set('unsat_core', false)
 
-
-        const encoded_input = input.encode(ctx) 
+        const encoded_input = input.encode(ctx)
         solver.add(...encoded_input.clauses)
+        console.log("adding " + encoded_input.clauses.length + " constraints")
 
         let start = performance.now()
         const check = await solver.check()

@@ -5,7 +5,7 @@ import { EncodedChannel } from "../channel";
 export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannel, fromModule: EncodedModule, toModule: EncodedModule) {
     const clauses = []
 
-    if (toModule.placement == fromModule.placement) {
+    if (toModule.placement === fromModule.placement === undefined || toModule.placement === toModule.placement) {
         const fromPortPosition = fromModule.portPosition(ctx, channel.from.port[0], channel.from.port[1])
         const toPortPosition = toModule.portPosition(ctx, channel.to.port[0], channel.to.port[1])
 
@@ -16,7 +16,7 @@ export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChann
             ctx.Eq(channel.encoding.waypoints[channel.maxSegments].y, toPortPosition.y),
         )
     } else {
-        clauses.push(ctx.Bool.val(false))
+        throw 'From-port and to-Port of one channel cannot be on different sides of the chip.'
     }
     return clauses
 }
