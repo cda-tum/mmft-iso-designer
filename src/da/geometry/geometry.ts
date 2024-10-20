@@ -3,9 +3,7 @@ import {StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
-import {EncodedPin} from "../pin";
-import {EnumBitVec, EnumBitVecValue} from "../z3Helpers";
-import {smtSum} from "../utils";
+import {EnumBitVecValue} from "../z3Helpers";
 
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -227,20 +225,242 @@ export function pointBoxMinDistance(ctx: Context, point: { c1: Arith, c2: Arith 
     )
 }
 
-export function getModuleSize(ctx: Context, module: EncodedModule) {
-    let spanX
-    let spanY
+// Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the vertical/horizontal segments
+// and a given box (e.g. exclusion zone)
+export function segmentBoxMinDistance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
+                                      box: {
+                                          c1: Arith | number,
+                                          c2: Arith | number,
+                                          c1_span: number,
+                                          c2_span: number
+                                      }, min_distance: number) {
+    return ctx.Or(
+        minDistanceAsym(ctx, segment.c1_higher, box.c1, min_distance),
+        minDistanceAsym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
+        minDistanceAsym(ctx, segment.c2, box.c2, min_distance),
+        minDistanceAsym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
+    )
+}
 
-    if (module.encoding.orientation instanceof EnumBitVecValue) {
-        if (module.encoding.orientation.value === Orientation.Up || module.encoding.orientation.value === Orientation.Down) {
-            return {spanX: module.width, spanY: module.height}
+// Helper function for the channelSegmentRoutingExclusionDistance function, ensuring that the minimum distance between a segment
+// and a given box (e.g. exclusion zone) is kept for all points of the segment
+export function segmentBoxMinDistanceDiagonal(ctx: Context, segment: {
+                                                  c1_lower: Arith,
+                                                  c2_lower: Arith,
+                                                  c1_higher: Arith,
+                                                  c2_higher: Arith
+                                              }, isSlopePositive: boolean,
+                                              box: {
+                                                  c1: Arith | number,
+                                                  c2: Arith | number,
+                                                  c1_span: number,
+                                                  c2_span: number
+                                              }, min_distance: number) {
+
+    if (typeof box.c1 == 'number') {
+        if (typeof box.c2 == 'number') {
+            const expandedBox = {
+                c1: box.c1 - min_distance,
+                c2: box.c2 - min_distance,
+                c1_span: box.c1_span + min_distance,
+                c2_span: box.c2_span + min_distance,
+            }
+            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
         } else {
-            return {spanX: module.height, spanY: module.width}
+            const expandedBox = {
+                c1: box.c1 - min_distance,
+                c2: box.c2.sub(min_distance),
+                c1_span: box.c1_span + min_distance,
+                c2_span: box.c2_span + min_distance
+            }
+            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
         }
+    } else if (typeof box.c2 != 'number') {
+        const expandedBox = {
+            c1: box.c1.sub(min_distance),
+            c2: box.c2.sub(min_distance),
+            c1_span: box.c1_span + min_distance,
+            c2_span: box.c2_span + min_distance
+        }
+        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
     } else {
-
+        const expandedBox = {
+            c1: box.c1.sub(min_distance),
+            c2: box.c2 - min_distance,
+            c1_span: box.c1_span + min_distance,
+            c2_span: box.c2_span + min_distance
+        }
+        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
     }
 }
+
+// Function to ensure a given minimum distance between two boxes (e.g. pin module exclusion zone and module)
+export function boxBoxMinDistance(ctx: Context,
+                                  boxA: {
+                                      x: Arith | number,
+                                      y: Arith | number,
+                                      x_span: Arith | number,
+                                      y_span: Arith | number
+                                  },
+                                  boxB: {
+                                      x: Arith | number,
+                                      y: Arith | number,
+                                      x_span: Arith | number,
+                                      y_span: Arith | number
+                                  }, min_distance: number) {
+
+    const lowerX_A = typeof boxA.x === "number" ? ctx.Int.val(boxA.x) : boxA.x
+    const higherX_A = lowerX_A.add(boxA.x_span)
+    const lowerY_A = typeof boxA.y === "number" ? ctx.Int.val(boxA.y) : boxA.y
+    const higherY_A = lowerY_A.add(boxA.y_span)
+
+    const lowerX_B = typeof boxB.x === "number" ? ctx.Int.val(boxB.x) : boxB.x
+    const higherX_B = lowerX_A.add(boxB.x_span)
+    const lowerY_B = typeof boxB.y === "number" ? ctx.Int.val(boxB.y) : boxB.y
+    const higherY_B = lowerY_A.add(boxB.y_span)
+
+    const x_separated = ctx.Or(
+        ctx.LE(higherX_A, ctx.Sub(lowerX_B, min_distance)),
+        ctx.GE(lowerX_A, ctx.Sum(higherX_B, min_distance))
+    )
+
+    const y_separated = ctx.Or(
+        ctx.LE(higherY_A, ctx.Sub(lowerY_B, min_distance)),
+        ctx.GE(lowerY_A, ctx.Sum(higherY_B, min_distance))
+    )
+
+    return ctx.Or(x_separated, y_separated)
+}
+
+
+// Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
+export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+    return pointBoxMinDistance(ctx, {
+        c1: channel.encoding.waypoints[waypoint].x,
+        c2: channel.encoding.waypoints[waypoint].y
+    }, {
+        c1: exclusion.position.x,
+        c2: exclusion.position.y,
+        c1_span: exclusion.width,
+        c2_span: exclusion.height
+    }, min_distance)
+}
+
+export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+    return ctx.And(
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
+            segmentBoxMinDistance(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].y,
+                c1_higher: channel.encoding.waypoints[segment + 1].y,
+                c2: channel.encoding.waypoints[segment].x,
+            }, {
+                c1: exclusion.position.y,
+                c2: exclusion.position.x,
+                c1_span: exclusion.height,
+                c2_span: exclusion.width
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
+            segmentBoxMinDistance(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].y,
+                c1_higher: channel.encoding.waypoints[segment].y,
+                c2: channel.encoding.waypoints[segment].x,
+            }, {
+                c1: exclusion.position.y,
+                c2: exclusion.position.x,
+                c1_span: exclusion.height,
+                c2_span: exclusion.width
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
+            segmentBoxMinDistance(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].x,
+                c1_higher: channel.encoding.waypoints[segment + 1].x,
+                c2: channel.encoding.waypoints[segment].y,
+            }, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
+            segmentBoxMinDistance(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].x,
+                c1_higher: channel.encoding.waypoints[segment].x,
+                c2: channel.encoding.waypoints[segment].y,
+            }, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+            segmentBoxMinDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].x,
+                c2_lower: channel.encoding.waypoints[segment].y,
+                c1_higher: channel.encoding.waypoints[segment + 1].x,
+                c2_higher: channel.encoding.waypoints[segment + 1].y
+            }, true, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+            segmentBoxMinDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment].x,
+                c2_lower: channel.encoding.waypoints[segment + 1].y,
+                c1_higher: channel.encoding.waypoints[segment + 1].x,
+                c2_higher: channel.encoding.waypoints[segment].y
+            }, false, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+            segmentBoxMinDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].x,
+                c2_lower: channel.encoding.waypoints[segment + 1].y,
+                c1_higher: channel.encoding.waypoints[segment].x,
+                c2_higher: channel.encoding.waypoints[segment].y
+            }, true, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        ),
+        ctx.Implies(
+            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+            segmentBoxMinDistanceDiagonal(ctx, {
+                c1_lower: channel.encoding.waypoints[segment + 1].x,
+                c2_lower: channel.encoding.waypoints[segment].y,
+                c1_higher: channel.encoding.waypoints[segment].x,
+                c2_higher: channel.encoding.waypoints[segment + 1].y
+            }, false, {
+                c1: exclusion.position.x,
+                c2: exclusion.position.y,
+                c1_span: exclusion.width,
+                c2_span: exclusion.height
+            }, min_distance)
+        )
+    )
+}
+
+
+/** PIN INTERACTION WITH MODULE/CHANNEL - METHODS AND HELPER METHODS */
 
 export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, clampSpacing: number) {
     let lowerX = module.encoding.positionX
@@ -282,7 +502,10 @@ export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, cl
     return {lowerX: lowerX, lowerY: lowerY, higherX: higherX, higherY: higherY}
 }
 
-export function pinModuleMinMaxDistance(ctx: Context, point: { x1: Arith, y1: Arith }, module: EncodedModule, clampSpacing: number) {
+export function pinModuleMinMaxDistance(ctx: Context, point: {
+    x1: Arith,
+    y1: Arith
+}, module: EncodedModule, clampSpacing: number) {
 
     const clampFrame = moduleToClampCoordinates(ctx, module, clampSpacing)
 
@@ -306,202 +529,6 @@ export function pinModuleMinMaxDistance(ctx: Context, point: { x1: Arith, y1: Ar
             ctx.Eq(point.y1, clampFrame.higherY),
             ctx.GE(point.x1, clampFrame.lowerX),
             ctx.LE(point.x1, clampFrame.higherX)
-        )
-    )
-}
-
-// Helper function for the channelSegmentRoutingExclusionDistance function, measuring distance from the vertical/horizontal segments
-// and a given box (e.g. exclusion zone)
-export function segmentBoxDistance(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                   box: {
-                                       c1: Arith | number,
-                                       c2: Arith | number,
-                                       c1_span: number,
-                                       c2_span: number
-                                   }, min_distance: number) {
-    return ctx.Or(
-        minDistanceAsym(ctx, segment.c1_higher, box.c1, min_distance),
-        minDistanceAsym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
-        minDistanceAsym(ctx, segment.c2, box.c2, min_distance),
-        minDistanceAsym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
-    )
-}
-
-// Helper function for the channelSegmentRoutingExclusionDistance function, ensuring that the minimum distance between a segment
-// and a given box (e.g. exclusion zone) is kept for all points of the segment
-export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
-                                               c1_lower: Arith,
-                                               c2_lower: Arith,
-                                               c1_higher: Arith,
-                                               c2_higher: Arith
-                                           }, isSlopePositive: boolean,
-                                           box: {
-                                               c1: Arith | number,
-                                               c2: Arith | number,
-                                               c1_span: number,
-                                               c2_span: number
-                                           }, min_distance: number) {
-
-    if (typeof box.c1 == 'number') {
-        if (typeof box.c2 == 'number') {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2 - min_distance,
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance,
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        } else {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2.sub(min_distance),
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        }
-    } else if (typeof box.c2 != 'number') {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2.sub(min_distance),
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-    } else {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2 - min_distance,
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-    }
-}
-
-
-// Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
-export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
-    return pointBoxMinDistance(ctx, {
-        c1: channel.encoding.waypoints[waypoint].x,
-        c2: channel.encoding.waypoints[waypoint].y
-    }, {
-        c1: exclusion.position.x,
-        c2: exclusion.position.y,
-        c1_span: exclusion.width,
-        c2_span: exclusion.height
-    }, min_distance)
-}
-
-export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
-    return ctx.And(
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
-            segmentBoxDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].y,
-                c2: channel.encoding.waypoints[segment].x,
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
-            segmentBoxDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].y,
-                c2: channel.encoding.waypoints[segment].x,
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
-            segmentBoxDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2: channel.encoding.waypoints[segment].y,
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
-            segmentBoxDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2: channel.encoding.waypoints[segment].y,
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
-            segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, true, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
-            segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, false, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
-            segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, true, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
-            segmentBoxDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, false, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
         )
     )
 }

@@ -17,6 +17,7 @@ import {Clamp} from "./clamp";
 import {EncodedPin, Pin, ResultPin} from "./pin";
 import {encodePinConstraints} from "./constraints/pinConstraints";
 import {encodePinPinConstraints} from "./constraints/pinPinConstraints";
+import {encodeModulePinConstraints} from "./constraints/modulePinConstraints";
 
 export { Input, Output }
 
@@ -87,6 +88,9 @@ class Input {
 
         /* Encode inter-pin effects */
         clauses.push(...pairwiseUnique(pins).flatMap(([a, b]) => encodePinPinConstraints(ctx, a, b, modules)))
+
+        /* Encode pin-module effects */
+        clauses.push(...cross(modules, pins).flatMap(([m, p]) => encodeModulePinConstraints(ctx, p, m, modules)))
 
         return new EncodedInput({
             ...this,

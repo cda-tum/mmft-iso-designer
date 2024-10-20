@@ -9,7 +9,7 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
     const moduleA = modules[a.module]
     const moduleB = modules[b.module]
 
-    /* Minimum distance between pins to ensure proper fixation of the module */
+    /* Minimum distance between pins on the same module to ensure proper fixation of the module */
     {
         if (moduleA.id === moduleB.id) {
             const circumference = (2 * moduleA.width) + (2 * moduleA.height)
@@ -22,5 +22,17 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
             )
         }
     }
+
+    /* Minimum distance between pins on different modules */
+    {
+        const min_distance = a.radius + b.radius + 500
+        clauses.push(
+            ctx.Or(
+                minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
+                minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance)
+            )
+        )
+    }
+
     return clauses
 }

@@ -61,7 +61,7 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
 
                 {props.chip &&
-                    props.chip.pins.map((p, i) => <PinInstance pin={p} ></PinInstance>)
+                    props.chip.pins.map((p, i) => <PinInstance pin={p} modules={props.chip?.modules} ></PinInstance>)
                 }
 
                 {props.chip &&
@@ -144,7 +144,7 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
     const placement = props.placement ?? undefined
-    const strokeDashArray = "300, 600";
+    const strokeDashArray = "300, 600"
 
     const d = points.map((p, i) => {
         if (i === 0) {
@@ -169,12 +169,24 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     }
 }
 
-function PinInstance(props: { pin: ResultPin, color?: string }) {
+function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefined, color?: string }) {
     //const color = props.color ?? '#87b7ff'
     const assignedColor = getColorForId(props.pin.module)
     const pinRadius = props.pin.radius
-    const pinStrokeWidth = pinRadius / 2
+    const pinStrokeWidth = pinRadius / 3
+    const strokeDashArray = "300, 600";
 
+    if (props.modules) {
+        const module = props.modules[props.pin.module]
+        if (module.placement === Placement.Bottom) {
+            return (
+                <g>
+                    <circle cx={props.pin.results.positionX} cy={props.pin.results.positionY} r={pinRadius} stroke={assignedColor} strokeDasharray={strokeDashArray} strokeWidth={pinStrokeWidth} fill='none'></circle>
+                </g>
+
+            )
+        }
+    }
     return (
         <g>
             <circle cx={props.pin.results.positionX} cy={props.pin.results.positionY} r={pinRadius} stroke={assignedColor} strokeWidth={pinStrokeWidth} fill='none'></circle>
