@@ -3,6 +3,9 @@ import {StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
+import {EncodedPin} from "../pin";
+import {EnumBitVec, EnumBitVecValue} from "../z3Helpers";
+import {smtSum} from "../utils";
 
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -209,18 +212,101 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
 
 // Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
 // using minDistanceAsym
-export function pointBoxDistance(ctx: Context, point: { c1: Arith, c2: Arith },
-                                 box: {
-                                     c1: Arith | number,
-                                     c2: Arith | number,
-                                     c1_span: number,
-                                     c2_span: number
-                                 }, min_distance: number) {
+export function pointBoxMinDistance(ctx: Context, point: { c1: Arith, c2: Arith },
+                                    box: {
+                                        c1: Arith | number,
+                                        c2: Arith | number,
+                                        c1_span: number,
+                                        c2_span: number
+                                    }, min_distance: number) {
     return ctx.Or(
         minDistanceAsym(ctx, point.c1, box.c1, min_distance),
         minDistanceAsym(ctx, point.c2, box.c2, min_distance),
         minDistanceAsym(ctx, box.c1, point.c1, min_distance + box.c1_span),
         minDistanceAsym(ctx, box.c2, point.c2, min_distance + box.c2_span)
+    )
+}
+
+export function getModuleSize(ctx: Context, module: EncodedModule) {
+    let spanX
+    let spanY
+
+    if (module.encoding.orientation instanceof EnumBitVecValue) {
+        if (module.encoding.orientation.value === Orientation.Up || module.encoding.orientation.value === Orientation.Down) {
+            return {spanX: module.width, spanY: module.height}
+        } else {
+            return {spanX: module.height, spanY: module.width}
+        }
+    } else {
+
+    }
+}
+
+export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, clampSpacing: number) {
+    let lowerX = module.encoding.positionX
+    let lowerY = module.encoding.positionY
+
+    lowerX = typeof lowerX === "number" ? lowerX - clampSpacing : lowerX.sub(clampSpacing)
+    lowerY = typeof lowerY === "number" ? lowerY - clampSpacing : lowerY.sub(clampSpacing)
+
+    let spanX = module.spanX(ctx)
+    let spanY = module.spanY(ctx)
+    let higherX
+    let higherY
+
+    clampSpacing = clampSpacing * 2
+
+    if (typeof lowerX === "number") {
+        if (typeof spanX === "number") {
+            higherX = lowerX + spanX + clampSpacing
+        } else {
+            higherX = spanX.add(clampSpacing).add(lowerX)
+        }
+    } else if (typeof spanX === "number") {
+        higherX = lowerX.add(spanX + clampSpacing)
+    } else {
+        higherX = spanX.add(clampSpacing).add(lowerX)
+    }
+
+    if (typeof lowerY === "number") {
+        if (typeof spanY === "number") {
+            higherY = lowerY + spanY + clampSpacing
+        } else {
+            higherY = spanY.add(clampSpacing).add(lowerY)
+        }
+    } else if (typeof spanY === "number") {
+        higherY = lowerY.add(spanY + clampSpacing)
+    } else {
+        higherY = spanY.add(clampSpacing).add(lowerY)
+    }
+    return {lowerX: lowerX, lowerY: lowerY, higherX: higherX, higherY: higherY}
+}
+
+export function pinModuleMinMaxDistance(ctx: Context, point: { x1: Arith, y1: Arith }, module: EncodedModule, clampSpacing: number) {
+
+    const clampFrame = moduleToClampCoordinates(ctx, module, clampSpacing)
+
+    return ctx.Or(
+        ctx.And(
+            ctx.Eq(point.x1, clampFrame.lowerX),
+            ctx.GE(point.y1, clampFrame.lowerY),
+            ctx.LE(point.y1, clampFrame.higherY),
+        ),
+        ctx.And(
+            ctx.Eq(point.x1, clampFrame.higherX),
+            ctx.GE(point.y1, clampFrame.lowerY),
+            ctx.LE(point.y1, clampFrame.higherY)
+        ),
+        ctx.And(
+            ctx.Eq(point.y1, clampFrame.lowerY),
+            ctx.GE(point.x1, clampFrame.lowerX),
+            ctx.LE(point.x1, clampFrame.higherX)
+        ),
+        ctx.And(
+            ctx.Eq(point.y1, clampFrame.higherY),
+            ctx.GE(point.x1, clampFrame.lowerX),
+            ctx.LE(point.x1, clampFrame.higherX)
+        )
     )
 }
 
@@ -296,7 +382,7 @@ export function segmentBoxDistanceDiagonal(ctx: Context, segment: {
 
 // Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
 export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
-    return pointBoxDistance(ctx, {
+    return pointBoxMinDistance(ctx, {
         c1: channel.encoding.waypoints[waypoint].x,
         c2: channel.encoding.waypoints[waypoint].y
     }, {
