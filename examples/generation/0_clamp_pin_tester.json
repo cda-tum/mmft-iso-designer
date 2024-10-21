@@ -1,6 +1,5 @@
 {
   "timing": 698214,
-  "softCorners": true,
   "chip": {
     "width": 128000,
     "height": 85500
@@ -11,22 +10,6 @@
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
-      "position": {
-        "x": 10000,
-        "y": 5000
-      },
-      "orientation": 1
-    },
-    {
-      "width": 15000,
-      "height": 15000,
-      "pitch": 3000,
-      "spacing": 3000,
-      "position": {
-        "x": 90000,
-        "y": 5000
-      },
-      "orientation": 0,
       "placement": 1
     },
     {
@@ -35,10 +18,19 @@
       "pitch": 3000,
       "spacing": 3000,
       "position": {
+        "x": 90000,
+        "y": 5000
+      }
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
         "x": 10000,
         "y": 65000
-      },
-      "orientation": 0
+      }
     },
     {
       "width": 15000,
@@ -48,30 +40,10 @@
       "position": {
         "x": 90000,
         "y": 65000
-      },
-      "orientation": 0
+      }
     }
   ],
   "channels": [
-    {
-      "width": 500,
-      "spacing": 100,
-      "from": {
-        "module": 0,
-        "port": [
-          1,
-          1
-        ]
-      },
-      "to": {
-        "module": 3,
-        "port": [
-          1,
-          1
-        ]
-      },
-      "maxSegments": 2
-    }
   ],
   "routingExclusions": []
 }

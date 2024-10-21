@@ -14,6 +14,11 @@ import { encodeChannelModuleConstraints } from "./constraints/channelModuleConst
 import {EncodedModule, Module, ResultModule} from "./module"
 import { Channel, EncodedChannel, ResultChannel } from "./channel"
 import {Clamp} from "./clamp";
+import {EncodedPin, Pin, ResultPin} from "./pin";
+import {encodePinConstraints} from "./constraints/pinConstraints";
+import {encodePinPinConstraints} from "./constraints/pinPinConstraints";
+import {encodeModulePinConstraints} from "./constraints/modulePinConstraints";
+import {encodeChannelPinConstraints} from "./constraints/channelPinConstraints";
 import {encodeClampConstraints} from "./constraints/clampConstraints";
 
 export { Input, Output }
@@ -25,6 +30,7 @@ class Input {
     routingExclusions!: StaticRoutingExclusion[]
     clamps!: Clamp[]
     softCorners?: boolean
+    pins!: Pin[]
 
 
     constructor(obj: Partial<Input>) {
@@ -34,15 +40,18 @@ class Input {
     updateIds() {
         this.modules.forEach((m, i) => m.id = i)
         this.channels.forEach((c, i) => c.id = i)
+        this.pins.forEach((p, i) => p.id = i)
     }
 
     encode(ctx: Context): EncodedInput {
         this.updateIds()
         const modules = this.modules.map(m => m.encode(ctx))
         const channels = this.channels.map((c, i) => c.encode(ctx))
+        const pins = this.pins.map((p, i) => p.encode(ctx))
         const clauses = [
             ...modules.flatMap(b => b.encoding.clauses),
-            ...channels.flatMap(c => c.encoding.clauses)
+            ...channels.flatMap(c => c.encoding.clauses),
+            ...pins.flatMap((p => p.encoding.clauses))
         ]
         const softCorners = this.softCorners
 
@@ -74,13 +83,26 @@ class Input {
         clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
         /* Encode clamps */
-        //clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
+        clauses.push(...cross(modules, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
+
+        /* Encode pins */
+        clauses.push(...pins.flatMap(b => encodePinConstraints(ctx, b, modules, this.chip)))
+
+        /* Encode inter-pin effects */
+        clauses.push(...pairwiseUnique(pins).flatMap(([a, b]) => encodePinPinConstraints(ctx, a, b, modules)))
+
+        /* Encode pin-module effects */
+        clauses.push(...cross(modules, pins).flatMap(([m, p]) => encodeModulePinConstraints(ctx, p, m, modules)))
+
+        /* Encode channel-pin constraints */
+        clauses.push(...cross(channels, pins).flatMap(([c, p]) => encodeChannelPinConstraints(ctx, p, c)))
 
         return new EncodedInput({
             ...this,
             modules,
             channels,
-            clauses
+            clauses,
+            pins
         })
     }
 
@@ -89,9 +111,21 @@ class Input {
             throw ''
         }
 
-        // fill clamps array with a clamp for each module
+        const pins: Pin[] = []
+        const clamps: Clamp[] = []
+
+        // fill a new clamps array with a clamp for each module
         o.modules?.forEach((c, i) => {
-            o.clamps?.push(new Clamp({ clampID: i, clampingModuleID: c.id, placement: c.placement}))
+            clamps.push(new Clamp({ clampID: i, clampingModuleID: c.id, placement: c.placement}))
+        })
+
+        /** ADJUST PIN RADIUS HERE **/
+
+        // fill a new pins array with three pins for each module (radius of pin is hard set to 1000 here and propagated to all following encoding)
+        o.modules?.forEach((c, k) => {
+            for (let i = 0; i < 3; i++) {
+                pins.push(new Pin({ id: k, module: k, radius: 1000}))
+            }
         })
 
         return new Input({
@@ -99,7 +133,8 @@ class Input {
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
             routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
-            clamps: o.clamps ?? [],
+            clamps: clamps,
+            pins: pins,
             softCorners: o.softCorners
         })
     }
@@ -109,6 +144,7 @@ class EncodedInput extends Input {
     modules!: EncodedModule[]
     channels!: EncodedChannel[]
     clauses!: Bool[]
+    pins!: EncodedPin[]
 
     constructor(obj: Partial<EncodedInput>) {
         super(obj)
@@ -122,7 +158,8 @@ class EncodedInput extends Input {
             success: true,
             modules: this.modules.map(b => b.result(m)),
             channels: this.channels.map(c => c.result(m)),
-            clamps: this.clamps
+            clamps: this.clamps,
+            pins: this.pins.map(p => p.result(m))
         }
     }
 }
@@ -130,6 +167,7 @@ class EncodedInput extends Input {
 class Output extends EncodedInput {
     modules!: ResultModule[]
     channels!: ResultChannel[]
+    pins!: ResultPin[]
 
     timing?: number //ms
     success: true = true
