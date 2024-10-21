@@ -1,12 +1,9 @@
 import {Arith, Context} from "z3-solver";
-import {DynamicRoutingExclusion, RoutingExclusion, StaticRoutingExclusion} from "../routingExclusion";
+import {RoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
-import {EnumBitVecValue} from "../z3Helpers";
-import {min} from "d3";
 import {smtSum} from "../utils";
-
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
 
@@ -208,7 +205,7 @@ export function waypointSegmentDistance(ctx: Context, channel_a: EncodedChannel,
     )
 }
 
-/** MIN DISTANCE METHODS AND HELPER METHODS */
+/** DIFFERENT MINIMUM DISTANCE METHODS AND HELPER METHODS */
 
 // Helper function for the waypointRoutingExclusionDistance function, measuring distance between the point and a box
 // using minDistanceAsym
@@ -453,8 +450,9 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
 }
 
 
-/** PIN INTERACTION WITH MODULE/CHANNEL - METHODS AND HELPER METHODS */
+/** PIN INTERACTION WITH MODULES/CHANNELS - METHODS AND HELPER METHODS */
 
+// function to extract/calculate the coordinates of a clamp for the respective given encoded module
 export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, clampSpacing: number) {
     let lowerX = module.encoding.positionX
     let lowerY = module.encoding.positionY
@@ -474,6 +472,7 @@ export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, cl
     return {lowerX: lowerX, lowerY: lowerY, higherX: higherX, higherY: higherY}
 }
 
+// function to ensure that a given pin defined by its position keeps a minimum distance (here clampSpacing) from a given module (the one it is fixing)
 export function pinModuleMinMaxDistance(ctx: Context, point: {
     x1: Arith,
     y1: Arith
@@ -508,6 +507,7 @@ export function pinModuleMinMaxDistance(ctx: Context, point: {
 
 /** SEGMENT AND BOX/EXCLUSION-ZONE - NO CROSS METHODS AND HELPER METHODS */
 
+// function to ensure that a vertical or horizontal segment is not crossing a given box
 export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
                                   box: {
                                       c1: Arith | number,
