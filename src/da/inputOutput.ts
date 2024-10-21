@@ -19,6 +19,7 @@ import {encodePinConstraints} from "./constraints/pinConstraints";
 import {encodePinPinConstraints} from "./constraints/pinPinConstraints";
 import {encodeModulePinConstraints} from "./constraints/modulePinConstraints";
 import {encodeChannelPinConstraints} from "./constraints/channelPinConstraints";
+import {encodeClampConstraints} from "./constraints/clampConstraints";
 
 export { Input, Output }
 
@@ -82,7 +83,7 @@ class Input {
         clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
 
         /* Encode clamps */
-        //clauses.push(...cross(channels, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
+        clauses.push(...cross(modules, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
 
         /* Encode pins */
         clauses.push(...pins.flatMap(b => encodePinConstraints(ctx, b, modules, this.chip)))

@@ -9,7 +9,8 @@ export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module
     const clauses = []
 
     const pinModule = modules[pin.module]
-    const exclusionCondition = (module.placement !== pinModule.placement)
+    const exclusionCondition = (module.placement === Placement.Top && pinModule.placement === Placement.Bottom)
+        || (pinModule.placement === Placement.Top && module.placement === Placement.Bottom)
         || (module.placement === undefined && pinModule.placement === Placement.Bottom)
         || (pinModule.placement === undefined && module.placement === Placement.Bottom)
 
@@ -25,16 +26,18 @@ export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module
             const moduleSpanX = module.spanX(ctx)
             const moduleSpanY = module.spanY(ctx)
 
-            const min_distance = 1000
+            const min_distance = 2000
 
             clauses.push(
-                boxBoxMinDistance(ctx, {
-                        x: pinExclusionX,
-                        y: pinExclusionY,
-                        x_span: pinExclusionSpan,
-                        y_span: pinExclusionSpan
-                    },
-                    {x: moduleX, y: moduleY, x_span: moduleSpanX, y_span: moduleSpanY}, min_distance)
+                ctx.And(
+                    boxBoxMinDistance(ctx, {
+                            x: pinExclusionX,
+                            y: pinExclusionY,
+                            x_span: pinExclusionSpan,
+                            y_span: pinExclusionSpan
+                        },
+                        {x: moduleX, y: moduleY, x_span: moduleSpanX, y_span: moduleSpanY}, min_distance)
+                )
             )
         }
     }

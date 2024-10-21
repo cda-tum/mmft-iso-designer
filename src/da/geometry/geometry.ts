@@ -5,6 +5,7 @@ import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
 import {EnumBitVecValue} from "../z3Helpers";
 import {min} from "d3";
+import {smtSum} from "../utils";
 
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -290,25 +291,36 @@ export function boxBoxMinDistance(ctx: Context,
                                       y_span: Arith | number
                                   }, min_distance: number) {
 
-    const lowerX_A = typeof boxA.x === "number" ? ctx.Int.val(boxA.x) : boxA.x
-    const higherX_A = lowerX_A.add(boxA.x_span)
-    const lowerY_A = typeof boxA.y === "number" ? ctx.Int.val(boxA.y) : boxA.y
-    const higherY_A = lowerY_A.add(boxA.y_span)
+    const lowerX_A = boxA.x
+    const higherX_A = typeof boxA.x_span !== "number" ? boxA.x_span.add(lowerX_A) : typeof lowerX_A !== "number" ? lowerX_A.add(boxA.x_span) : lowerX_A + boxA.x_span
+    const lowerY_A = boxA.y
+    const higherY_A = typeof boxA.y_span !== "number" ? boxA.y_span.add(lowerY_A) : typeof lowerY_A !== "number" ? lowerY_A.add(boxA.y_span) : lowerY_A + boxA.y_span
 
-    const lowerX_B = typeof boxB.x === "number" ? ctx.Int.val(boxB.x) : boxB.x
-    const higherX_B = lowerX_A.add(boxB.x_span)
-    const lowerY_B = typeof boxB.y === "number" ? ctx.Int.val(boxB.y) : boxB.y
-    const higherY_B = lowerY_A.add(boxB.y_span)
+    const lowerX_B = boxB.x
+    const higherX_B = typeof boxB.x_span !== "number" ? boxB.x_span.add(lowerX_B) : typeof lowerX_B !== "number" ? lowerX_B.add(boxB.x_span) : lowerX_B + boxB.x_span
+    const lowerY_B =boxB.y
+    const higherY_B = typeof boxB.y_span !== "number" ? boxB.y_span.add(lowerY_B) : typeof lowerY_B !== "number" ? lowerY_B.add(boxB.y_span) : lowerY_B + boxB.y_span
 
-    const x_separated = ctx.Or(
-        ctx.LE(higherX_A, ctx.Sub(lowerX_B, min_distance)),
-        ctx.GE(lowerX_A, ctx.Sum(higherX_B, min_distance))
-    )
+    const subLowerX_B = typeof lowerX_B !== "number" ? lowerX_B.sub(min_distance) : lowerX_B - min_distance
+    const sumHigherX_B = typeof higherX_B !== "number" ? higherX_B.add(min_distance) : higherX_B + min_distance
+    const subLowerY_B = typeof lowerY_B !== "number" ? lowerY_B.sub(min_distance) : lowerY_B - min_distance
+    const sumHigherY_B = typeof higherY_B !== "number" ? higherY_B.add(min_distance) : higherY_B + min_distance
 
-    const y_separated = ctx.Or(
-        ctx.LE(higherY_A, ctx.Sub(lowerY_B, min_distance)),
-        ctx.GE(lowerY_A, ctx.Sum(higherY_B, min_distance))
-    )
+    const x_separated1 = typeof higherX_A !== "number" ? ctx.LE(higherX_A, subLowerX_B) :
+        typeof subLowerX_B !== "number" ? ctx.GE(subLowerX_B, higherX_A) : ctx.Bool.val(higherX_A <= subLowerX_B)
+
+    const x_separated2 = typeof lowerX_A !== "number" ? ctx.GE(lowerX_A, sumHigherX_B) :
+        typeof sumHigherX_B !== "number" ? ctx.LE(sumHigherX_B, lowerX_A) : ctx.Bool.val(lowerX_A >= sumHigherX_B)
+
+    const x_separated = ctx.Or(x_separated1, x_separated2)
+
+    const y_separated1 = typeof higherY_A !== "number" ? ctx.LE(higherY_A, subLowerY_B) :
+        typeof subLowerY_B !== "number" ? ctx.GE(subLowerY_B, higherY_A) : ctx.Bool.val(higherY_A <= subLowerY_B)
+
+    const y_separated2 = typeof lowerY_A !== "number" ? ctx.GE(lowerY_A, sumHigherY_B) :
+        typeof sumHigherY_B !== "number" ? ctx.LE(sumHigherY_B, lowerY_A) : ctx.Bool.val(lowerY_A >= sumHigherY_B)
+
+    const y_separated = ctx.Or(y_separated1, y_separated2)
 
     return ctx.Or(x_separated, y_separated)
 }
@@ -456,30 +468,9 @@ export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, cl
     let higherY
 
     clampSpacing = clampSpacing * 2
+    higherX = smtSum(ctx, lowerX, spanX, clampSpacing)
+    higherY = smtSum(ctx, lowerY, spanY, clampSpacing)
 
-    if (typeof lowerX === "number") {
-        if (typeof spanX === "number") {
-            higherX = lowerX + spanX + clampSpacing
-        } else {
-            higherX = spanX.add(clampSpacing).add(lowerX)
-        }
-    } else if (typeof spanX === "number") {
-        higherX = lowerX.add(spanX + clampSpacing)
-    } else {
-        higherX = spanX.add(clampSpacing).add(lowerX)
-    }
-
-    if (typeof lowerY === "number") {
-        if (typeof spanY === "number") {
-            higherY = lowerY + spanY + clampSpacing
-        } else {
-            higherY = spanY.add(clampSpacing).add(lowerY)
-        }
-    } else if (typeof spanY === "number") {
-        higherY = lowerY.add(spanY + clampSpacing)
-    } else {
-        higherY = spanY.add(clampSpacing).add(lowerY)
-    }
     return {lowerX: lowerX, lowerY: lowerY, higherX: higherX, higherY: higherY}
 }
 
