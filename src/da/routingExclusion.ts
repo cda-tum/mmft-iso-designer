@@ -3,10 +3,17 @@ import {Arith} from "z3-solver";
 
 export { RoutingExclusion, StaticRoutingExclusion, DynamicRoutingExclusion }
 
+type routingExclusionProperties = {
+    position: { x: number | Arith, y: number | Arith }
+    width: number
+    height: number
+}
+
 class RoutingExclusion {
     position!: { x: number | Arith, y: number | Arith }
     width!: number | Arith
     height!: number | Arith
+
 }
 
 class StaticRoutingExclusion extends RoutingExclusion {
@@ -20,18 +27,12 @@ class StaticRoutingExclusion extends RoutingExclusion {
     }
 }
 
-type dynamicRoutingExclusionProperties = {
-    position: { x: number | Arith, y: number | Arith }
-    width: number
-    height: number
-}
-
 class DynamicRoutingExclusion extends RoutingExclusion {
     position!: { x: number | Arith, y: number | Arith }
     width!: number | Arith
     height!: number | Arith
 
-    constructor(o: dynamicRoutingExclusionProperties) {
+    constructor(o: routingExclusionProperties) {
         super()
         this.position = o.position
         this.width = o.width

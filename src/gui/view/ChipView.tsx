@@ -174,7 +174,7 @@ function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefine
     const assignedColor = getColorForId(props.pin.module)
     const pinRadius = props.pin.radius
     const pinStrokeWidth = pinRadius / 3
-    const strokeDashArray = "300, 600";
+    const strokeDashArray = "200, 200";
 
     if (props.modules) {
         const module = props.modules[props.pin.module]

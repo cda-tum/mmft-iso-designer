@@ -1,9 +1,10 @@
 import {Arith, Context} from "z3-solver";
-import {StaticRoutingExclusion} from "../routingExclusion";
+import {DynamicRoutingExclusion, RoutingExclusion, StaticRoutingExclusion} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
 import {EnumBitVecValue} from "../z3Helpers";
+import {min} from "d3";
 
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -214,14 +215,16 @@ export function pointBoxMinDistance(ctx: Context, point: { c1: Arith, c2: Arith 
                                     box: {
                                         c1: Arith | number,
                                         c2: Arith | number,
-                                        c1_span: number,
-                                        c2_span: number
+                                        c1_span: Arith | number,
+                                        c2_span: Arith | number
                                     }, min_distance: number) {
+    const minDistC1Span = typeof box.c1_span === "number" ? box.c1_span + min_distance : box.c1_span.add(min_distance)
+    const minDistC2Span = typeof box.c2_span === "number" ? box.c2_span + min_distance : box.c2_span.add(min_distance)
     return ctx.Or(
         minDistanceAsym(ctx, point.c1, box.c1, min_distance),
         minDistanceAsym(ctx, point.c2, box.c2, min_distance),
-        minDistanceAsym(ctx, box.c1, point.c1, min_distance + box.c1_span),
-        minDistanceAsym(ctx, box.c2, point.c2, min_distance + box.c2_span)
+        minDistanceAsym(ctx, box.c1, point.c1, minDistC1Span),
+        minDistanceAsym(ctx, box.c2, point.c2, minDistC2Span)
     )
 }
 
@@ -231,14 +234,16 @@ export function segmentBoxMinDistance(ctx: Context, segment: { c1_lower: Arith, 
                                       box: {
                                           c1: Arith | number,
                                           c2: Arith | number,
-                                          c1_span: number,
-                                          c2_span: number
+                                          c1_span: Arith | number,
+                                          c2_span: Arith | number
                                       }, min_distance: number) {
+    const minDistC1Span = typeof box.c1_span === "number" ? box.c1_span + min_distance : box.c1_span.add(min_distance)
+    const minDistC2Span = typeof box.c2_span === "number" ? box.c2_span + min_distance : box.c2_span.add(min_distance)
     return ctx.Or(
         minDistanceAsym(ctx, segment.c1_higher, box.c1, min_distance),
-        minDistanceAsym(ctx, box.c1, segment.c1_lower, min_distance + box.c1_span),
+        minDistanceAsym(ctx, box.c1, segment.c1_lower, minDistC1Span),
         minDistanceAsym(ctx, segment.c2, box.c2, min_distance),
-        minDistanceAsym(ctx, box.c2, segment.c2, min_distance + box.c2_span)
+        minDistanceAsym(ctx, box.c2, segment.c2, minDistC2Span)
     )
 }
 
@@ -253,45 +258,21 @@ export function segmentBoxMinDistanceDiagonal(ctx: Context, segment: {
                                               box: {
                                                   c1: Arith | number,
                                                   c2: Arith | number,
-                                                  c1_span: number,
-                                                  c2_span: number
+                                                  c1_span: Arith | number,
+                                                  c2_span: Arith | number
                                               }, min_distance: number) {
+    const c1SubMinDist = typeof box.c1 === "number" ? box.c1 - min_distance : box.c1.sub(min_distance)
+    const c2SubMinDist = typeof box.c2 === "number" ? box.c2 - min_distance : box.c2.sub(min_distance)
+    const minDistC1Span = typeof box.c1_span === "number" ? box.c1_span + min_distance : box.c1_span.add(min_distance)
+    const minDistC2Span = typeof box.c2_span === "number" ? box.c2_span + min_distance : box.c2_span.add(min_distance)
 
-    if (typeof box.c1 == 'number') {
-        if (typeof box.c2 == 'number') {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2 - min_distance,
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance,
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        } else {
-            const expandedBox = {
-                c1: box.c1 - min_distance,
-                c2: box.c2.sub(min_distance),
-                c1_span: box.c1_span + min_distance,
-                c2_span: box.c2_span + min_distance
-            }
-            return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-        }
-    } else if (typeof box.c2 != 'number') {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2.sub(min_distance),
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
-    } else {
-        const expandedBox = {
-            c1: box.c1.sub(min_distance),
-            c2: box.c2 - min_distance,
-            c1_span: box.c1_span + min_distance,
-            c2_span: box.c2_span + min_distance
-        }
-        return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
+    const expandedBox = {
+        c1: c1SubMinDist,
+        c2: c2SubMinDist,
+        c1_span: minDistC1Span,
+        c2_span: minDistC2Span,
     }
+    return isSlopePositive ? segmentBoxNoCrossSlopePos(ctx, segment, expandedBox) : segmentBoxNoCrossSlopeNeg(ctx, segment, expandedBox)
 }
 
 // Function to ensure a given minimum distance between two boxes (e.g. pin module exclusion zone and module)
@@ -334,7 +315,7 @@ export function boxBoxMinDistance(ctx: Context,
 
 
 // Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
-export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: RoutingExclusion, min_distance: number) {
     return pointBoxMinDistance(ctx, {
         c1: channel.encoding.waypoints[waypoint].x,
         c2: channel.encoding.waypoints[waypoint].y
@@ -346,7 +327,7 @@ export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedC
     }, min_distance)
 }
 
-export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion, min_distance: number) {
+export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion, min_distance: number) {
     return ctx.And(
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
@@ -537,7 +518,12 @@ export function pinModuleMinMaxDistance(ctx: Context, point: {
 /** SEGMENT AND BOX/EXCLUSION-ZONE - NO CROSS METHODS AND HELPER METHODS */
 
 export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_higher: Arith, c2: Arith },
-                                  box: { c1: Arith | number, c2: Arith | number, c1_span: number, c2_span: number }) {
+                                  box: {
+                                      c1: Arith | number,
+                                      c2: Arith | number,
+                                      c1_span: Arith | number,
+                                      c2_span: Arith | number
+                                  }) {
     return ctx.Or(
         ctx.LE(segment.c1_higher, box.c1),
         minDistanceAsym(ctx, box.c1, segment.c1_lower, box.c1_span),
@@ -556,60 +542,22 @@ export function segmentBoxNoCrossSlopePos(ctx: Context, segment: {
                                           box: {
                                               c1: Arith | number,
                                               c2: Arith | number,
-                                              c1_span: number,
-                                              c2_span: number
+                                              c1_span: Arith | number,
+                                              c2_span: Arith | number
                                           }) {
-    if (typeof box.c1 === 'number') {
-        if (typeof box.c2 === 'number') {
-            const boxTopSide_y = box.c2 + box.c2_span                   // y-value of the upper side of the box
-            const boxUpperSideOverlap = segment.c1_higher.sub(box.c1)   // overlap of the segment above the box
-            const minimumY = boxUpperSideOverlap.add(boxTopSide_y)      // minimum upper y-value that the segment must have not to cut the box in the upper right corner
+    // y-value of the upper side of the box
+    const boxTopSide_y = typeof box.c2_span !== "number" ? box.c2_span.add(box.c2) : typeof box.c2 !== "number" ? box.c2.add(box.c2_span) : box.c2 + box.c2_span
+    const boxUpperSideOverlap = segment.c1_higher.sub(box.c1)       // overlap of the segment above the box
+    const minimumY = boxUpperSideOverlap.add(boxTopSide_y)          // minimum upper y-value that the segment must have not to cut the box in the upper right corner
 
-            const boxRightSide_x = box.c1 + box.c1_span                 // x-value of the right side of the box
-            const boxRightSideOverlap = segment.c2_higher.sub(box.c2)   // overlap of the segment on the right of the box
-            const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-            return ctx.Or(
-                ctx.GE(segment.c2_higher, minimumY),
-                ctx.GE(segment.c1_higher, minimumX)
-            )
-        } else {
-            const boxTopSide_y = box.c2.add(box.c2_span)                // y-value of the upper side of the box
-            const boxUpperSideOverlap = segment.c1_higher.sub(box.c1)   // overlap of the segment above the box
-            const minimumY = boxUpperSideOverlap.add(boxTopSide_y)      // minimum upper y-value that the segment must have not to cut the box in the upper right corner
-
-            const boxRightSide_x = box.c1 + box.c1_span                 // x-value of the right side of the box
-            const boxRightSideOverlap = segment.c2_higher.sub(box.c2)   // overlap of the segment on the right of the box
-            const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-            return ctx.Or(
-                ctx.GE(segment.c2_higher, minimumY),
-                ctx.GE(segment.c1_higher, minimumX)
-            )
-        }
-    } else if (typeof box.c2 === 'number') {
-        const boxTopSide_y = box.c2 + box.c2_span                   // y-value of the upper side of the box
-        const boxUpperSideOverlap = segment.c1_higher.sub(box.c1)   // overlap of the segment above the box
-        const minimumY = boxUpperSideOverlap.add(boxTopSide_y)      // minimum upper y-value that the segment must have not to cut the box in the upper right corner
-
-        const boxRightSide_x = box.c1.add(box.c1_span)              // x-value of the right side of the box
-        const boxRightSideOverlap = segment.c2_higher.sub(box.c2)   // overlap of the segment on the right of the box
-        const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-        return ctx.Or(
-            ctx.GE(segment.c2_higher, minimumY),
-            ctx.GE(segment.c1_higher, minimumX)
-        )
-    } else {
-        const boxTopSide_y = box.c2.add(box.c2_span)                   // y-value of the upper side of the box
-        const boxUpperSideOverlap = segment.c1_higher.sub(box.c1)   // overlap of the segment above the box
-        const minimumY = boxUpperSideOverlap.add(boxTopSide_y)      // minimum upper y-value that the segment must have not to cut the box in the upper right corner
-
-        const boxRightSide_x = box.c1.add(box.c1_span)              // x-value of the right side of the box
-        const boxRightSideOverlap = segment.c2_higher.sub(box.c2)   // overlap of the segment on the right of the box
-        const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-        return ctx.Or(
-            ctx.GE(segment.c2_higher, minimumY),
-            ctx.GE(segment.c1_higher, minimumX)
-        )
-    }
+    // x-value of the right side of the box
+    const boxRightSide_x = typeof box.c1_span !== "number" ? box.c1_span.add(box.c1) : typeof box.c1 !== "number" ? box.c1.add(box.c2_span) : box.c1 + box.c1_span
+    const boxRightSideOverlap = segment.c2_higher.sub(box.c2)   // overlap of the segment on the right of the box
+    const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
+    return ctx.Or(
+        ctx.GE(segment.c2_higher, minimumY),
+        ctx.GE(segment.c1_higher, minimumX)
+    )
 }
 
 // Helper function for several functions to check whether an UpRight/DownLeft segment crosses a given box (e.g. exclusion zone)
@@ -622,64 +570,31 @@ export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
                                           box: {
                                               c1: Arith | number,
                                               c2: Arith | number,
-                                              c1_span: number,
-                                              c2_span: number
+                                              c1_span: Arith | number,
+                                              c2_span: Arith | number
                                           }) {
-    if (typeof box.c1 === 'number') {
-        if (typeof box.c2 === 'number') {
-            const boxTopSide_y = box.c2 + box.c2_span                                       // y-value of the upper side of the box
-            const boxLeftSideOverlap = segment.c2_higher.sub(box.c2)                        // overlap of the segment on the left of the box
-            const maximumX = ctx.Int.val(box.c1).sub(boxLeftSideOverlap)                    // minimum upper y-value that the segment must have not to cut the box in the upper right corner
+    // y-value of the upper side of the box
+    const boxTopSide_y = typeof box.c2_span !== "number" ? box.c2_span.add(box.c2) : typeof box.c2 !== "number" ? box.c2.add(box.c2_span) : box.c2 + box.c2_span
+    const boxLeftSideOverlap = segment.c2_higher.sub(box.c2)        // overlap of the segment on the left of the box
 
-            const boxRightSide_x = box.c1 + box.c1_span                                     // x-value of the right side of the box
-            const boxRightSideOverlap = ctx.Int.val(boxTopSide_y).sub(segment.c2_lower)     // overlap of the segment on the right of the box
-            const minimumX = ctx.Int.val(boxRightSide_x).add(boxRightSideOverlap)           // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-            return ctx.Or(
-                ctx.LE(segment.c1_lower, maximumX),
-                ctx.GE(segment.c1_higher, minimumX)
-            )
-        } else {
-            const boxTopSide_y = box.c2.add(box.c2_span)                                    // y-value of the upper side of the box
-            const boxLeftSideOverlap = segment.c2_higher.sub(box.c2)                        // overlap of the segment on the left of the box
-            const maximumX = ctx.Int.val(box.c1).sub(boxLeftSideOverlap)                    // minimum upper y-value that the segment must have not to cut the box in the upper right corner
+    // minimum upper y-value that the segment must have not to cut the box in the upper right corner
+    const maximumX = typeof box.c1 === "number" ? ctx.Int.val(box.c1).sub(boxLeftSideOverlap) : box.c1.sub(boxLeftSideOverlap)
 
-            const boxRightSide_x = box.c1 + box.c1_span                                     // x-value of the right side of the box
-            const boxRightSideOverlap = boxTopSide_y.sub(segment.c2_lower)                  // overlap of the segment on the right of the box
-            const minimumX = ctx.Int.val(boxRightSide_x).add(boxRightSideOverlap)           // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-            return ctx.Or(
-                ctx.LE(segment.c1_lower, maximumX),
-                ctx.GE(segment.c1_higher, minimumX)
-            )
-        }
-    } else if (typeof box.c2 === 'number') {
-        const boxTopSide_y = box.c2 + box.c2_span                                       // y-value of the upper side of the box
-        const boxLeftSideOverlap = segment.c2_higher.sub(box.c2)                        // overlap of the segment on the left of the box
-        const maximumX = box.c1.sub(boxLeftSideOverlap)                                 // minimum upper y-value that the segment must have not to cut the box in the upper right corner
+    // x-value of the right side of the box
+    const boxRightSide_x = typeof box.c1_span !== "number" ? box.c1_span.add(box.c1) : typeof box.c1 !== "number" ? box.c1.add(box.c1_span) : box.c1 + box.c1_span
 
-        const boxRightSide_x = box.c1.add(box.c1_span)                                  // x-value of the right side of the box
-        const boxRightSideOverlap = ctx.Int.val(boxTopSide_y).sub(segment.c2_lower)     // overlap of the segment on the right of the box
-        const minimumX = boxRightSide_x.add(boxRightSideOverlap)                        // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-        return ctx.Or(
-            ctx.LE(segment.c1_lower, maximumX),
-            ctx.GE(segment.c1_higher, minimumX)
-        )
-    } else {
-        const boxTopSide_y = box.c2.add(box.c2_span)                       // y-value of the upper side of the box
-        const boxLeftSideOverlap = segment.c2_higher.sub(box.c2)           // overlap of the segment on the left of the box
-        const maximumX = box.c1.sub(boxLeftSideOverlap)                    // minimum upper y-value that the segment must have not to cut the box in the upper right corner
-
-        const boxRightSide_x = box.c1.add(box.c1_span)                     // x-value of the right side of the box
-        const boxRightSideOverlap = boxTopSide_y.sub(segment.c2_lower)     // overlap of the segment on the right of the box
-        const minimumX = boxRightSide_x.add(boxRightSideOverlap)           // minimum upper x-value that the segment must have not to cut the box in the lower right corner
-        return ctx.Or(
-            ctx.LE(segment.c1_lower, maximumX),
-            ctx.GE(segment.c1_higher, minimumX)
-        )
-    }
+    // overlap of the segment on the right of the box
+    const boxRightSideOverlap = typeof boxTopSide_y === "number" ? ctx.Int.val(boxTopSide_y).sub(segment.c2_lower) : boxTopSide_y.sub(segment.c2_lower)
+    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
+    const minimumX = typeof boxRightSide_x === "number" ? ctx.Int.val(boxRightSide_x).add(boxRightSideOverlap) : boxRightSide_x.add(boxRightSideOverlap)
+    return ctx.Or(
+        ctx.LE(segment.c1_lower, maximumX),
+        ctx.GE(segment.c1_higher, minimumX)
+    )
 }
 
 // function ensuring that a given segment does not cross a static routing exclusion (e.g. cutout piece on the chip)
-export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: StaticRoutingExclusion) {
+export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion) {
     return ctx.And(
         ctx.Implies(
             channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
