@@ -1,5 +1,5 @@
 import {Bool, Context} from "z3-solver";
-import {EncodedPin, Pin} from "../pin";
+import {EncodedPin} from "../pin";
 import {EncodedChannel} from "../channel";
 import {
     channelSegmentRoutingExclusionDistance,
@@ -24,7 +24,7 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
 
     /* Channels segments may not be near pins on both sides */
     {
-        const min_distance = channel.width / 2 + channel.spacing
+        const min_distance = (channel.width / 2 + channel.spacing) + 200
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
                 ctx.Implies(
@@ -35,9 +35,9 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
         }
     }
 
-    /* Channels waypoints may not be near routing exclusion zones */
+    /* Channels waypoints may not be near pin-hole zones */
     {
-        const min_distance = channel.width / 2 + channel.spacing
+        const min_distance = (channel.width / 2 + channel.spacing) + 200
         for (let i = 0; i <= channel.maxSegments; i++) {
             clauses.push(
                 waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
@@ -45,7 +45,7 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
         }
     }
 
-    /* Channel segments may not cross routing exclusion zones */
+    /* Channel segments may not cross pin-hole zones */
     {
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
@@ -59,5 +59,4 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
 
     clauses.push(ctx.And())
     return clauses
-
 }

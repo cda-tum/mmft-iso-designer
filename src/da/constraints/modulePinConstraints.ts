@@ -26,6 +26,7 @@ export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module
             const moduleSpanX = module.spanX(ctx)
             const moduleSpanY = module.spanY(ctx)
 
+            // TODO: determine meaningful minimum spacing of pin holes to modules on the other side of the chip
             const min_distance = 2000
 
             clauses.push(

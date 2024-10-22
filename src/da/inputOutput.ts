@@ -7,7 +7,10 @@ import { encodeChannelConstraints } from "./constraints/channelConstraints"
 import { encodeChannelPortConstraints } from "./constraints/channelPortConstraints"
 import { encodeChannelWaypointConstraints } from "./constraints/channelWaypoints"
 import { encodeChannelChannelConstraints } from "./constraints/channelChannelConstraints"
-import { encodeStaticRoutingExclusion } from "./constraints/staticRoutingExclusion"
+import {
+    encodeStaticRoutingExclusionChannels,
+    encodeStaticRoutingExclusionPins
+} from "./constraints/staticRoutingExclusion"
 import { encodeModuleConstraints } from "./constraints/moduleConstraints"
 import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
 import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
@@ -79,8 +82,8 @@ class Input {
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
-        /* Encode routing exclusion zones */
-        clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusion(ctx, c, e)))
+        /* Encode routing exclusion zones and channels */
+        clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
 
         /* Encode clamps */
         clauses.push(...cross(modules, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
@@ -96,6 +99,9 @@ class Input {
 
         /* Encode channel-pin constraints */
         clauses.push(...cross(channels, pins).flatMap(([c, p]) => encodeChannelPinConstraints(ctx, p, c)))
+
+        /* Encode routing exclusion zones and pins */
+        clauses.push(...cross(pins, this.routingExclusions).flatMap(([p, e]) => encodeStaticRoutingExclusionPins(ctx, p, e)))
 
         return new EncodedInput({
             ...this,
