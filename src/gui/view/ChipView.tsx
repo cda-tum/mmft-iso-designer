@@ -144,7 +144,7 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
     const placement = props.placement ?? undefined
-    const strokeDashArray = "300, 600"
+    const strokeDashArray = "400, 800"
 
     const d = points.map((p, i) => {
         if (i === 0) {

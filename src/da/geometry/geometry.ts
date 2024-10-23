@@ -943,16 +943,7 @@ export function diagonalDiagonalNoCrossExtra(ctx: Context,
 /** CHANNEL INTERSECTION METHOD **/
 
 // adds constraints for all possible segment crossings (6x8 = 48 possible intersections)
-export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number, modules?: EncodedModule[]) {
-
-    if (modules) {
-        const module1 = modules[channel_a.from.module]
-        const module2 = modules[channel_b.from.module]
-
-        if (module1.placement !== module2.placement) {
-            return ctx.And()
-        }
-    }
+export function channelSegmentsNoCross(ctx: Context, channel_a: EncodedChannel, segment_a: number, channel_b: EncodedChannel, segment_b: number) {
 
     // defining variables for waypoints for cleaner code
     const waypointsA = channel_a.encoding.waypoints

@@ -336,7 +336,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                     channel.encoding.segments[ia].active,
                     channel.encoding.segments[ib].active
                 ),
-                channelSegmentsNoCross(ctx, channel, ia, channel, ib, modules)
+                channelSegmentsNoCross(ctx, channel, ia, channel, ib)
             )
         }))
     }

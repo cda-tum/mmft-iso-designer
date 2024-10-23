@@ -14,6 +14,7 @@ function App() {
   const [input, setInput] = useState(undefined as undefined | Input)
   const [output, setOutput] = useState(undefined as undefined | Output)
   const [fileName, setFileName] = useState(undefined as undefined | string)
+  const [timing, setTiming] = useState(undefined as undefined | number)
 
   useEffect(() => {
     if (input) {
@@ -35,6 +36,13 @@ function App() {
               timing: r.timing!,
               filename: fileName
             })
+            if (r.timing) {
+              if (r.timing! < 1) {
+                setTiming(1)
+              } else {
+                setTiming(Math.trunc(r.timing!))
+              }
+            }
             setOutput(r)
           } else {
             setStatus({
@@ -131,7 +139,10 @@ function App() {
             onClick={() => {
               if (output !== undefined) {
                 const o = transformToInput(output)
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  id = "JSON output for " + fileName + " " + timing + "s"
+                }
                 downloadJSON(o, id)
               }
             }}
@@ -144,7 +155,10 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  id = "output for " + fileName + " " + timing + "s"
+                }
                 downloadSVG(svgAsString(output), id)
               }
             }}
@@ -157,7 +171,10 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  id = "DXF output for " + fileName + " " + timing + "s"
+                }
                 downloadDXF(output, id)
               }
             }}

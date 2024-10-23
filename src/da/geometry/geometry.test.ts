@@ -1540,7 +1540,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
