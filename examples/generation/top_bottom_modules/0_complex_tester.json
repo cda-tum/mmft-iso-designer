@@ -1,0 +1,516 @@
+{
+  "timing": 698214,
+  "softCorners": true,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "modules": [
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 5000
+      },
+      "orientation": 0
+    },
+    {
+      "width": 30000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 5000
+      },
+      "orientation": 0,
+      "placement": 1
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 5000
+      },
+      "orientation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 35000
+      },
+      "orientation": 0,
+      "placement": 1
+    },
+    {
+      "width": 15000,
+      "height": 30000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 45000,
+        "y": 30000
+      },
+      "orientation": 0,
+      "placement": 1
+    },
+    {
+      "width": 30000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 35000
+      },
+      "orientation": 0,
+      "placement": 1
+    },
+    {
+      "width": 30000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 65000
+      },
+      "orientation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 65000,
+        "y": 65000
+      },
+      "orientation": 0,
+      "placement": 1
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 65000
+      },
+      "orientation": 0
+    }
+  ],
+  "channels": [
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 1,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 2
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 0,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 6,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 0,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 6,
+        "port": [
+          6,
+          2
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 0,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 6,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          2
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          0,
+          2
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 2,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 1
+    },
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 2,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 1
+    },
+    {
+      "width": 500,
+      "spacing": 400,
+      "from": {
+        "module": 2,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 6,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 2,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "module": 6,
+        "port": [
+          4,
+          0
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 2,
+        "port": [
+          3,
+          2
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          3,
+          1
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 2,
+        "port": [
+          3,
+          1
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          3,
+          2
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 2,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 6,
+        "port": [
+          8,
+          1
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          0,
+          1
+        ]
+      },
+      "maxSegments": 1
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 6,
+        "port": [
+          8,
+          2
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          0,
+          2
+        ]
+      },
+      "maxSegments": 1
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 6,
+        "port": [
+          8,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "maxSegments": 1
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 1,
+        "port": [
+          0,
+          2
+        ]
+      },
+      "to": {
+        "module": 4,
+        "port": [
+          0,
+          2
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 1,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 4,
+        "port": [
+          0,
+          1
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 1,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "module": 4,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 1,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "module": 4,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 4
+    },
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 1,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "module": 4,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 3
+    }
+  ],
+  "routingExclusions": []
+}

@@ -1,11 +1,18 @@
-import { Context } from "z3-solver";
-import { EncodedModule } from "../module";
-import { EncodedChannel } from "../channel";
+import {Context} from "z3-solver";
+import {EncodedModule} from "../module";
+import {EncodedChannel} from "../channel";
+import {Placement} from "../placement";
 
 export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannel, fromModule: EncodedModule, toModule: EncodedModule) {
     const clauses = []
 
-    if (toModule.placement === fromModule.placement === undefined || toModule.placement === toModule.placement) {
+    const channelValid = (fromModule.placement === Placement.Top && toModule.placement === Placement.Top) ||
+        (fromModule.placement === Placement.Bottom && toModule.placement === Placement.Bottom) ||
+        (fromModule.placement === undefined && toModule.placement === undefined) ||
+        (fromModule.placement === undefined && toModule.placement === Placement.Top) ||
+        (fromModule.placement === Placement.Top && toModule.placement === undefined)
+
+    if (channelValid) {
         const fromPortPosition = fromModule.portPosition(ctx, channel.from.port[0], channel.from.port[1])
         const toPortPosition = toModule.portPosition(ctx, channel.to.port[0], channel.to.port[1])
 

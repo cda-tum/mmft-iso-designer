@@ -1,10 +1,16 @@
 import { Bool, Context } from "z3-solver";
 import { StaticRoutingExclusion } from "../routingExclusion";
-import { channelSegmentRoutingExclusionDistance, channelSegmentRoutingExclusionNoCross, waypointRoutingExclusionDistance } from "../geometry/geometry";
+import {
+    boxBoxMinDistance,
+    channelSegmentRoutingExclusionDistance,
+    channelSegmentRoutingExclusionNoCross,
+    waypointRoutingExclusionDistance
+} from "../geometry/geometry";
 import { EncodedChannel } from "../channel";
+import {EncodedPin} from "../pin";
 
 
-export function encodeStaticRoutingExclusion(ctx: Context, channel: EncodedChannel, exclusion: StaticRoutingExclusion): Bool[] {
+export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticRoutingExclusion): Bool[] {
     const clauses = []
 
     /* Channels segments may not be near routing exclusion zones */
@@ -42,5 +48,27 @@ export function encodeStaticRoutingExclusion(ctx: Context, channel: EncodedChann
         }
     }
 
+    return clauses
+}
+
+
+export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, exclusion: StaticRoutingExclusion): Bool[] {
+
+    const clauses = []
+
+    /* Pins may not lie inside routing exclusion zones */
+    {
+        // TODO: define meaningful min distance between pins and static exclusion zones
+        const min_distance = 1000
+        clauses.push(
+            boxBoxMinDistance(ctx, {
+                    x: pin.encoding.positionX,
+                    y: pin.encoding.positionY,
+                    x_span: pin.radius * 2,
+                    y_span: pin.radius * 2
+                },
+                {x: exclusion.position.x, y: exclusion.position.y, x_span: exclusion.width, y_span: exclusion.height}, min_distance)
+        )
+    }
     return clauses
 }

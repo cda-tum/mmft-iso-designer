@@ -15,7 +15,7 @@ import {
     verticalHorizontalNoCross,
 } from "./geometry"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
-import {Channel, SegmentType} from "../channel"
+import {Channel} from "../channel"
 import {EncodedModule} from "../module";
 import {Placement} from "../placement";
 import {EnumBitVecValue} from "../z3Helpers";
@@ -1540,7 +1540,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             } else {
                 sat1 = false
             }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0, modules))
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
             let check2 = await solver.check()
             if (check2 === 'sat') {
                 return true
