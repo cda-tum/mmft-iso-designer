@@ -27,7 +27,7 @@ function App() {
       setOutput(undefined)
       design(input).then(r => {
         if (!r) {
-          throw 'An unknown error has occurred.'
+          throw 'An error occurred while designing. Please check the console output for further details.'
         } else {
           if (r.success) {
             setStatus({
@@ -141,7 +141,8 @@ function App() {
                 const o = transformToInput(output)
                 let id = nanoid()
                 if (fileName !== undefined) {
-                  id = "JSON output for " + fileName + " " + timing + "s"
+                  const outputName = fileName.slice(0, -5)
+                  id = "json_output_" + outputName + "_" + timing + "s"
                 }
                 downloadJSON(o, id)
               }
@@ -157,7 +158,8 @@ function App() {
               if (output !== undefined) {
                 let id = nanoid()
                 if (fileName !== undefined) {
-                  id = "output for " + fileName + " " + timing + "s"
+                  const outputName = fileName.slice(0, -5)
+                  id = "output_" + outputName + "_" + timing + "s"
                 }
                 downloadSVG(svgAsString(output), id)
               }
@@ -173,7 +175,8 @@ function App() {
               if (output !== undefined) {
                 let id = nanoid()
                 if (fileName !== undefined) {
-                  id = "DXF output for " + fileName + " " + timing + "s"
+                  const outputName = fileName.slice(0, -5)
+                  id = "dxf_output_" + outputName + "_" + timing + "s"
                 }
                 downloadDXF(output, id)
               }

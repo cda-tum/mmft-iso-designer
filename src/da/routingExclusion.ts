@@ -1,7 +1,8 @@
 import { Position } from "./position";
 import {Arith} from "z3-solver";
+import {Orientation} from "./orientation";
 
-export { RoutingExclusion, StaticRoutingExclusion, DynamicRoutingExclusion }
+export { RoutingExclusion, StaticRoutingExclusion, PinRoutingExclusion }
 
 type routingExclusionProperties = {
     position: { x: number | Arith, y: number | Arith }
@@ -27,15 +28,33 @@ class StaticRoutingExclusion extends RoutingExclusion {
     }
 }
 
-class DynamicRoutingExclusion extends RoutingExclusion {
+class PinRoutingExclusion extends RoutingExclusion {
+    pin!: number
     position!: { x: number | Arith, y: number | Arith }
     width!: number | Arith
     height!: number | Arith
 
-    constructor(o: routingExclusionProperties) {
+    constructor(pin: number, o: routingExclusionProperties) {
         super()
         this.position = o.position
         this.width = o.width
         this.height = o.height
+        this.pin = pin
+    }
+}
+
+class DynamicRoutingExclusion extends RoutingExclusion {
+    module!: number
+    orientation!: Orientation
+    position!: { x: number | Arith, y: number | Arith }
+    width!: number | Arith
+    height!: number | Arith
+
+    constructor(pin: number, o: routingExclusionProperties) {
+        super()
+        this.position = o.position
+        this.width = o.width
+        this.height = o.height
+        this.module = pin
     }
 }

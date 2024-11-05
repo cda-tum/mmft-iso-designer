@@ -58,7 +58,7 @@ export function Status(props: StatusProps) {
             }
             {
                 props.status === StatusType.Error &&
-                <Typography color="warning">An error has occurred{ props.message === undefined && '.' }{ props.message !== undefined && `:${props.message}` }</Typography>
+                <Typography color="warning">Something went wrong{ props.message === undefined && '.' }{ props.message !== undefined && `:${props.message}` }</Typography>
             }
             {
                 props.status === StatusType.Computing &&

@@ -35,7 +35,7 @@ async function design(input: Input) {
                 timing: number
             }
         } else if (check === 'unknown') {
-            throw 'Z3 cannot determine whether there is a solution.'
+            throw "Z3 cannot determine whether there is a solution."
         } else {
             const model = solver.model()
             const result = encoded_input.result(model)

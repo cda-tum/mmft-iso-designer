@@ -6,7 +6,7 @@ import {
     channelSegmentRoutingExclusionNoCross,
     waypointRoutingExclusionDistance
 } from "../geometry/geometry";
-import {DynamicRoutingExclusion} from "../routingExclusion";
+import {PinRoutingExclusion} from "../routingExclusion";
 
 
 export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, channel: EncodedChannel): Bool[] {
@@ -20,7 +20,7 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
             y: pin.encoding.positionY.sub(pin.radius)
         }, width: diameter, height: diameter
     }
-    const exclusion = new DynamicRoutingExclusion(exclusionProps)
+    const exclusion = new PinRoutingExclusion(pin.id, exclusionProps)
 
     /* Channels segments may not be near pins on both sides */
     {
