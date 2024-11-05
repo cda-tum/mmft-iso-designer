@@ -25,7 +25,8 @@
         "x": 90000,
         "y": 5000
       },
-      "orientation": 0
+      "orientation": 0,
+      "placement": 1
     },
     {
       "width": 15000,

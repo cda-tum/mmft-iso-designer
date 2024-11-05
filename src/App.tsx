@@ -14,6 +14,7 @@ function App() {
   const [input, setInput] = useState(undefined as undefined | Input)
   const [output, setOutput] = useState(undefined as undefined | Output)
   const [fileName, setFileName] = useState(undefined as undefined | string)
+  const [timing, setTiming] = useState(undefined as undefined | number)
 
   useEffect(() => {
     if (input) {
@@ -26,7 +27,7 @@ function App() {
       setOutput(undefined)
       design(input).then(r => {
         if (!r) {
-          throw 'An unknown error has occurred.'
+          throw 'An error occurred while designing. Please check the console output for further details.'
         } else {
           if (r.success) {
             setStatus({
@@ -35,6 +36,13 @@ function App() {
               timing: r.timing!,
               filename: fileName
             })
+            if (r.timing) {
+              if (r.timing! < 1) {
+                setTiming(1)
+              } else {
+                setTiming(Math.trunc(r.timing!))
+              }
+            }
             setOutput(r)
           } else {
             setStatus({
@@ -131,7 +139,11 @@ function App() {
             onClick={() => {
               if (output !== undefined) {
                 const o = transformToInput(output)
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "json_output_" + outputName + "_" + timing + "s"
+                }
                 downloadJSON(o, id)
               }
             }}
@@ -144,7 +156,11 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "output_" + outputName + "_" + timing + "s"
+                }
                 downloadSVG(svgAsString(output), id)
               }
             }}
@@ -157,7 +173,11 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "dxf_output_" + outputName + "_" + timing + "s"
+                }
                 downloadDXF(output, id)
               }
             }}

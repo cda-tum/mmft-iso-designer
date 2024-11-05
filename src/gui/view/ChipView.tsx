@@ -5,6 +5,7 @@ import {Orientation} from "../../da/orientation"
 import {StaticRoutingExclusion} from "../../da/routingExclusion"
 import {renderToString} from "react-dom/server"
 import {Placement} from "../../da/placement";
+import {ResultPin} from "../../da/pin";
 
 function randomColor() {
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
@@ -12,6 +13,16 @@ function randomColor() {
 
 export function svgAsString(chip: Output) {
     return renderToString(<ChipView chip={chip} />)
+}
+
+let pinColorMap: Map<number, string> = new Map()
+
+const getColorForId = (id: number): string => {
+    if (!pinColorMap.has(id)) {
+        const newColor = randomColor()
+        pinColorMap.set(id, newColor)
+    }
+    return pinColorMap.get(id)!;
 }
 
 export function ChipView(props: { chip: Output | undefined }) {
@@ -45,13 +56,12 @@ export function ChipView(props: { chip: Output | undefined }) {
                     })}></ModuleInstance>)
                 }
 
-                // TODO: replace spacing with specific clamp spacing
                 {props.chip &&
                     props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
                 }
 
                 {props.chip &&
-                    props.chip.modules.map((b, i) => b.position && <PinInstance module={b} ></PinInstance>)
+                    props.chip.pins.map((p, i) => <PinInstance pin={p} modules={props.chip?.modules} ></PinInstance>)
                 }
 
                 {props.chip &&
@@ -134,7 +144,7 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
     const placement = props.placement ?? undefined
-    const strokeDashArray = "300, 600";
+    const strokeDashArray = "400, 800"
 
     const d = points.map((p, i) => {
         if (i === 0) {
@@ -159,23 +169,27 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
     }
 }
 
-function PinInstance(props: { module: ResultModule, color?: string }) {
-    const color = props.color ?? '#87b7ff'
-    const pinRadius = 1000
-    const pinSpacing = pinRadius / 2
-    const pinStrokeWidth = pinRadius / 2
+function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefined, color?: string }) {
+    //const color = props.color ?? '#87b7ff'
+    const assignedColor = getColorForId(props.pin.module)
+    const pinRadius = props.pin.radius
+    const pinStrokeWidth = pinRadius / 3
+    const strokeDashArray = "200, 200";
 
-    const leftX = props.module.results.positionX - pinSpacing
-    const rightX = props.module.results.positionX + props.module.width + pinSpacing
-    const topY = props.module.results.positionY + props.module.height + pinSpacing
-    const bottomY = props.module.results.positionY - pinSpacing
+    if (props.modules) {
+        const module = props.modules[props.pin.module]
+        if (module.placement === Placement.Bottom) {
+            return (
+                <g>
+                    <circle cx={props.pin.results.positionX} cy={props.pin.results.positionY} r={pinRadius} stroke={assignedColor} strokeDasharray={strokeDashArray} strokeWidth={pinStrokeWidth} fill='none'></circle>
+                </g>
 
+            )
+        }
+    }
     return (
         <g>
-            <circle cx={leftX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
-            <circle cx={leftX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
-            <circle cx={rightX} cy={bottomY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
-            <circle cx={rightX} cy={topY} r={pinRadius} stroke={color} strokeWidth={pinStrokeWidth} fill='none'></circle>
+            <circle cx={props.pin.results.positionX} cy={props.pin.results.positionY} r={pinRadius} stroke={assignedColor} strokeWidth={pinStrokeWidth} fill='none'></circle>
         </g>
 
     )
