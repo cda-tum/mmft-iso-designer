@@ -1,5 +1,11 @@
 import {Arith, Context} from "z3-solver";
-import {RoutingExclusion} from "../routingExclusion";
+import {
+    DynamicModuleRoutingExclusion,
+    DynamicPinRoutingExclusion,
+    EncodedDynamicModuleRoutingExclusion,
+    RoutingExclusion,
+    StaticChipRoutingExclusion
+} from "../routingExclusion";
 import {Orientation} from "../orientation";
 import {EncodedChannel, SegmentType} from "../channel";
 import {EncodedModule} from "../module";
@@ -325,128 +331,189 @@ export function boxBoxMinDistance(ctx: Context,
 
 // Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
 export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: RoutingExclusion, min_distance: number) {
-    return pointBoxMinDistance(ctx, {
-        c1: channel.encoding.waypoints[waypoint].x,
-        c2: channel.encoding.waypoints[waypoint].y
-    }, {
-        c1: exclusion.position.x,
-        c2: exclusion.position.y,
-        c1_span: exclusion.width,
-        c2_span: exclusion.height
-    }, min_distance)
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
+        return pointBoxMinDistance(ctx, {
+            c1: channel.encoding.waypoints[waypoint].x,
+            c2: channel.encoding.waypoints[waypoint].y
+        }, {
+            c1: exclusion.position.x,
+            c2: exclusion.position.y,
+            c1_span: exclusion.width,
+            c2_span: exclusion.height
+        }, min_distance)
+    } else if (exclusion instanceof EncodedDynamicModuleRoutingExclusion) {
+        return pointBoxMinDistance(ctx, {
+            c1: channel.encoding.waypoints[waypoint].x,
+            c2: channel.encoding.waypoints[waypoint].y
+        }, {
+            c1: exclusion.encoding.positionX,
+            c2: exclusion.encoding.positionY,
+            c1_span: exclusion.spanX(ctx),
+            c2_span: exclusion.spanY(ctx)
+        }, min_distance)
+    } else {
+        return ctx.Bool.val(false)
+    }
 }
 
 export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion, min_distance: number) {
-    return ctx.And(
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
-            segmentBoxMinDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].y,
-                c2: channel.encoding.waypoints[segment].x,
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
-            segmentBoxMinDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].y,
-                c2: channel.encoding.waypoints[segment].x,
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
-            segmentBoxMinDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2: channel.encoding.waypoints[segment].y,
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
-            segmentBoxMinDistance(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2: channel.encoding.waypoints[segment].y,
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
-            segmentBoxMinDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, true, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
-            segmentBoxMinDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, false, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
-            segmentBoxMinDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, true, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
-            segmentBoxMinDistanceDiagonal(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, false, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            }, min_distance)
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
+        const routingExclusion = {
+            c1: exclusion.position.x,
+            c2: exclusion.position.y,
+            c1_span: exclusion.width,
+            c2_span: exclusion.height
+        }
+        return ctx.And(
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].y,
+                    c2: channel.encoding.waypoints[segment].x,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].y,
+                    c2: channel.encoding.waypoints[segment].x,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2: channel.encoding.waypoints[segment].y,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2: channel.encoding.waypoints[segment].y,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, true, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, false, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, true, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, false, routingExclusion, min_distance)
+            )
         )
-    )
+    } else if (exclusion instanceof EncodedDynamicModuleRoutingExclusion) {
+        const routingExclusion = {
+            c1: exclusion.encoding.positionX,
+            c2: exclusion.encoding.positionY,
+            c1_span: exclusion.spanX(ctx),
+            c2_span: exclusion.spanY(ctx)
+        }
+        return ctx.And(
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].y,
+                    c2: channel.encoding.waypoints[segment].x,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].y,
+                    c2: channel.encoding.waypoints[segment].x,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2: channel.encoding.waypoints[segment].y,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
+                segmentBoxMinDistance(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2: channel.encoding.waypoints[segment].y,
+                }, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, true, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, false, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, true, routingExclusion, min_distance)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+                segmentBoxMinDistanceDiagonal(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, false, routingExclusion, min_distance)
+            )
+        )
+    } else {
+        return ctx.Bool.val(false)
+    }
 }
 
 
@@ -586,116 +653,163 @@ export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
 
 // function ensuring that a given segment does not cross a static routing exclusion (e.g. cutout piece on the chip)
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion) {
-    return ctx.And(
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
-            segmentBoxNoCross(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].y,
-                c2: channel.encoding.waypoints[segment].x
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
-            segmentBoxNoCross(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].y,
-                c2: channel.encoding.waypoints[segment].x
-            }, {
-                c1: exclusion.position.y,
-                c2: exclusion.position.x,
-                c1_span: exclusion.height,
-                c2_span: exclusion.width
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
-            segmentBoxNoCross(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2: channel.encoding.waypoints[segment].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
-            segmentBoxNoCross(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2: channel.encoding.waypoints[segment].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
-            segmentBoxNoCrossSlopePos(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
-            segmentBoxNoCrossSlopeNeg(ctx, {
-                c1_lower: channel.encoding.waypoints[segment].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment + 1].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
-            segmentBoxNoCrossSlopePos(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment + 1].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
-        ),
-        ctx.Implies(
-            channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
-            segmentBoxNoCrossSlopeNeg(ctx, {
-                c1_lower: channel.encoding.waypoints[segment + 1].x,
-                c2_lower: channel.encoding.waypoints[segment].y,
-                c1_higher: channel.encoding.waypoints[segment].x,
-                c2_higher: channel.encoding.waypoints[segment + 1].y
-            }, {
-                c1: exclusion.position.x,
-                c2: exclusion.position.y,
-                c1_span: exclusion.width,
-                c2_span: exclusion.height
-            })
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
+        const routingExclusion = {
+            c1: exclusion.position.x,
+            c2: exclusion.position.y,
+            c1_span: exclusion.width,
+            c2_span: exclusion.height
+        }
+        return ctx.And(
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].y,
+                    c2: channel.encoding.waypoints[segment].x
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].y,
+                    c2: channel.encoding.waypoints[segment].x
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+                segmentBoxNoCrossSlopePos(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+                segmentBoxNoCrossSlopeNeg(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+                segmentBoxNoCrossSlopePos(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+                segmentBoxNoCrossSlopeNeg(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, routingExclusion)
+            )
         )
-    )
+    } else if (exclusion instanceof EncodedDynamicModuleRoutingExclusion) {
+        const routingExclusion = {
+            c1: exclusion.encoding.positionX,
+            c2: exclusion.encoding.positionY,
+            c1_span: exclusion.spanX(ctx),
+            c2_span: exclusion.spanY(ctx)
+        }
+        return ctx.And(
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].y,
+                    c2: channel.encoding.waypoints[segment].x
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].y,
+                    c2: channel.encoding.waypoints[segment].x
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
+                segmentBoxNoCross(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
+                segmentBoxNoCrossSlopePos(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownRight),
+                segmentBoxNoCrossSlopeNeg(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment + 1].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.DownLeft),
+                segmentBoxNoCrossSlopePos(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment + 1].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment].y
+                }, routingExclusion)
+            ),
+            ctx.Implies(
+                channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpLeft),
+                segmentBoxNoCrossSlopeNeg(ctx, {
+                    c1_lower: channel.encoding.waypoints[segment + 1].x,
+                    c2_lower: channel.encoding.waypoints[segment].y,
+                    c1_higher: channel.encoding.waypoints[segment].x,
+                    c2_higher: channel.encoding.waypoints[segment + 1].y
+                }, routingExclusion)
+            )
+        )
+    } else {
+        return ctx.Bool.val(false)
+    }
 }
 
 

@@ -512,5 +512,6 @@
       "maxSegments": 3
     }
   ],
-  "routingExclusions": []
+  "chipRoutingExclusions": [],
+  "moduleRoutingExclusions":[]
 }

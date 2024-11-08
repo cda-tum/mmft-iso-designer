@@ -2,7 +2,11 @@ import {ResultChannel} from "../../da/channel"
 import {Output} from "../../da/inputOutput"
 import {ResultModule} from "../../da/module"
 import {Orientation} from "../../da/orientation"
-import {StaticRoutingExclusion} from "../../da/routingExclusion"
+import {
+    DynamicModuleRoutingExclusion,
+    ResultDynamicModuleRoutingExclusion,
+    StaticChipRoutingExclusion
+} from "../../da/routingExclusion"
 import {renderToString} from "react-dom/server"
 import {Placement} from "../../da/placement";
 import {ResultPin} from "../../da/pin";
@@ -84,7 +88,11 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
 
                 {props.chip &&
-                    props.chip.routingExclusions.map((e, i) => <RoutingExclusion exclusion={e}></RoutingExclusion>)
+                    props.chip.chipRoutingExclusions.map((e, i) => <ChipRoutingExclusion exclusion={e}></ChipRoutingExclusion>)
+                }
+
+                {props.chip && props.chip.modules &&
+                    props.chip.moduleRoutingExclusions.map((e, i) => <ModuleRoutingExclusion exclusion={e}></ModuleRoutingExclusion>)
                 }
             </g>
         </svg>
@@ -195,13 +203,30 @@ function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefine
     )
 }
 
-function RoutingExclusion(props: { exclusion: StaticRoutingExclusion, strokeWidth?: number, color?: string }) {
+function ChipRoutingExclusion(props: { exclusion: StaticChipRoutingExclusion, strokeWidth?: number, color?: string }) {
     const color = props.color ?? '#b00'
     const strokeWidth = props.strokeWidth ?? 300
     const offset = strokeWidth / 2
     return (
         <g>
             <rect x={props.exclusion.position.x + offset} y={props.exclusion.position.y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
+        </g>
+    )
+}
+
+function ModuleRoutingExclusion(props: { exclusion: ResultDynamicModuleRoutingExclusion, strokeWidth?: number, color?: string }) {
+    const color = props.color ?? '#bb5e00'
+    const strokeWidth = props.strokeWidth ?? 300
+    const offset = strokeWidth / 2
+
+    const module = props.exclusion.results.resultModule
+    const orientation = module.results.orientation
+
+    const [width, height] = (orientation === Orientation.Up || orientation === Orientation.Down || orientation === undefined) ? [props.exclusion.width, props.exclusion.height] : [props.exclusion.height, props.exclusion.width]
+
+    return (
+        <g>
+            <rect x={props.exclusion.results.positionX + offset} y={props.exclusion.results.positionY + offset} width={width - strokeWidth} height={height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
         </g>
     )
 }

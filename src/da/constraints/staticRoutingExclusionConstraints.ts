@@ -1,5 +1,5 @@
 import { Bool, Context } from "z3-solver";
-import { StaticRoutingExclusion } from "../routingExclusion";
+import { StaticChipRoutingExclusion } from "../routingExclusion";
 import {
     boxBoxMinDistance,
     channelSegmentRoutingExclusionDistance,
@@ -10,7 +10,7 @@ import { EncodedChannel } from "../channel";
 import {EncodedPin} from "../pin";
 
 
-export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticRoutingExclusion): Bool[] {
+export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticChipRoutingExclusion): Bool[] {
     const clauses = []
 
     /* Channels segments may not be near routing exclusion zones */
@@ -52,7 +52,7 @@ export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: Enco
 }
 
 
-export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, exclusion: StaticRoutingExclusion): Bool[] {
+export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, exclusion: StaticChipRoutingExclusion): Bool[] {
 
     const clauses = []
 

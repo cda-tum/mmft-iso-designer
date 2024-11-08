@@ -10,16 +10,21 @@
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
+      "position": {
+        "x": 15000,
+        "y": 20000
+      },
       "placement": 1
     },
     {
       "width": 15000,
       "height": 15000,
       "pitch": 3000,
+      "orientation" : 0,
       "spacing": 3000,
       "position": {
         "x": 90000,
-        "y": 5000
+        "y": 20000
       }
     },
     {
@@ -44,26 +49,18 @@
     }
   ],
   "channels": [
-    {
-      "width": 500,
-      "spacing": 100,
-      "from": {
-        "module": 1,
-        "port": [
-          0,
-          0
-        ]
-      },
-      "to": {
-        "module": 3,
-        "port": [
-          0,
-          0
-        ]
-      },
-      "maxSegments": 2
-    }
+
   ],
   "routingExclusions": [],
-  "moduleRoutingExclusions":[]
+  "moduleRoutingExclusions":[
+    {
+      "module": 1,
+      "position": {
+        "x": 5000,
+        "y": 7000
+      },
+      "width": 15000,
+      "height": 20000
+    }
+  ]
 }

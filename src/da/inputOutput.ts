@@ -1,21 +1,26 @@
-import { Bool, Context, Model } from "z3-solver"
-import { Chip } from "./chip"
-import { cross, pairwiseUnique } from "./utils"
-import { StaticRoutingExclusion } from "./routingExclusion"
-import { encodePaperConstraints } from "./constraints/paperConstraints"
-import { encodeChannelConstraints } from "./constraints/channelConstraints"
-import { encodeChannelPortConstraints } from "./constraints/channelPortConstraints"
-import { encodeChannelWaypointConstraints } from "./constraints/channelWaypoints"
-import { encodeChannelChannelConstraints } from "./constraints/channelChannelConstraints"
+import {Bool, Context, Model} from "z3-solver"
+import {Chip} from "./chip"
+import {cross, pairwiseUnique} from "./utils"
+import {
+    DynamicModuleRoutingExclusion,
+    EncodedDynamicModuleRoutingExclusion,
+    ResultDynamicModuleRoutingExclusion,
+    StaticChipRoutingExclusion
+} from "./routingExclusion"
+import {encodePaperConstraints} from "./constraints/paperConstraints"
+import {encodeChannelConstraints} from "./constraints/channelConstraints"
+import {encodeChannelPortConstraints} from "./constraints/channelPortConstraints"
+import {encodeChannelWaypointConstraints} from "./constraints/channelWaypoints"
+import {encodeChannelChannelConstraints} from "./constraints/channelChannelConstraints"
 import {
     encodeStaticRoutingExclusionChannels,
     encodeStaticRoutingExclusionPins
-} from "./constraints/staticRoutingExclusion"
-import { encodeModuleConstraints } from "./constraints/moduleConstraints"
-import { encodeModuleModuleConstraints } from "./constraints/moduleModuleConstraints"
-import { encodeChannelModuleConstraints } from "./constraints/channelModuleConstraints"
+} from "./constraints/staticRoutingExclusionConstraints"
+import {encodeModuleConstraints} from "./constraints/moduleConstraints"
+import {encodeModuleModuleConstraints} from "./constraints/moduleModuleConstraints"
+import {encodeChannelModuleConstraints} from "./constraints/channelModuleConstraints"
 import {EncodedModule, Module, ResultModule} from "./module"
-import { Channel, EncodedChannel, ResultChannel } from "./channel"
+import {Channel, EncodedChannel, ResultChannel} from "./channel"
 import {Clamp} from "./clamp";
 import {EncodedPin, Pin, ResultPin} from "./pin";
 import {encodePinConstraints} from "./constraints/pinConstraints";
@@ -23,14 +28,18 @@ import {encodePinPinConstraints} from "./constraints/pinPinConstraints";
 import {encodeModulePinConstraints} from "./constraints/modulePinConstraints";
 import {encodeChannelPinConstraints} from "./constraints/channelPinConstraints";
 import {encodeClampConstraints} from "./constraints/clampConstraints";
+import {
+    encodeDynamicModuleRoutingExclusionPins, encodeDynamicRoutingExclusion, encodeDynamicRoutingExclusionChannels
+} from "./constraints/dynamicRoutingExclusionConstraints";
 
-export { Input, Output }
+export {Input, Output}
 
 class Input {
     chip!: Chip
     modules!: Module[]
     channels!: Channel[]
-    routingExclusions!: StaticRoutingExclusion[]
+    chipRoutingExclusions!: StaticChipRoutingExclusion[]
+    moduleRoutingExclusions!: DynamicModuleRoutingExclusion[]
     clamps!: Clamp[]
     softCorners?: boolean
     pins!: Pin[]
@@ -44,13 +53,43 @@ class Input {
         this.modules.forEach((m, i) => m.id = i)
         this.channels.forEach((c, i) => c.id = i)
         this.pins.forEach((p, i) => p.id = i)
+        this.moduleRoutingExclusions.forEach((p, i) => p.id = i)
     }
 
     encode(ctx: Context): EncodedInput {
         this.updateIds()
         const modules = this.modules.map(m => m.encode(ctx))
-        const channels = this.channels.map((c, i) => c.encode(ctx))
-        const pins = this.pins.map((p, i) => p.encode(ctx))
+        const channels = this.channels.map(c => c.encode(ctx))
+        const pins = this.pins.map(p => p.encode(ctx))
+
+
+        /** DYNAMIC MODULE-BASED EXCLUSION ZONES **/
+        /* Input validation: exclusion zone coordinates must be inside modules boundaries (can overlap the boundary but the start should be in it) */
+        // cross(this.modules, this.moduleRoutingExclusions).flatMap(([m, e]) => {
+        //     if (m.id === e.id) {
+        //         let inputValid = true
+        //         let spanX, spanY
+        //         if (m.orientation === 1 || m.orientation === 3 || m.orientation === undefined) {
+        //             spanY = m.height
+        //             spanX = m.width
+        //         } else {
+        //             spanY = m.width
+        //             spanX = m.height
+        //         }
+        //         if (m.position !== undefined) {
+        //             inputValid = e.position.x >= m.position.x && e.position.y >= m.position.y
+        //                 && e.position.x <= m.position.x + spanX && e.position.y <= m.position.y + spanY
+        //         }
+        //         if (!inputValid) {
+        //             throw 'Dynamic (module-based) exclusion zone coordinates must be located on the corresponding module.'
+        //         }
+        //     }
+        // })
+
+        // initialise each orientation of the module-based routing exclusion with its corresponding module orientation (or Up if not defined)
+        //this.moduleRoutingExclusions.forEach(e => e.orientation = (modules[e.module].orientation))
+
+        const moduleRoutingExclusions = this.moduleRoutingExclusions.map(e => e.encode(ctx, modules))
         const clauses = [
             ...modules.flatMap(b => b.encoding.clauses),
             ...channels.flatMap(c => c.encoding.clauses),
@@ -82,8 +121,14 @@ class Input {
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
-        /* Encode routing exclusion zones and channels */
-        clauses.push(...cross(channels, this.routingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
+        /* Encode module-based routing exclusion zones */
+        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e)))
+
+        /* Encode chip-based routing exclusion zones and channels */
+        clauses.push(...cross(channels, this.chipRoutingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
+
+        /* Encode module-based routing exclusion zones and channels */
+        clauses.push(...cross(channels, moduleRoutingExclusions).flatMap(([c, e]) => encodeDynamicRoutingExclusionChannels(ctx, c, e)))
 
         /* Encode clamps */
         clauses.push(...cross(modules, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
@@ -101,19 +146,24 @@ class Input {
         clauses.push(...cross(channels, pins).flatMap(([c, p]) => encodeChannelPinConstraints(ctx, p, c)))
 
         /* Encode routing exclusion zones and pins */
-        clauses.push(...cross(pins, this.routingExclusions).flatMap(([p, e]) => encodeStaticRoutingExclusionPins(ctx, p, e)))
+        clauses.push(...cross(pins, this.chipRoutingExclusions).flatMap(([p, e]) => encodeStaticRoutingExclusionPins(ctx, p, e)))
+
+        /* Encode routing exclusion zones and pins */
+        clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
+
 
         return new EncodedInput({
             ...this,
             modules,
             channels,
             clauses,
-            pins
+            pins,
+            moduleRoutingExclusions
         })
     }
 
     static from(o: Partial<Input>) {
-        if(o.chip === undefined) {
+        if (o.chip === undefined) {
             throw ''
         }
 
@@ -122,7 +172,7 @@ class Input {
 
         // fill a new clamps array with a clamp for each module
         o.modules?.forEach((c, i) => {
-            clamps.push(new Clamp({ clampID: i, clampingModuleID: c.id, placement: c.placement}))
+            clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement}))
         })
 
         /** ADJUST PIN RADIUS HERE **/
@@ -130,7 +180,7 @@ class Input {
         // fill a new pins array with three pins for each module (radius of pin is hard set to 1000 here and propagated to all following encoding)
         o.modules?.forEach((c, k) => {
             for (let i = 0; i < 3; i++) {
-                pins.push(new Pin({ id: k, module: k, radius: 1000}))
+                pins.push(new Pin({id: k, module: k, radius: 1000}))
             }
         })
 
@@ -138,7 +188,8 @@ class Input {
             chip: new Chip(o.chip),
             modules: o.modules?.map(m => new Module(m)) ?? [],
             channels: o.channels?.map(c => new Channel(c)) ?? [],
-            routingExclusions: o.routingExclusions?.map(e => new StaticRoutingExclusion(e)) ?? [],
+            chipRoutingExclusions: o.chipRoutingExclusions?.map(e => new StaticChipRoutingExclusion(e)) ?? [],
+            moduleRoutingExclusions: o.moduleRoutingExclusions?.map(e => new DynamicModuleRoutingExclusion(e)) ?? [],
             clamps: clamps,
             pins: pins,
             softCorners: o.softCorners
@@ -151,6 +202,7 @@ class EncodedInput extends Input {
     channels!: EncodedChannel[]
     clauses!: Bool[]
     pins!: EncodedPin[]
+    moduleRoutingExclusions!: EncodedDynamicModuleRoutingExclusion[]
 
     constructor(obj: Partial<EncodedInput>) {
         super(obj)
@@ -159,13 +211,15 @@ class EncodedInput extends Input {
     }
 
     result(m: Model): Output {
+        const resultModules = this.modules.map(b => b.result(m))
         return {
             ...this,
             success: true,
-            modules: this.modules.map(b => b.result(m)),
+            modules: resultModules,
             channels: this.channels.map(c => c.result(m)),
             clamps: this.clamps,
-            pins: this.pins.map(p => p.result(m))
+            pins: this.pins.map(p => p.result(m)),
+            moduleRoutingExclusions: this.moduleRoutingExclusions.map(e => e.result(m, resultModules))
         }
     }
 }
@@ -174,6 +228,7 @@ class Output extends EncodedInput {
     modules!: ResultModule[]
     channels!: ResultChannel[]
     pins!: ResultPin[]
+    moduleRoutingExclusions!: ResultDynamicModuleRoutingExclusion[]
 
     timing?: number //ms
     success: true = true

@@ -245,7 +245,7 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
       length: c.results.length
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
+    routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
       positionY: e.position.y,
       width: e.width,
@@ -290,7 +290,7 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
       length: c.results.length
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
+    routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
       positionY: e.position.y,
       width: e.width,
