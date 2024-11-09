@@ -49,7 +49,25 @@
     }
   ],
   "channels": [
-
+    {
+      "width": 500,
+      "spacing": 600,
+      "from": {
+        "module": 2,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 3
+    }
   ],
   "routingExclusions": [],
   "moduleRoutingExclusions":[
@@ -61,6 +79,15 @@
       },
       "width": 15000,
       "height": 20000
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 5000,
+        "y": 5000
+      },
+      "width": 4000,
+      "height": 7000
     }
   ]
 }

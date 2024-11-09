@@ -512,6 +512,25 @@
       "maxSegments": 3
     }
   ],
-  "chipRoutingExclusions": [],
-  "moduleRoutingExclusions":[]
+  "chipRoutingExclusions": [
+    {
+      "position": {
+        "x": 70000,
+        "y": 30000
+      },
+      "width": 15000,
+      "height": 15000
+    }
+  ],
+  "moduleRoutingExclusions":[
+    {
+      "module": 4,
+      "position": {
+        "x": 3000,
+        "y": 11000
+      },
+      "width": 7000,
+      "height": 7000
+    }
+  ]
 }

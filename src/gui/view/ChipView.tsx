@@ -215,7 +215,7 @@ function ChipRoutingExclusion(props: { exclusion: StaticChipRoutingExclusion, st
 }
 
 function ModuleRoutingExclusion(props: { exclusion: ResultDynamicModuleRoutingExclusion, strokeWidth?: number, color?: string }) {
-    const color = props.color ?? '#bb5e00'
+    const color = props.color ?? '#ffa556'
     const strokeWidth = props.strokeWidth ?? 300
     const offset = strokeWidth / 2
 

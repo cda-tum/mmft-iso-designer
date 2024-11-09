@@ -10,6 +10,8 @@ import {EncodedPin} from "../pin";
 import {EnumBitVecValue} from "../z3Helpers";
 import {Orientation} from "../orientation";
 import {smtSum} from "../utils";
+import {EncodedModule} from "../module";
+import {Placement} from "../placement";
 
 export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion): Bool[] {
     const clauses = []
@@ -61,117 +63,136 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
             )
         }
     }
+
     // If orientation of module is not pre-defined -> type is EnumBitVec
     else {
-        const orientation = module.encoding.orientation
-        const spX = module.spanX(ctx)
-        const spY = module.spanY(ctx)
+        // ORIGINAL coordinates of exclusion (in the whole grid of the chip) -> UP direction
+        const originalX = smtSum(ctx, exclusion.position.x, module.encoding.positionX)
+        const originalY = smtSum(ctx, exclusion.position.y, module.encoding.positionY)
 
-        const spanX = typeof spX === "number" ? ctx.Int.val(spX) : spX
-        const spanY = typeof spY === "number" ? ctx.Int.val(spY) : spY
+        // DOWN direction
+        const downModuleUpperX = smtSum(ctx, module.encoding.positionX, module.spanX(ctx))
+        const downModuleUpperY = smtSum(ctx, module.encoding.positionY, module.spanY(ctx))
+        const downExclusionUpperX = typeof downModuleUpperX === "number" ? downModuleUpperX - exclusion.position.x : downModuleUpperX.sub(exclusion.position.x)
+        const downExclusionUpperY = typeof downModuleUpperY === "number" ? downModuleUpperY - exclusion.position.y : downModuleUpperY.sub(exclusion.position.y)
+        const downExclusionLowerX = typeof downExclusionUpperX === "number" ? downExclusionUpperX - exclusion.width : downExclusionUpperX.sub(exclusion.width)
+        const downExclusionLowerY = typeof downExclusionUpperY === "number" ? downExclusionUpperY - exclusion.height : downExclusionUpperY.sub(exclusion.height)
 
-        const x_transformed = ctx.Int.const('x_transformed');
-        const y_transformed = ctx.Int.const('y_transformed');
+        // RIGHT direction
+        const rightModuleUpperY = smtSum(ctx, module.encoding.positionY, module.spanY(ctx))
+        const rightExclusionUpperY = typeof rightModuleUpperY === "number" ? rightModuleUpperY - exclusion.position.x : rightModuleUpperY.sub(exclusion.position.x)
+        const rightExclusionLowerY = typeof rightExclusionUpperY === "number" ? rightExclusionUpperY - exclusion.width : rightExclusionUpperY.sub(exclusion.width)
+
+        // LEFT direction
+        const leftModuleUpperX = smtSum(ctx, module.encoding.positionX, module.spanX(ctx))
+        const leftExclusionUpperX = typeof leftModuleUpperX === "number" ? leftModuleUpperX - exclusion.position.y : leftModuleUpperX.sub(exclusion.position.y)
+        const leftExclusionLowerX = typeof leftExclusionUpperX === "number" ? leftExclusionUpperX - exclusion.height : leftExclusionUpperX.sub(exclusion.height)
+
         clauses.push(
             ctx.And(
                 ctx.Implies(
-                    orientation.eq(ctx, Orientation.Up),
+                    module.encoding.orientation.eq(ctx, Orientation.Up),
                     ctx.And(
-                        exclusion.encoding.positionX.eq(exclusion.position.x),
-                        exclusion.encoding.positionY.eq(exclusion.position.y)
-                    ),
-                ),
-                ctx.Implies(
-                    orientation.eq(ctx, Orientation.Down),
-                    ctx.And(
-                        x_transformed.eq(spanX.sub(exclusion.encoding.positionX)),
-                        y_transformed.eq(spanY.sub(exclusion.encoding.positionY)),
-                        ctx.LE(exclusion.encoding.positionX, spanX),
-                        ctx.GE(exclusion.encoding.positionX, 0),
-                        ctx.LE(exclusion.encoding.positionY, spanY),
-                        ctx.GE(exclusion.encoding.positionY, 0)
+                        exclusion.encoding.positionX.eq(smtSum(ctx, exclusion.position.x, module.encoding.positionX)),
+                        exclusion.encoding.positionY.eq(smtSum(ctx, exclusion.position.y, module.encoding.positionY))
                     )
                 ),
                 ctx.Implies(
-                    orientation.eq(ctx, Orientation.Right),
+                    module.encoding.orientation.eq(ctx, Orientation.Down),
                     ctx.And(
-                        x_transformed.eq(spanY.sub(exclusion.encoding.positionY)),
-                        y_transformed.eq(exclusion.encoding.positionX),
-                        ctx.LE(exclusion.encoding.positionX, spanY),
-                        ctx.GE(exclusion.encoding.positionX, 0),
-                        ctx.LE(exclusion.encoding.positionY, spanX),
-                        ctx.GE(exclusion.encoding.positionY, 0)
+                        exclusion.encoding.positionX.eq(downExclusionLowerX),
+                        exclusion.encoding.positionY.eq(downExclusionLowerY)
                     )
                 ),
                 ctx.Implies(
-                    orientation.eq(ctx, Orientation.Left),
+                    module.encoding.orientation.eq(ctx, Orientation.Right),
                     ctx.And(
-                        x_transformed.eq(exclusion.encoding.positionY),
-                        y_transformed.eq(spanX.sub(exclusion.encoding.positionX)),
-                        ctx.LE(x_transformed, spanY),
-                        ctx.GE(x_transformed, 0),
-                        ctx.LE(y_transformed, spanX),
-                        ctx.GE(y_transformed, 0)
+                        exclusion.encoding.positionX.eq(originalX),
+                        exclusion.encoding.positionY.eq(rightExclusionLowerY)
                     )
                 ),
+                ctx.Implies(
+                    module.encoding.orientation.eq(ctx, Orientation.Left),
+                    ctx.And(
+                        exclusion.encoding.positionX.eq(leftExclusionLowerX),
+                        exclusion.encoding.positionY.eq(originalY)
+                    )
+                )
             )
         )
+
     }
     return clauses
 }
 
-export function encodeDynamicRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: EncodedDynamicModuleRoutingExclusion): Bool[] {
+export function encodeDynamicRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: EncodedDynamicModuleRoutingExclusion, modules: EncodedModule[]): Bool[] {
 
+    /* Since dynamic module-based routing exclusion zones are restricted to (e.g. optical) barrier-free zones on one side
+    the other side is not affected and can be routing channels there
+     */
     const clauses = []
-    /* Channels segments may not be near dynamic routing exclusion zones */
-    {
-        const min_distance = channel.width / 2 + channel.spacing
-        for (let i = 0; i < channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+    const channelModule = modules[channel.from.module]
+    const exclusionModule = modules[exclusion.module]
+
+    const channelOnSameSide = (channelModule.placement === Placement.Top && exclusionModule.placement === Placement.Top) ||
+        (channelModule.placement === Placement.Bottom && exclusionModule.placement === Placement.Bottom) ||
+        (channelModule.placement === undefined && exclusionModule.placement === undefined) ||
+        (channelModule.placement === undefined && exclusionModule.placement === Placement.Top) ||
+        (channelModule.placement === Placement.Top && exclusionModule.placement === undefined)
+
+    if (channelOnSameSide) {
+        /* Channels segments may not be near dynamic routing exclusion zones */
+        // {
+        //     const min_distance = channel.width / 2 + channel.spacing
+        //     for (let i = 0; i < channel.maxSegments; i++) {
+        //         clauses.push(
+        //             ctx.Implies(
+        //                 channel.encoding.segments[i].active,
+        //                 channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+        //             )
+        //         )
+        //     }
+        // }
+
+
+        // /* Channels segments may not be near dynamic routing exclusion zones */
+        // {
+        //     const min_distance = channel.width / 2 + channel.spacing
+        //     for (let i = 0; i < channel.maxSegments; i++) {
+        //         clauses.push(
+        //             ctx.Implies(
+        //                 channel.encoding.segments[i].active,
+        //                 channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+        //             )
+        //         )
+        //     }
+        // }
+
+        /* Channels waypoints may not be near dynamic routing exclusion zones */
+        {
+            const min_distance = channel.width / 2 + channel.spacing
+            for (let i = 0; i <= channel.maxSegments; i++) {
+                clauses.push(
+                    waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
                 )
-            )
+            }
         }
-    }
 
-    /* Channels segments may not be near dynamic routing exclusion zones */
-    {
-        const min_distance = channel.width / 2 + channel.spacing
-        for (let i = 0; i < channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+        /* Channel segments may not cross dynamic routing exclusion zones */
+        {
+            for (let i = 0; i < channel.maxSegments; i++) {
+                clauses.push(
+                    ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
+                    )
                 )
-            )
+            }
         }
     }
-
-    /* Channels waypoints may not be near dynamic routing exclusion zones */
-    {
-        const min_distance = channel.width / 2 + channel.spacing
-        for (let i = 0; i <= channel.maxSegments; i++) {
-            clauses.push(
-                waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-            )
-        }
-    }
-
-    /* Channel segments may not cross dynamic routing exclusion zones */
-    {
-        for (let i = 0; i < channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
-                )
-            )
-        }
-    }
-
+    //clauses.push(ctx.Bool.val(true))
     return clauses
+
 }
 
 
@@ -181,7 +202,7 @@ export function encodeDynamicModuleRoutingExclusionPins(ctx: Context, pin: Encod
     /* Pins may not lie inside routing exclusion zones */
     {
         // TODO: define meaningful min distance between pins and dynamic exclusion zones
-        const min_distance = 1000
+        const min_distance = 500
         clauses.push(
             boxBoxMinDistance(ctx, {
                     x: pin.encoding.positionX,
