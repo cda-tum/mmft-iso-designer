@@ -24,7 +24,7 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
 
     /* Channels segments may not be near pins on both sides */
     {
-        const min_distance = (channel.width / 2 + channel.spacing) + pin.radius
+        const min_distance = ((channel.width / 2) + channel.spacing) + pin.radius
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
                 ctx.Implies(
@@ -37,7 +37,7 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
 
     /* Channels waypoints may not be near pin-hole zones */
     {
-        const min_distance = (channel.width / 2 + channel.spacing) + 200
+        const min_distance = (channel.width / 2 + channel.spacing) + pin.radius
         for (let i = 0; i <= channel.maxSegments; i++) {
             clauses.push(
                 waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)

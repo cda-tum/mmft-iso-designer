@@ -64,30 +64,18 @@ class Input {
 
 
         /** DYNAMIC MODULE-BASED EXCLUSION ZONES **/
-        /* Input validation: exclusion zone coordinates must be inside modules boundaries (can overlap the boundary but the start should be in it) */
-        // cross(this.modules, this.moduleRoutingExclusions).flatMap(([m, e]) => {
-        //     if (m.id === e.id) {
-        //         let inputValid = true
-        //         let spanX, spanY
-        //         if (m.orientation === 1 || m.orientation === 3 || m.orientation === undefined) {
-        //             spanY = m.height
-        //             spanX = m.width
-        //         } else {
-        //             spanY = m.width
-        //             spanX = m.height
-        //         }
-        //         if (m.position !== undefined) {
-        //             inputValid = e.position.x >= m.position.x && e.position.y >= m.position.y
-        //                 && e.position.x <= m.position.x + spanX && e.position.y <= m.position.y + spanY
-        //         }
-        //         if (!inputValid) {
-        //             throw 'Dynamic (module-based) exclusion zone coordinates must be located on the corresponding module.'
-        //         }
-        //     }
-        // })
-
-        // initialise each orientation of the module-based routing exclusion with its corresponding module orientation (or Up if not defined)
-        //this.moduleRoutingExclusions.forEach(e => e.orientation = (modules[e.module].orientation))
+        /* Input validation: exclusion zone coordinates are defined in the realm of their module, so must be inside modules size boundaries */
+        cross(this.modules, this.moduleRoutingExclusions).flatMap(([m, e]) => {
+            if (m.id === e.module) {
+                let inputValid = true
+                if (e.position.x > m.width || e.position.y > m.height) {
+                    inputValid = false
+                }
+                if (!inputValid) {
+                    throw 'Dynamic (module-based) exclusion zone coordinates must be located on the corresponding module.'
+                }
+            }
+        })
 
         const moduleRoutingExclusions = this.moduleRoutingExclusions.map(e => e.encode(ctx, modules))
         const clauses = [

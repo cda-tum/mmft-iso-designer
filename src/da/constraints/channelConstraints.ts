@@ -389,7 +389,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                     ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),
                                     ctx.If(
                                         ctx.Or(channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight), channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft)),
-                                        // Manhattan distance manually -> for diagonal segments it delta_x and delta_y is the same -> double that is the Manhattan distance
+                                        // Manhattan distance manually -> for diagonal segments delta_x and delta_y is the same -> double that is the Manhattan distance
                                         ctx.Sum(channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y), channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y)),
                                         ctx.Sum(channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y), channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y))
                                     )

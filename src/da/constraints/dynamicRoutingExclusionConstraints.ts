@@ -93,8 +93,8 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                 ctx.Implies(
                     module.encoding.orientation.eq(ctx, Orientation.Up),
                     ctx.And(
-                        exclusion.encoding.positionX.eq(smtSum(ctx, exclusion.position.x, module.encoding.positionX)),
-                        exclusion.encoding.positionY.eq(smtSum(ctx, exclusion.position.y, module.encoding.positionY))
+                        exclusion.encoding.positionX.eq(originalX),
+                        exclusion.encoding.positionY.eq(originalY)
                     )
                 ),
                 ctx.Implies(
@@ -142,31 +142,30 @@ export function encodeDynamicRoutingExclusionChannels(ctx: Context, channel: Enc
 
     if (channelOnSameSide) {
         /* Channels segments may not be near dynamic routing exclusion zones */
-        // {
-        //     const min_distance = channel.width / 2 + channel.spacing
-        //     for (let i = 0; i < channel.maxSegments; i++) {
-        //         clauses.push(
-        //             ctx.Implies(
-        //                 channel.encoding.segments[i].active,
-        //                 channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-        //             )
-        //         )
-        //     }
-        // }
+        {
+            const min_distance = channel.width / 2 + channel.spacing
+            for (let i = 0; i < channel.maxSegments; i++) {
+                clauses.push(
+                    ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                    )
+                )
+            }
+        }
 
-
-        // /* Channels segments may not be near dynamic routing exclusion zones */
-        // {
-        //     const min_distance = channel.width / 2 + channel.spacing
-        //     for (let i = 0; i < channel.maxSegments; i++) {
-        //         clauses.push(
-        //             ctx.Implies(
-        //                 channel.encoding.segments[i].active,
-        //                 channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-        //             )
-        //         )
-        //     }
-        // }
+        /* Channels segments may not be near dynamic routing exclusion zones */
+        {
+            const min_distance = channel.width / 2 + channel.spacing
+            for (let i = 0; i < channel.maxSegments; i++) {
+                clauses.push(
+                    ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                    )
+                )
+            }
+        }
 
         /* Channels waypoints may not be near dynamic routing exclusion zones */
         {
@@ -190,9 +189,7 @@ export function encodeDynamicRoutingExclusionChannels(ctx: Context, channel: Enc
             }
         }
     }
-    //clauses.push(ctx.Bool.val(true))
     return clauses
-
 }
 
 
