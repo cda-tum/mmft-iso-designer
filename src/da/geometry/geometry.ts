@@ -1,6 +1,7 @@
 import {Arith, Context} from "z3-solver";
 import {
-    EncodedDynamicModuleRoutingExclusion, PinRoutingExclusion,
+    DynamicModuleRoutingExclusion,
+    EncodedDynamicModuleRoutingExclusion,
     RoutingExclusion,
     StaticChipRoutingExclusion
 } from "../components/routingExclusion";
@@ -329,14 +330,13 @@ export function boxBoxMinDistance(ctx: Context,
 
 // Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
 export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: RoutingExclusion, min_distance: number) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
+    if (exclusion instanceof StaticChipRoutingExclusion) {
         const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
             c1_span: exclusion.width,
             c2_span: exclusion.height
         }
-
         return pointBoxMinDistance(ctx, {
             c1: channel.encoding.waypoints[waypoint].x,
             c2: channel.encoding.waypoints[waypoint].y
@@ -357,7 +357,7 @@ export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedC
 }
 
 export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion, min_distance: number) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
+    if (exclusion instanceof StaticChipRoutingExclusion) {
         const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
@@ -517,7 +517,7 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
 }
 
 
-/** PIN INTERACTION WITH MODULES/CHANNELS - METHODS AND HELPER METHODS */
+/** PIN INTERACTION WITH MODULES - METHODS AND HELPER METHODS */
 
 // function to extract/calculate the coordinates of a clamp for the respective given encoded module
 export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, clampSpacing: number) {
@@ -653,14 +653,13 @@ export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
 
 // function ensuring that a given segment does not cross a static routing exclusion (e.g. cutout piece on the chip)
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
+    if (exclusion instanceof StaticChipRoutingExclusion) {
         const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
             c1_span: exclusion.width,
             c2_span: exclusion.height
         }
-
         return ctx.And(
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),

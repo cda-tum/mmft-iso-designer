@@ -123,7 +123,7 @@ class Input {
         clauses.push(...cross(modules, this.clamps).flatMap(([c, b]) => encodeClampConstraints(ctx, c, b)))
 
         /* Encode pins */
-        clauses.push(...pins.flatMap(b => encodePinConstraints(ctx, b, modules, this.chip)))
+        clauses.push(...pins.flatMap(b => encodePinConstraints(ctx, b, modules)))
 
         /* Encode inter-pin effects */
         clauses.push(...pairwiseUnique(pins).flatMap(([a, b]) => encodePinPinConstraints(ctx, a, b, modules)))

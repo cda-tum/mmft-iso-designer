@@ -5,7 +5,7 @@ import {EnumBitVec, EnumBitVecValue, intVal} from "../z3Helpers";
 import Module from "node:module";
 import {EncodedModule, ResultModule} from "./module";
 
-export { RoutingExclusion, StaticChipRoutingExclusion, PinRoutingExclusion, DynamicModuleRoutingExclusion, EncodedDynamicModuleRoutingExclusion, ResultDynamicModuleRoutingExclusion }
+export { RoutingExclusion, StaticChipRoutingExclusion, DynamicModuleRoutingExclusion, EncodedDynamicModuleRoutingExclusion, ResultDynamicModuleRoutingExclusion }
 
 
 /** PARENT CLASS FOR ROUTING EXCLUSIONS **/
@@ -32,28 +32,6 @@ class StaticChipRoutingExclusion extends RoutingExclusion {
         Object.assign(this, obj)
     }
 }
-
-
-/** ROUTING EXCLUSION CLASS FOR DYNAMIC EXCLUSION ZONES AROUND PINS **/
-
-type pinExclusionProperties = {
-    position: { x: Arith, y: Arith }
-    sideLength: number
-}
-
-class PinRoutingExclusion extends RoutingExclusion {
-    position!: { x: Arith, y: Arith }
-    width!: number
-    height!: number
-
-    constructor(o: pinExclusionProperties) {
-        super()
-        this.position = o.position
-        this.width = o.sideLength
-        this.height = o.sideLength
-    }
-}
-
 
 /** ROUTING EXCLUSION CLASSES FOR DYNAMIC MODULE-BASED EXCLUSION ZONES (NORMAL, ENCODED, RESULT) **/
 

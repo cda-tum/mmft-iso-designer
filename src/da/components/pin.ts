@@ -24,13 +24,12 @@ export class Pin {
 
     /******************* ADJUST PIN SPACING HERE *******************/
     static pinSpacing() {
-        return 200
+        return 500
     }
 
     static diameter(radius: number) {
         return (radius + Pin.pinSpacing()) * 2
     }
-
 
     encode(ctx: Context): EncodedPin {
 

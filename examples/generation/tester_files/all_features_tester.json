@@ -113,7 +113,7 @@
           0
         ]
       },
-      "maxSegments": 5
+      "maxSegments": 3
     },
     {
       "width": 500,
@@ -129,67 +129,48 @@
         "module": 1,
         "port": [
           1,
-          0
-        ]
-      },
-      "maxSegments": 5
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          2,
-          0
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          2,
-          0
-        ]
-      },
-      "maxSegments": 5
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          3,
-          0
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          3,
-          0
-        ]
-      },
-      "maxSegments": 5
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 4,
-        "port": [
-          0,
-          0
-        ]
-      },
-      "to": {
-        "module": 5,
-        "port": [
-          0,
           0
         ]
       },
       "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 5
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 5
     }
   ],
   "chipRoutingExclusions": [

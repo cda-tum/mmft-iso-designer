@@ -27,7 +27,7 @@ describe('pinEncode', () => {
             pins.push(testPin0, testPin1, testPin2)
             const encodedPins = pins.map((p, i) => p.encode(ctx))
             const modules: EncodedModule[] = []
-            solver.add(...encodedPins.flatMap(b => encodePinConstraints(ctx, b, modules, chip)))
+            solver.add(...encodedPins.flatMap(b => encodePinConstraints(ctx, b, modules)))
 
             let check = await solver.check()
             if (check === 'sat') {

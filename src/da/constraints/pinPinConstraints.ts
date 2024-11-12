@@ -13,7 +13,7 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
     {
         if (moduleA.id === moduleB.id) {
             const circumference = (2 * moduleA.width) + (2 * moduleA.height)
-            const min_distance = a.radius + b.radius + (Math.round(circumference / 5))
+            const min_distance = a.radius + b.radius + (Math.round(circumference / 6))
             clauses.push(
                 ctx.Or(
                     minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),

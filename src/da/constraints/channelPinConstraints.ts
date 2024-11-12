@@ -1,31 +1,112 @@
-import {Arith, Bool, Context} from "z3-solver";
+import {Bool, Context} from "z3-solver";
 import {EncodedPin, Pin} from "../components/pin";
-import {EncodedChannel} from "../components/channel";
+import {EncodedChannel, SegmentType} from "../components/channel";
 import {
-    channelSegmentRoutingExclusionDistance,
-    channelSegmentRoutingExclusionNoCross,
-    waypointRoutingExclusionDistance
+    minDistanceSym,
+    pointSegmentDistance,
+    pointSegmentDistanceDiag
 } from "../geometry/geometry";
-import {PinRoutingExclusion} from "../components/routingExclusion";
+
 
 
 export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, channel: EncodedChannel): Bool[] {
     const clauses = []
+    const exclusionRadius = pin.radius + Pin.pinSpacing()
+    const min_distance = ((channel.width / 2) + channel.spacing) + exclusionRadius
+    const pinPosition = {c1: pin.encoding.positionX, c2: pin.encoding.positionY}
 
-    const pinExclusionProperties = {
-        position: { x: pin.encoding.exclusionPositionX, y: pin.encoding.exclusionPositionY },
-        sideLength: Pin.diameter(pin.radius)
-    }
-    const exclusion = new PinRoutingExclusion(pinExclusionProperties)
-
-    /* Channels segments may not be near pins on both sides */
+    /* Channels segments must keep minimum distance to pin hole exclusion zones */
     {
-        const min_distance = ((channel.width / 2) + channel.spacing)
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
                 ctx.Implies(
                     channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                    ctx.And(
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.Up),
+                            pointSegmentDistance(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i].y,
+                                    c1_higher: channel.encoding.waypoints[i + 1].y,
+                                    c2: channel.encoding.waypoints[i].x,
+                                }, min_distance)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.Down),
+                            pointSegmentDistance(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i + 1].y,
+                                    c1_higher: channel.encoding.waypoints[i].y,
+                                    c2: channel.encoding.waypoints[i].x,
+                                }, min_distance)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.Right),
+                            pointSegmentDistance(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i].x,
+                                    c1_higher: channel.encoding.waypoints[i + 1].x,
+                                    c2: channel.encoding.waypoints[i].y,
+                                }, min_distance)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.Left),
+                            pointSegmentDistance(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i + 1].x,
+                                    c1_higher: channel.encoding.waypoints[i].x,
+                                    c2: channel.encoding.waypoints[i].y,
+                                }, min_distance)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.UpRight),
+                            pointSegmentDistanceDiag(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i].x,
+                                    c2_lower: channel.encoding.waypoints[i].y,
+                                    c1_higher: channel.encoding.waypoints[i + 1].x,
+                                    c2_higher: channel.encoding.waypoints[i + 1].y,
+                                }, min_distance, true)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.DownRight),
+                            pointSegmentDistanceDiag(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i].x,
+                                    c2_lower: channel.encoding.waypoints[i + 1].y,
+                                    c1_higher: channel.encoding.waypoints[i + 1].x,
+                                    c2_higher: channel.encoding.waypoints[i].y,
+                                }, min_distance, false)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.DownLeft),
+                            pointSegmentDistanceDiag(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i + 1].x,
+                                    c2_lower: channel.encoding.waypoints[i + 1].y,
+                                    c1_higher: channel.encoding.waypoints[i].x,
+                                    c2_higher: channel.encoding.waypoints[i].y,
+                                }, min_distance, true)
+                        ),
+                        ctx.Implies(
+                            channel.encoding.segments[i].type.eq(ctx, SegmentType.UpLeft),
+                            pointSegmentDistanceDiag(ctx,
+                                pinPosition,
+                                {
+                                    c1_lower: channel.encoding.waypoints[i + 1].x,
+                                    c2_lower: channel.encoding.waypoints[i].y,
+                                    c1_higher: channel.encoding.waypoints[i].x,
+                                    c2_higher: channel.encoding.waypoints[i + 1].y,
+                                }, min_distance, false)
+                        )
+                    )
                 )
             )
         }
@@ -33,25 +114,18 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
 
     /* Channels waypoints may not be near pin-hole zones */
     {
-        const min_distance = (channel.width / 2 + channel.spacing)
         for (let i = 0; i <= channel.maxSegments; i++) {
             clauses.push(
-                waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-            )
-        }
-    }
-
-    /* Channel segments may not cross pin-hole zones */
-    {
-        for (let i = 0; i < channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
+                ctx.Or(
+                    minDistanceSym(ctx, channel.encoding.waypoints[i].x, pin.encoding.positionX, exclusionRadius),
+                    minDistanceSym(ctx, channel.encoding.waypoints[i].y, pin.encoding.positionY, exclusionRadius)
                 )
             )
         }
     }
 
+
+
+    clauses.push(ctx.And())
     return clauses
 }

@@ -4,7 +4,7 @@ import {EncodedPin, Pin} from "../components/pin";
 import {pinModuleMinMaxDistance} from "../geometry/geometry";
 import {EncodedModule} from "../components/module";
 
-export function encodePinConstraints(ctx: Context, pin: EncodedPin, modules: EncodedModule[], chip: Chip) {
+export function encodePinConstraints(ctx: Context, pin: EncodedPin, modules: EncodedModule[]) {
     const clauses = []
 
     /* Position (center of pin) must be on the clamp --> minimal and maximal distance to module */
