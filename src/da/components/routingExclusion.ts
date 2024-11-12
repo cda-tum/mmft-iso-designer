@@ -1,16 +1,17 @@
-import {Position} from "./position";
+import {Position} from "../geometry/position";
 import {Arith, Context, Model} from "z3-solver";
-import {Orientation} from "./orientation";
-import {EnumBitVec, EnumBitVecValue, intVal} from "./z3Helpers";
+import {Orientation} from "../geometry/orientation";
+import {EnumBitVec, EnumBitVecValue, intVal} from "../z3Helpers";
 import Module from "node:module";
 import {EncodedModule, ResultModule} from "./module";
 
-export { RoutingExclusion, StaticChipRoutingExclusion, DynamicPinRoutingExclusion, DynamicModuleRoutingExclusion, EncodedDynamicModuleRoutingExclusion, ResultDynamicModuleRoutingExclusion }
+export { RoutingExclusion, StaticChipRoutingExclusion, PinRoutingExclusion, DynamicModuleRoutingExclusion, EncodedDynamicModuleRoutingExclusion, ResultDynamicModuleRoutingExclusion }
 
 
 /** PARENT CLASS FOR ROUTING EXCLUSIONS **/
 
 class RoutingExclusion {
+    // TODO: find better counter or include in updateIds function
     private static idCounter = 0
     id!: number
 
@@ -20,12 +21,6 @@ class RoutingExclusion {
 }
 
 /** ROUTING EXCLUSION CLASS FOR STATIC EXCLUSION ZONES ON THE CHIP **/
-
-type staticChipExclusionProperties = {
-    position: Position
-    width: number
-    height: number
-}
 
 class StaticChipRoutingExclusion extends RoutingExclusion {
     position!: Position
@@ -39,31 +34,28 @@ class StaticChipRoutingExclusion extends RoutingExclusion {
 }
 
 
-/** ROUTING EXCLUSION CLASS FOR DYNAMIC EXCLUSION ZONES WHERE PINS ARE LOCATED **/
+/** ROUTING EXCLUSION CLASS FOR DYNAMIC EXCLUSION ZONES AROUND PINS **/
 
-type dynamicPinExclusionProperties = {
-    position: { x: number | Arith, y: number | Arith }
-    width: number | Arith
-    height: number | Arith
+type pinExclusionProperties = {
+    position: { x: Arith, y: Arith }
+    sideLength: number
 }
 
-class DynamicPinRoutingExclusion extends RoutingExclusion {
-    pin!: number
-    position!: { x: number | Arith, y: number | Arith }
-    width!: number | Arith
-    height!: number | Arith
+class PinRoutingExclusion extends RoutingExclusion {
+    position!: { x: Arith, y: Arith }
+    width!: number
+    height!: number
 
-    constructor(pin: number, o: dynamicPinExclusionProperties) {
+    constructor(o: pinExclusionProperties) {
         super()
         this.position = o.position
-        this.width = o.width
-        this.height = o.height
-        this.pin = pin
+        this.width = o.sideLength
+        this.height = o.sideLength
     }
 }
 
 
-/** ROUTING EXCLUSION CLASSES (NORMAL, ENCODED, RESULT) FOR DYNAMIC MODULE-BASED EXCLUSION ZONES **/
+/** ROUTING EXCLUSION CLASSES FOR DYNAMIC MODULE-BASED EXCLUSION ZONES (NORMAL, ENCODED, RESULT) **/
 
 type dynamicModuleRoutingExclusionProperties = {
     module: number

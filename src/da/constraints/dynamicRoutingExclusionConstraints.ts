@@ -1,17 +1,17 @@
 import {Bool, Context} from "z3-solver";
-import {EncodedChannel} from "../channel";
+import {EncodedChannel} from "../components/channel";
 import {
     boxBoxMinDistance, channelSegmentRoutingExclusionDistance,
     channelSegmentRoutingExclusionNoCross,
     waypointRoutingExclusionDistance
 } from "../geometry/geometry";
-import {EncodedDynamicModuleRoutingExclusion} from "../routingExclusion";
-import {EncodedPin} from "../pin";
+import {EncodedDynamicModuleRoutingExclusion} from "../components/routingExclusion";
+import {EncodedPin} from "../components/pin";
 import {EnumBitVecValue} from "../z3Helpers";
-import {Orientation} from "../orientation";
+import {Orientation} from "../geometry/orientation";
 import {smtSum} from "../utils";
-import {EncodedModule} from "../module";
-import {Placement} from "../placement";
+import {EncodedModule} from "../components/module";
+import {Placement} from "../geometry/placement";
 
 export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion): Bool[] {
     const clauses = []

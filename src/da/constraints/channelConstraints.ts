@@ -1,12 +1,12 @@
 import {Context} from "z3-solver";
-import {Chip} from "../chip";
-import {EncodedChannel, SegmentType} from "../channel";
+import {Chip} from "../components/chip";
+import {EncodedChannel, SegmentType} from "../components/channel";
 import {pairwiseUnique, pairwiseUniqueIndexed} from "../utils";
 import {
     channelSegmentsNoCross,
     minDistanceAsym, minDistanceSym, waypointSegmentDistance,
 } from "../geometry/geometry";
-import {EncodedModule} from "../module";
+import {EncodedModule} from "../components/module";
 
 
 export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, chip: Chip, modules?: EncodedModule[], softCorners?: boolean) {

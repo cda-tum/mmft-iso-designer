@@ -1,4 +1,4 @@
-import {Placement} from "./placement";
+import {Placement} from "../geometry/placement";
 import {ModuleID} from "./module";
 
 export type ClampID = number

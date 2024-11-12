@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { design } from './da/design';
-import { Input, Output } from './da/inputOutput';
+import { design } from './da/processing/design';
+import { Input, Output } from './da/processing/inputOutput';
 import { ChipView, svgAsString } from './gui/view/ChipView';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';

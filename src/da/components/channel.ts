@@ -1,6 +1,6 @@
 import { Arith, Bool, Context, Model } from "z3-solver"
-import { Position } from "./position"
-import { EnumBitVec, boolVal, intVal } from "./z3Helpers"
+import { Position } from "../geometry/position"
+import { EnumBitVec, boolVal, intVal } from "../z3Helpers"
 import { ModuleID } from "./module"
 
 export type ChannelID = number

@@ -1,9 +1,9 @@
 import {init} from "z3-solver"
-import {Pin} from "../pin";
-import {encodePinConstraints} from "./pinConstraints";
-import {Chip} from "../chip";
-import {intVal} from "../z3Helpers";
-import {EncodedModule} from "../module";
+import {Pin} from "../da/components/pin";
+import {encodePinConstraints} from "../da/constraints/pinConstraints";
+import {Chip} from "../da/components/chip";
+import {intVal} from "../da/z3Helpers";
+import {EncodedModule} from "../da/components/module";
 
 describe('pinEncode', () => {
     async function testPinEncode(radius: number) {

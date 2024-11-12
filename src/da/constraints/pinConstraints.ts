@@ -1,8 +1,8 @@
 import {Context} from "z3-solver";
-import {Chip} from "../chip";
-import {EncodedPin} from "../pin";
+import {Chip} from "../components/chip";
+import {EncodedPin, Pin} from "../components/pin";
 import {pinModuleMinMaxDistance} from "../geometry/geometry";
-import {EncodedModule} from "../module";
+import {EncodedModule} from "../components/module";
 
 export function encodePinConstraints(ctx: Context, pin: EncodedPin, modules: EncodedModule[], chip: Chip) {
     const clauses = []
@@ -16,5 +16,6 @@ export function encodePinConstraints(ctx: Context, pin: EncodedPin, modules: Enc
             )
         )
     }
+
     return clauses
 }

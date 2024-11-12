@@ -1,5 +1,5 @@
 import {Bool, Context, init} from "z3-solver"
-import {Chip} from "../chip"
+import {Chip} from "../da/components/chip"
 import {
     channelSegmentsNoCross,
     diagonalDiagonalNoCross, diagonalDiagonalNoCrossExtra,
@@ -13,12 +13,13 @@ import {
     verticalDiagonalNoCross,
     verticalDiagonalPosNoCrossExtra,
     verticalHorizontalNoCross,
-} from "./geometry"
-import {encodeChannelConstraints} from "../constraints/channelConstraints"
-import {Channel} from "../channel"
-import {EncodedModule} from "../module";
-import {Placement} from "../placement";
-import {EnumBitVecValue} from "../z3Helpers";
+} from "../da/geometry/geometry"
+import {encodeChannelConstraints} from "../da/constraints/channelConstraints"
+import {Channel} from "../da/components/channel"
+import {EncodedModule} from "../da/components/module";
+import {Placement} from "../da/geometry/placement";
+import {EnumBitVecValue} from "../da/z3Helpers";
+import {encodeChannelChannelConstraints} from "../da/constraints/channelChannelConstraints";
 
 function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
@@ -1474,18 +1475,18 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
 
             const clauses: Bool[] = []
             const encodingProps0 = {
-                positionX: 0,
-                positionY: 0,
+                positionX: 1000,
+                positionY: 1000,
                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-                placement: new EnumBitVecValue(ctx, "placement", 0),
+                placement: new EnumBitVecValue(ctx, "placement", Placement.Top),
                 clauses: clauses
             }
 
             const encodingProps1 = {
-                positionX: 0,
-                positionY: 0,
+                positionX: 1000,
+                positionY: 1000,
                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-                placement: new EnumBitVecValue(ctx, "placement", 1),
+                placement: new EnumBitVecValue(ctx, "placement", Placement.Bottom),
                 clauses: clauses
             }
 
@@ -1496,7 +1497,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
                 height: 9900,
                 pitch: 0,
                 spacing: 50,
-                position: undefined,
+                position: {x: 1000, y: 1000},
                 orientation: undefined,
                 placement: Placement.Top,
                 encoding: encodingProps0
@@ -1509,7 +1510,7 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
                 height: 9900,
                 pitch: 0,
                 spacing: 50,
-                position: undefined,
+                position: {x: 1000, y: 1000},
                 orientation: undefined,
                 placement: Placement.Bottom,
                 encoding: encodingProps1
@@ -1533,20 +1534,8 @@ describe('channelSegmentsNoCrossDifferentSides', () => {
             solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
             solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
             solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
-            let check1 = await solver.check()
-            let sat1;
-            if (check1 === 'sat') {
-                sat1 = true
-            } else {
-                sat1 = false
-            }
-            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
-            let check2 = await solver.check()
-            if (check2 === 'sat') {
-                return true
-            } else {
-                return !sat1
-            }
+            solver.add(...encodeChannelChannelConstraints(ctx, ea, eb, modules))
+            return await solver.check()
         } catch (e) {
             console.error('error', e);
         } finally {

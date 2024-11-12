@@ -1,7 +1,7 @@
 import {Context} from "z3-solver";
-import {EncodedModule} from "../module";
-import {EncodedChannel} from "../channel";
-import {Placement} from "../placement";
+import {EncodedModule} from "../components/module";
+import {EncodedChannel} from "../components/channel";
+import {Placement} from "../geometry/placement";
 
 export function encodeChannelPortConstraints(ctx: Context, channel: EncodedChannel, fromModule: EncodedModule, toModule: EncodedModule) {
     const clauses = []

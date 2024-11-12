@@ -1,7 +1,7 @@
 import { Context } from "z3-solver";
-import { Chip } from "../chip";
+import { Chip } from "../components/chip";
 import { minDistanceAsym } from "../geometry/geometry";
-import { EncodedModule } from "../module";
+import { EncodedModule } from "../components/module";
 import { smtSum } from "../utils";
 
 export function encodeModuleConstraints(ctx: Context, module: EncodedModule, chip: Chip) {

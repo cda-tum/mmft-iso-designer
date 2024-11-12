@@ -1,8 +1,8 @@
 import {Bool, Context} from "z3-solver";
-import {EncodedPin} from "../pin";
-import {EncodedModule} from "../module";
+import {EncodedPin} from "../components/pin";
+import {EncodedModule} from "../components/module";
 import {boxBoxMinDistance} from "../geometry/geometry";
-import {Placement} from "../placement";
+import {Placement} from "../geometry/placement";
 
 
 export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module: EncodedModule, modules: EncodedModule[]): Bool[] {

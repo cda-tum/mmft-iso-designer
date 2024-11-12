@@ -1,13 +1,13 @@
-import { Bool, Context } from "z3-solver";
-import { StaticChipRoutingExclusion } from "../routingExclusion";
+import {Bool, Context} from "z3-solver";
+import {StaticChipRoutingExclusion} from "../components/routingExclusion";
 import {
     boxBoxMinDistance,
     channelSegmentRoutingExclusionDistance,
     channelSegmentRoutingExclusionNoCross,
     waypointRoutingExclusionDistance
 } from "../geometry/geometry";
-import { EncodedChannel } from "../channel";
-import {EncodedPin} from "../pin";
+import {EncodedChannel} from "../components/channel";
+import {EncodedPin, Pin} from "../components/pin";
 
 
 export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticChipRoutingExclusion): Bool[] {
@@ -59,15 +59,22 @@ export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, 
     /* Pins may not lie inside routing exclusion zones */
     {
         // TODO: define meaningful min distance between pins and static exclusion zones
-        const min_distance = 1000
+        const min_distance = 500
+
+        const pinExclusion = {
+            x: pin.encoding.exclusionPositionX,
+            y: pin.encoding.exclusionPositionY,
+            x_span: Pin.diameter(pin.radius),
+            y_span: Pin.diameter(pin.radius)
+        }
         clauses.push(
-            boxBoxMinDistance(ctx, {
-                    x: pin.encoding.positionX,
-                    y: pin.encoding.positionY,
-                    x_span: pin.radius * 2,
-                    y_span: pin.radius * 2
-                },
-                {x: exclusion.position.x, y: exclusion.position.y, x_span: exclusion.width, y_span: exclusion.height}, min_distance)
+            boxBoxMinDistance(ctx, pinExclusion,
+                {
+                    x: exclusion.position.x,
+                    y: exclusion.position.y,
+                    x_span: exclusion.width,
+                    y_span: exclusion.height
+                }, min_distance)
         )
     }
     return clauses

@@ -5,9 +5,9 @@ import {
     minDistanceSym,
     waypointSegmentDistance
 } from "../geometry/geometry";
-import {EncodedChannel} from "../channel";
-import {EncodedModule} from "../module";
-import {Placement} from "../placement";
+import {EncodedChannel} from "../components/channel";
+import {EncodedModule} from "../components/module";
+import {Placement} from "../geometry/placement";
 
 export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel, modules: EncodedModule[]): Bool[] {
     const clauses = []

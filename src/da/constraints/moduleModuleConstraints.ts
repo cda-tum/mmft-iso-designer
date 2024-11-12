@@ -1,8 +1,8 @@
 import {Bool, Context} from "z3-solver";
 import {minDistanceAsym} from "../geometry/geometry";
-import {EncodedModule} from "../module";
+import {EncodedModule} from "../components/module";
 import {smtSum} from "../utils";
-import {Placement} from "../placement";
+import {Placement} from "../geometry/placement";
 
 export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b: EncodedModule): Bool[] {
     const clauses = []

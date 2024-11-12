@@ -1,6 +1,6 @@
 import {Bool, Context} from "z3-solver";
-import {EncodedModule} from "../module";
-import {Clamp} from "../clamp";
+import {EncodedModule} from "../components/module";
+import {Clamp} from "../components/clamp";
 
 export function encodeClampConstraints(ctx: Context, module: EncodedModule, clamp: Clamp): Bool[] {
     const clauses = []

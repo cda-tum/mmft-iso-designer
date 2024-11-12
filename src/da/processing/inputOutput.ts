@@ -1,36 +1,36 @@
 import {Bool, Context, Model} from "z3-solver"
-import {Chip} from "./chip"
-import {cross, pairwiseUnique} from "./utils"
+import {Chip} from "../components/chip"
+import {cross, pairwiseUnique} from "../utils"
 import {
     DynamicModuleRoutingExclusion,
     EncodedDynamicModuleRoutingExclusion,
     ResultDynamicModuleRoutingExclusion,
     StaticChipRoutingExclusion
-} from "./routingExclusion"
-import {encodePaperConstraints} from "./constraints/paperConstraints"
-import {encodeChannelConstraints} from "./constraints/channelConstraints"
-import {encodeChannelPortConstraints} from "./constraints/channelPortConstraints"
-import {encodeChannelWaypointConstraints} from "./constraints/channelWaypoints"
-import {encodeChannelChannelConstraints} from "./constraints/channelChannelConstraints"
+} from "../components/routingExclusion"
+import {encodePaperConstraints} from "../constraints/paperConstraints"
+import {encodeChannelConstraints} from "../constraints/channelConstraints"
+import {encodeChannelPortConstraints} from "../constraints/channelPortConstraints"
+import {encodeChannelWaypointConstraints} from "../constraints/channelWaypoints"
+import {encodeChannelChannelConstraints} from "../constraints/channelChannelConstraints"
 import {
     encodeStaticRoutingExclusionChannels,
     encodeStaticRoutingExclusionPins
-} from "./constraints/staticRoutingExclusionConstraints"
-import {encodeModuleConstraints} from "./constraints/moduleConstraints"
-import {encodeModuleModuleConstraints} from "./constraints/moduleModuleConstraints"
-import {encodeChannelModuleConstraints} from "./constraints/channelModuleConstraints"
-import {EncodedModule, Module, ResultModule} from "./module"
-import {Channel, EncodedChannel, ResultChannel} from "./channel"
-import {Clamp} from "./clamp";
-import {EncodedPin, Pin, ResultPin} from "./pin";
-import {encodePinConstraints} from "./constraints/pinConstraints";
-import {encodePinPinConstraints} from "./constraints/pinPinConstraints";
-import {encodeModulePinConstraints} from "./constraints/modulePinConstraints";
-import {encodeChannelPinConstraints} from "./constraints/channelPinConstraints";
-import {encodeClampConstraints} from "./constraints/clampConstraints";
+} from "../constraints/staticRoutingExclusionConstraints"
+import {encodeModuleConstraints} from "../constraints/moduleConstraints"
+import {encodeModuleModuleConstraints} from "../constraints/moduleModuleConstraints"
+import {encodeChannelModuleConstraints} from "../constraints/channelModuleConstraints"
+import {EncodedModule, Module, ResultModule} from "../components/module"
+import {Channel, EncodedChannel, ResultChannel} from "../components/channel"
+import {Clamp} from "../components/clamp";
+import {EncodedPin, Pin, ResultPin} from "../components/pin";
+import {encodePinConstraints} from "../constraints/pinConstraints";
+import {encodePinPinConstraints} from "../constraints/pinPinConstraints";
+import {encodeModulePinConstraints} from "../constraints/modulePinConstraints";
+import {encodeChannelPinConstraints} from "../constraints/channelPinConstraints";
+import {encodeClampConstraints} from "../constraints/clampConstraints";
 import {
     encodeDynamicModuleRoutingExclusionPins, encodeDynamicRoutingExclusion, encodeDynamicRoutingExclusionChannels
-} from "./constraints/dynamicRoutingExclusionConstraints";
+} from "../constraints/dynamicRoutingExclusionConstraints";
 
 export {Input, Output}
 
@@ -43,7 +43,6 @@ class Input {
     clamps!: Clamp[]
     softCorners?: boolean
     pins!: Pin[]
-
 
     constructor(obj: Partial<Input>) {
         Object.assign(this, obj)
@@ -62,7 +61,6 @@ class Input {
         const channels = this.channels.map(c => c.encode(ctx))
         const pins = this.pins.map(p => p.encode(ctx))
 
-
         /** DYNAMIC MODULE-BASED EXCLUSION ZONES **/
         /* Input validation: exclusion zone coordinates are defined in the realm of their module, so must be inside modules size boundaries */
         cross(this.modules, this.moduleRoutingExclusions).flatMap(([m, e]) => {
@@ -76,6 +74,9 @@ class Input {
                 }
             }
         })
+
+
+
 
         const moduleRoutingExclusions = this.moduleRoutingExclusions.map(e => e.encode(ctx, modules))
         const clauses = [
@@ -139,7 +140,6 @@ class Input {
         /* Encode routing exclusion zones and pins */
         clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
 
-
         return new EncodedInput({
             ...this,
             modules,
@@ -168,7 +168,7 @@ class Input {
         // fill a new pins array with three pins for each module (radius of pin is hard set to 1000 here and propagated to all following encoding)
         o.modules?.forEach((c, k) => {
             for (let i = 0; i < 3; i++) {
-                pins.push(new Pin({id: k, module: k, radius: 1000}))
+                pins.push(new Pin({id: i, module: k, radius: 1000}))
             }
         })
 

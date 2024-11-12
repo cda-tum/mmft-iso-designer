@@ -1,15 +1,14 @@
-import {ResultChannel} from "../../da/channel"
-import {Output} from "../../da/inputOutput"
-import {ResultModule} from "../../da/module"
-import {Orientation} from "../../da/orientation"
+import {ResultChannel} from "../../da/components/channel"
+import {Output} from "../../da/processing/inputOutput"
+import {ResultModule} from "../../da/components/module"
+import {Orientation} from "../../da/geometry/orientation"
 import {
-    DynamicModuleRoutingExclusion,
     ResultDynamicModuleRoutingExclusion,
     StaticChipRoutingExclusion
-} from "../../da/routingExclusion"
+} from "../../da/components/routingExclusion"
 import {renderToString} from "react-dom/server"
-import {Placement} from "../../da/placement";
-import {ResultPin} from "../../da/pin";
+import {Placement} from "../../da/geometry/placement";
+import {ResultPin} from "../../da/components/pin";
 
 function randomColor() {
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
@@ -62,6 +61,10 @@ export function ChipView(props: { chip: Output | undefined }) {
 
                 {props.chip &&
                     props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement} spacing={1000}></ClampInstance>)
+                }
+
+                {props.chip &&
+                    props.chip.pins.map((p, i) => <PinRoutingExclusion pin={p}></PinRoutingExclusion>)
                 }
 
                 {props.chip &&
@@ -182,7 +185,7 @@ function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefine
     const assignedColor = getColorForId(props.pin.module)
     const pinRadius = props.pin.radius
     const pinStrokeWidth = pinRadius / 3
-    const strokeDashArray = "200, 200";
+    const strokeDashArray = "200, 200"
 
     if (props.modules) {
         const module = props.modules[props.pin.module]
@@ -210,6 +213,18 @@ function ChipRoutingExclusion(props: { exclusion: StaticChipRoutingExclusion, st
     return (
         <g>
             <rect x={props.exclusion.position.x + offset} y={props.exclusion.position.y + offset} width={props.exclusion.width - strokeWidth} height={props.exclusion.height - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={2*strokeWidth} />
+        </g>
+    )
+}
+
+function PinRoutingExclusion(props: { pin: ResultPin, strokeWidth?: number, color?: string }) {
+    const color = props.color ?? '#ff0000'
+    const strokeWidth = props.strokeWidth ?? 300
+    const offset = strokeWidth / 2
+    const strokeDashArray = "200, 200"
+    return (
+        <g>
+            <rect x={props.pin.results.exclusionPositionX + offset} y={props.pin.results.exclusionPositionY + offset} width={props.pin.results.exclusionSideLength - strokeWidth} height={props.pin.results.exclusionSideLength - strokeWidth} fill='none' stroke={color} strokeWidth={strokeWidth} strokeDasharray={strokeDashArray} />
         </g>
     )
 }

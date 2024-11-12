@@ -1,5 +1,5 @@
 import { Context } from "z3-solver"
-import { EncodedChannel } from "../channel"
+import { EncodedChannel } from "../components/channel"
 
 export function encodeChannelWaypointConstraints(ctx: Context, channel: EncodedChannel) {
     const clauses = []

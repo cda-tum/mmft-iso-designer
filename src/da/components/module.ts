@@ -1,8 +1,8 @@
 import { Arith, Bool, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, intVal } from "./z3Helpers";
-import { Orientation } from "./orientation";
-import { Position } from "./position";
-import { Placement } from "./placement";
+import { EnumBitVec, EnumBitVecValue, intVal } from "../z3Helpers";
+import { Orientation } from "../geometry/orientation";
+import { Position } from "../geometry/position";
+import { Placement } from "../geometry/placement";
 
 export type ModuleID = number
 type ModuleProperties = {

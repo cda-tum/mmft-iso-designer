@@ -1,8 +1,8 @@
 import { Bool, Context } from "z3-solver"
-import { Chip } from "../chip"
+import { Chip } from "../components/chip"
 import { nanoid } from "@reduxjs/toolkit"
-import { EncodedModule } from "../module"
-import { EncodedChannel } from "../channel"
+import { EncodedModule } from "../components/module"
+import { EncodedChannel } from "../components/channel"
 
 export function encodePaperConstraints(ctx: Context, chip: Chip, modules: EncodedModule[], channels: EncodedChannel[]): Bool[] {
     const clauses: Bool[] = []

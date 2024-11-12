@@ -1,6 +1,6 @@
 import {Arith, Bool, Context, Model} from "z3-solver";
 import {ModuleID} from "./module";
-import {intVal} from "./z3Helpers";
+import {intVal} from "../z3Helpers";
 
 export type pinID = number
 type PinProperties = {
@@ -8,6 +8,8 @@ type PinProperties = {
     module: ModuleID
     radius: number
 }
+
+
 
 export class Pin {
     id: pinID
@@ -20,11 +22,27 @@ export class Pin {
         this.radius = o.radius
     }
 
+    /******************* ADJUST PIN SPACING HERE *******************/
+    static pinSpacing() {
+        return 200
+    }
+
+    static diameter(radius: number) {
+        return (radius + Pin.pinSpacing()) * 2
+    }
+
+
     encode(ctx: Context): EncodedPin {
 
+        const pinPosX = ctx.Int.const(`epp_${this.id}_pin_position_x`)
+        const pinPosY = ctx.Int.const(`epp_${this.id}_pin_position_y`)
+        const exclusionRadius = this.radius - Pin.pinSpacing()
+
         const encodedPinProperties = {
-            positionX: ctx.Int.const(`epp_${this.id}_position_x`),
-            positionY: ctx.Int.const(`epp_${this.id}_position_y`),
+            positionX: pinPosX,
+            positionY: pinPosY,
+            exclusionPositionX: pinPosX.sub(exclusionRadius),
+            exclusionPositionY: pinPosY.sub(exclusionRadius),
             clauses: []
         }
 
@@ -39,6 +57,8 @@ export class Pin {
 type EncodedPinProperties = {
     positionX: Arith
     positionY: Arith
+    exclusionPositionX: Arith
+    exclusionPositionY: Arith
     clauses: Bool[]
 }
 
@@ -51,11 +71,17 @@ export class EncodedPin extends Pin {
     }
 
     result(m: Model): ResultPin {
+        const exclusionRadius = this.radius + Pin.pinSpacing()
+        const resultPinX = intVal(m, this.encoding.positionX)
+        const resultPinY = intVal(m, this.encoding.positionY)
         return new ResultPin({
             ...this,
             results: {
-                positionX: intVal(m, this.encoding.positionX),
-                positionY: intVal(m, this.encoding.positionY)
+                positionX: resultPinX,
+                positionY: resultPinY,
+                exclusionPositionX: resultPinX - exclusionRadius,
+                exclusionPositionY: resultPinY - exclusionRadius,
+                exclusionSideLength: Pin.diameter(this.radius)
             }
         })
     }
@@ -64,6 +90,9 @@ export class EncodedPin extends Pin {
 type ResultPinProperties = {
     positionX: number
     positionY: number
+    exclusionPositionX: number
+    exclusionPositionY: number
+    exclusionSideLength: number
 }
 
 export class ResultPin extends EncodedPin {

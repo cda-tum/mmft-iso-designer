@@ -1,14 +1,12 @@
 import {Arith, Context} from "z3-solver";
 import {
-    DynamicModuleRoutingExclusion,
-    DynamicPinRoutingExclusion,
-    EncodedDynamicModuleRoutingExclusion,
+    EncodedDynamicModuleRoutingExclusion, PinRoutingExclusion,
     RoutingExclusion,
     StaticChipRoutingExclusion
-} from "../routingExclusion";
-import {Orientation} from "../orientation";
-import {EncodedChannel, SegmentType} from "../channel";
-import {EncodedModule} from "../module";
+} from "../components/routingExclusion";
+import {Orientation} from "./orientation";
+import {EncodedChannel, SegmentType} from "../components/channel";
+import {EncodedModule} from "../components/module";
 import {smtSum} from "../utils";
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
@@ -301,7 +299,7 @@ export function boxBoxMinDistance(ctx: Context,
 
     const lowerX_B = boxB.x
     const higherX_B = typeof boxB.x_span !== "number" ? boxB.x_span.add(lowerX_B) : typeof lowerX_B !== "number" ? lowerX_B.add(boxB.x_span) : lowerX_B + boxB.x_span
-    const lowerY_B =boxB.y
+    const lowerY_B = boxB.y
     const higherY_B = typeof boxB.y_span !== "number" ? boxB.y_span.add(lowerY_B) : typeof lowerY_B !== "number" ? lowerY_B.add(boxB.y_span) : lowerY_B + boxB.y_span
 
     const subLowerX_B = typeof lowerX_B !== "number" ? lowerX_B.sub(min_distance) : lowerX_B - min_distance
@@ -331,16 +329,18 @@ export function boxBoxMinDistance(ctx: Context,
 
 // Function to ensure a given minimum distance between the waypoint of a channel and an exclusion zone
 export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, waypoint: number, exclusion: RoutingExclusion, min_distance: number) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
-        return pointBoxMinDistance(ctx, {
-            c1: channel.encoding.waypoints[waypoint].x,
-            c2: channel.encoding.waypoints[waypoint].y
-        }, {
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
+        const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
             c1_span: exclusion.width,
             c2_span: exclusion.height
-        }, min_distance)
+        }
+
+        return pointBoxMinDistance(ctx, {
+            c1: channel.encoding.waypoints[waypoint].x,
+            c2: channel.encoding.waypoints[waypoint].y
+        }, routingExclusion, min_distance)
     } else if (exclusion instanceof EncodedDynamicModuleRoutingExclusion) {
         return pointBoxMinDistance(ctx, {
             c1: channel.encoding.waypoints[waypoint].x,
@@ -357,7 +357,7 @@ export function waypointRoutingExclusionDistance(ctx: Context, channel: EncodedC
 }
 
 export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion, min_distance: number) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
         const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
@@ -653,13 +653,14 @@ export function segmentBoxNoCrossSlopeNeg(ctx: Context, segment: {
 
 // function ensuring that a given segment does not cross a static routing exclusion (e.g. cutout piece on the chip)
 export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: EncodedChannel, segment: number, exclusion: RoutingExclusion) {
-    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof DynamicPinRoutingExclusion) {
+    if (exclusion instanceof StaticChipRoutingExclusion || exclusion instanceof PinRoutingExclusion) {
         const routingExclusion = {
             c1: exclusion.position.x,
             c2: exclusion.position.y,
             c1_span: exclusion.width,
             c2_span: exclusion.height
         }
+
         return ctx.And(
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Up),
