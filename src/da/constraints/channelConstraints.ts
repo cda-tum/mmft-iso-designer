@@ -388,10 +388,22 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                                     channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Left),
                                     ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),
                                     ctx.If(
-                                        ctx.Or(channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight), channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft)),
-                                        // Manhattan distance manually -> for diagonal segments delta_x and delta_y is the same -> double that is the Manhattan distance
-                                        ctx.Sum(channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y), channel.encoding.waypoints[i].y.sub(channel.encoding.waypoints[i - 1].y)),
-                                        ctx.Sum(channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y), channel.encoding.waypoints[i - 1].y.sub(channel.encoding.waypoints[i].y))
+                                        channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Down),
+                                        ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y),
+                                        ctx.If(
+                                            // Manhattan distance for diagonal segments (only the positive differences -> delta_x and delta_y is the same in absolute terms)
+                                            channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpRight),
+                                            ctx.Sum(ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i - 1].x), ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y)),
+                                            ctx.If(
+                                                channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.UpLeft),
+                                                ctx.Sum(ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y), ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y)),
+                                                ctx.If(
+                                                    channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.DownRight),
+                                                    ctx.Sum(ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i - 1].x), ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i - 1].x)),
+                                                    ctx.Sum(ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y), ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y))
+                                                )                                            )
+                                        )
+
                                     )
                                 )
                             )
