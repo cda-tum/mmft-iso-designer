@@ -22,9 +22,19 @@ export class Pin {
         this.radius = o.radius
     }
 
-    /******************* ADJUST PIN SPACING HERE *******************/
+    /******************* ADJUST PIN SPACING HERE ********************/
     static pinSpacing() {
         return 500
+    }
+
+    /****************** ADJUST PIN RADIUS HERE **********************/
+    static pinRadius() {
+        return 1000
+    }
+
+    /*************** ADJUST DEFAULT AMOUNT OF PINS HERE *************/
+    static defaultPins() {
+        return 3
     }
 
     static diameter(radius: number) {

@@ -10,7 +10,8 @@
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
-      "placement": 1
+      "placement": 1,
+      "pinAmount": 2
     },
     {
       "width": 15000,
@@ -20,7 +21,8 @@
       "position": {
         "x": 90000,
         "y": 5000
-      }
+      },
+      "pinAmount": 2
     },
     {
       "width": 15000,

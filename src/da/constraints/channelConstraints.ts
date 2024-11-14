@@ -383,7 +383,7 @@ export function encodeChannelConstraints(ctx: Context, channel: EncodedChannel, 
                             ctx.Sub(channel.encoding.waypoints[i].y, channel.encoding.waypoints[i - 1].y),
                             ctx.If(
                                 channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Right),
-                                ctx.Sub(channel.encoding.waypoints[i - 1].y, channel.encoding.waypoints[i].y),
+                                ctx.Sub(channel.encoding.waypoints[i].x, channel.encoding.waypoints[i - 1].x),
                                 ctx.If(
                                     channel.encoding.segments[i - 1].type.eq(ctx, SegmentType.Left),
                                     ctx.Sub(channel.encoding.waypoints[i - 1].x, channel.encoding.waypoints[i].x),

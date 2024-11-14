@@ -14,6 +14,7 @@ type ModuleProperties = {
     position?: Position
     orientation?: Orientation
     placement?: Placement
+    pinAmount?: number
 }
 export class Module {
     id: ModuleID
@@ -24,7 +25,7 @@ export class Module {
     position?: Position
     orientation?: Orientation
     placement?: Placement
-
+    pinAmount?: number
 
     pitchOffsetX: number
     pitchOffsetY: number
@@ -42,6 +43,7 @@ export class Module {
         this.position = o.position
         this.orientation = o.orientation
         this.placement = o.placement
+        this.pinAmount = o.pinAmount
         this.portsX = Math.floor(this.width / this.pitch) - 1
         const p_offset_x = (this.width - (this.portsX - 1) * this.pitch) / 2
         this.pitchOffsetX = Math.floor(p_offset_x)
@@ -75,7 +77,6 @@ export class Module {
                 ]
             }
         })
-
         return instance
     }
 }

@@ -76,8 +76,6 @@ class Input {
         })
 
 
-
-
         const moduleRoutingExclusions = this.moduleRoutingExclusions.map(e => e.encode(ctx, modules))
         const clauses = [
             ...modules.flatMap(b => b.encoding.clauses),
@@ -163,12 +161,17 @@ class Input {
             clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement}))
         })
 
-        /** ADJUST PIN RADIUS HERE **/
-
-        // fill a new pins array with three pins for each module (radius of pin is hard set to 1000 here and propagated to all following encoding)
+        // fill a new pins array with three pins for each module
         o.modules?.forEach((c, k) => {
-            for (let i = 0; i < 3; i++) {
-                pins.push(new Pin({id: i, module: k, radius: 1000}))
+            if (c.pinAmount !== undefined) {
+                for (let i = 0; i < c.pinAmount; i++) {
+                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+                }
+            } else {
+                // default number of pins is 3
+                for (let i = 0; i < Pin.defaultPins(); i++) {
+                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+                }
             }
         })
 

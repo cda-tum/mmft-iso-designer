@@ -15,7 +15,8 @@
         "x": 10000,
         "y": 5000
       },
-      "orientation": 1
+      "orientation": 1,
+      "pinAmount": 2
     },
     {
       "width": 15000,
@@ -26,7 +27,8 @@
         "x": 50000,
         "y": 5000
       },
-      "orientation": 0
+      "orientation": 0,
+      "pinAmount": 2
     },
     {
       "width": 15000,
@@ -36,28 +38,6 @@
       "position": {
         "x": 90000,
         "y": 5000
-      },
-      "orientation": 0
-    },
-    {
-      "width": 15000,
-      "height": 15000,
-      "pitch": 3000,
-      "spacing": 3000,
-      "position": {
-        "x": 10000,
-        "y": 35000
-      },
-      "orientation": 1
-    },
-    {
-      "width": 15000,
-      "height": 15000,
-      "pitch": 3000,
-      "spacing": 3000,
-      "position": {
-        "x": 50000,
-        "y": 35000
       },
       "orientation": 0
     },
@@ -113,7 +93,8 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 11,
+      "maxLength": 50000
     },
     {
       "width": 500,
@@ -132,7 +113,8 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 10,
+      "maxLength": 80000
     },
     {
       "width": 500,
@@ -151,7 +133,7 @@
           0
         ]
       },
-      "maxSegments": 5
+      "maxSegments": 6
     },
     {
       "width": 500,
@@ -170,7 +152,7 @@
           0
         ]
       },
-      "maxSegments": 5
+      "maxSegments": 6
     }
   ],
   "chipRoutingExclusions": [
@@ -181,7 +163,17 @@
       },
       "width": 15000,
       "height": 15000
+    },
+    {
+      "position": {
+        "x": 30000,
+        "y": 50000
+      },
+      "width": 15000,
+      "height": 15000
     }
   ],
-  "moduleRoutingExclusions": []
+  "moduleRoutingExclusions": [
+
+  ]
 }

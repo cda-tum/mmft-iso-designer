@@ -16,10 +16,12 @@ import {Placement} from "../geometry/placement";
 export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion): Bool[] {
     const clauses = []
     const module = exclusion.encoding.moduleInstance
+    const originalX = smtSum(ctx, exclusion.position.x, module.encoding.positionX)
+    const originalY = smtSum(ctx, exclusion.position.y, module.encoding.positionY)
 
     // If orientation of module is already pre-defined -> type is EnumBitVecValue
     if (module.encoding.orientation instanceof EnumBitVecValue) {
-        if (module.encoding.orientation.value === Orientation.Up || module.encoding.orientation.value === undefined) {
+        if (module.encoding.orientation.value === Orientation.Up) {
             clauses.push(
                 ctx.And(
                     exclusion.encoding.positionX.eq(smtSum(ctx, exclusion.position.x, module.encoding.positionX)),
@@ -40,25 +42,25 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                 )
             )
         } else if (module.encoding.orientation.value === Orientation.Right) {
-            const originalX = smtSum(ctx, exclusion.position.x, module.encoding.positionX)
+            const exclusionLowerX = smtSum(ctx, module.encoding.positionX, exclusion.position.y)
             const moduleUpperY = smtSum(ctx, module.encoding.positionY, module.spanY(ctx))
             const exclusionUpperY = typeof moduleUpperY === "number" ? moduleUpperY - exclusion.position.x : moduleUpperY.sub(exclusion.position.x)
             const exclusionLowerY = typeof exclusionUpperY === "number" ? exclusionUpperY - exclusion.width : exclusionUpperY.sub(exclusion.width)
             clauses.push(
                 ctx.And(
-                    exclusion.encoding.positionX.eq(originalX),
+                    exclusion.encoding.positionX.eq(exclusionLowerX),
                     exclusion.encoding.positionY.eq(exclusionLowerY)
                 )
             )
         } else {
-            const originalY = smtSum(ctx, exclusion.position.y, module.encoding.positionY)
+            const exclusionLowerY = smtSum(ctx, module.encoding.positionY, exclusion.position.x)
             const moduleUpperX = smtSum(ctx, module.encoding.positionX, module.spanX(ctx))
             const exclusionUpperX = typeof moduleUpperX === "number" ? moduleUpperX - exclusion.position.y : moduleUpperX.sub(exclusion.position.y)
             const exclusionLowerX = typeof exclusionUpperX === "number" ? exclusionUpperX - exclusion.height : exclusionUpperX.sub(exclusion.height)
             clauses.push(
                 ctx.And(
                     exclusion.encoding.positionX.eq(exclusionLowerX),
-                    exclusion.encoding.positionY.eq(originalY)
+                    exclusion.encoding.positionY.eq(exclusionLowerY)
                 )
             )
         }
@@ -120,7 +122,6 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                 )
             )
         )
-
     }
     return clauses
 }

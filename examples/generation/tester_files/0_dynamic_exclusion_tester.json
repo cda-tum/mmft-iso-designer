@@ -15,7 +15,8 @@
         "x": 15000,
         "y": 20000
       },
-      "placement": 1
+      "placement": 1,
+      "pinAmount": 2
     },
     {
       "width": 15000,
@@ -36,7 +37,8 @@
       "position": {
         "x": 10000,
         "y": 65000
-      }
+      },
+      "orientation": 1
     },
     {
       "width": 15000,

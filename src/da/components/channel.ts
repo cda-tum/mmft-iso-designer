@@ -57,11 +57,8 @@ export class Channel {
         }))
 
         const length = ctx.Int.const(`${var_prefix}length`)
-
         const clauses = []
         clauses.push(...segments.flatMap(s => s.type.clauses))
-
-        //TODO: EXACT LENGTH
 
         return new EncodedChannel({
             ...this,

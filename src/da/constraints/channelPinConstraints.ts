@@ -2,7 +2,6 @@ import {Bool, Context} from "z3-solver";
 import {EncodedPin, Pin} from "../components/pin";
 import {EncodedChannel, SegmentType} from "../components/channel";
 import {
-    minDistanceSym,
     pointSegmentDistance,
     pointSegmentDistanceDiag
 } from "../geometry/geometry";
@@ -113,19 +112,18 @@ export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, chann
     }
 
     /* Channels waypoints may not be near pin-hole zones */
-    {
-        for (let i = 0; i <= channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Or(
-                    minDistanceSym(ctx, channel.encoding.waypoints[i].x, pin.encoding.positionX, exclusionRadius),
-                    minDistanceSym(ctx, channel.encoding.waypoints[i].y, pin.encoding.positionY, exclusionRadius)
-                )
-            )
-        }
-    }
+    // {
+    //     for (let i = 0; i <= channel.maxSegments; i++) {
+    //         clauses.push(
+    //             ctx.Or(
+    //                 minDistanceSym(ctx, channel.encoding.waypoints[i].x, pin.encoding.positionX, exclusionRadius),
+    //                 minDistanceSym(ctx, channel.encoding.waypoints[i].y, pin.encoding.positionY, exclusionRadius)
+    //             )
+    //         )
+    //     }
+    // }
 
+    // clauses.push(ctx.And())
 
-
-    clauses.push(ctx.And())
     return clauses
 }

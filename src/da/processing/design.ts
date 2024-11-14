@@ -39,6 +39,17 @@ async function design(input: Input) {
         } else {
             const model = solver.model()
             const result = encoded_input.result(model)
+
+            /** DEBUGGING AND TESTING **/
+
+            for (let k = 0; k < result.channels.length; k++) {
+                console.log("Resulting channel length of channel " + k + ": " + result.channels[k].results.length)
+                console.log("Waypoint coordinates for channel " + k + ": ")
+                for (let i = 0; i < result.channels[k].results.waypoints.length; i++) {
+                    console.log("Waypoint " + i + ": (" + result.channels[k].results.waypoints[i].x + " | " + result.channels[k].results.waypoints[i].y + ")")
+                }
+            }
+
             result.timing = timing
             return result
         }
