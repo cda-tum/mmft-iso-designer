@@ -1,6 +1,7 @@
 import {Arith, Bool, Context, Model} from "z3-solver";
 import {ModuleID} from "./module";
 import {intVal} from "../z3Helpers";
+import {Constraint} from "../processing/constraint";
 
 export type pinID = number
 type PinProperties = {
@@ -52,7 +53,6 @@ export class Pin {
             positionY: pinPosY,
             exclusionPositionX: pinPosX.sub(exclusionRadius),
             exclusionPositionY: pinPosY.sub(exclusionRadius),
-            clauses: []
         }
 
         const instance = new EncodedPin({
@@ -68,7 +68,6 @@ type EncodedPinProperties = {
     positionY: Arith
     exclusionPositionX: Arith
     exclusionPositionY: Arith
-    clauses: Bool[]
 }
 
 export class EncodedPin extends Pin {

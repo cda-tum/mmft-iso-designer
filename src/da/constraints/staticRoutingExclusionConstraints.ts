@@ -8,42 +8,55 @@ import {
 } from "../geometry/geometry";
 import {EncodedChannel} from "../components/channel";
 import {EncodedPin, Pin} from "../components/pin";
+import {Constraint} from "../processing/constraint";
 
 
-export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticChipRoutingExclusion): Bool[] {
-    const clauses = []
+export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticChipRoutingExclusion): Constraint[] {
+    const clauses: Constraint[] = []
 
     /* Channels segments may not be near routing exclusion zones */
+    let label = "static-routing-exclusion-constraints-segments-near-exclusion-id-"
     {
         const min_distance = channel.width / 2 + channel.spacing
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-                )
+                {
+                    expr: ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                    ),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i
+                }
             )
         }
     }
 
     /* Channels waypoints may not be near routing exclusion zones */
+    label = "static-routing-exclusion-constraints-waypoints-near-exclusion-id-"
     {
         const min_distance = channel.width / 2 + channel.spacing
         for (let i = 0; i <= channel.maxSegments; i++) {
             clauses.push(
-                waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                {
+                    expr: waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-waypoint-id-" + i
+                }
             )
         }
     }
 
     /* Channel segments may not cross routing exclusion zones */
+    label = "static-routing-exclusion-constraints-segments-cross-exclusion-id-"
     {
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
-                )
+                {
+                    expr: ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
+                    ),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i
+                }
             )
         }
     }
@@ -52,11 +65,11 @@ export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: Enco
 }
 
 
-export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, exclusion: StaticChipRoutingExclusion): Bool[] {
-
-    const clauses = []
+export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, exclusion: StaticChipRoutingExclusion): Constraint[] {
+    const clauses: Constraint[] = []
 
     /* Pins may not lie inside routing exclusion zones */
+    let label = "static-routing-exclusion-constraints-pins-inside-routing-exclusion-id-"
     {
         // TODO: define meaningful min distance between pins and static exclusion zones
         const min_distance = 500
@@ -68,13 +81,18 @@ export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, 
             y_span: Pin.diameter(pin.radius)
         }
         clauses.push(
-            boxBoxMinDistance(ctx, pinExclusion,
-                {
-                    x: exclusion.position.x,
-                    y: exclusion.position.y,
-                    x_span: exclusion.width,
-                    y_span: exclusion.height
-                }, min_distance)
+            {
+                expr: ctx.And(
+                    boxBoxMinDistance(ctx, pinExclusion,
+                        {
+                            x: exclusion.position.x,
+                            y: exclusion.position.y,
+                            x_span: exclusion.width,
+                            y_span: exclusion.height
+                        }, min_distance)
+                ),
+                label: label + exclusion.id + "-pin-id-" + pin.id
+            }
         )
     }
     return clauses

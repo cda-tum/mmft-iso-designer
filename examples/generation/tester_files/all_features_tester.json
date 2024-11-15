@@ -47,6 +47,28 @@
       "pitch": 3000,
       "spacing": 3000,
       "position": {
+        "x": 10000,
+        "y": 35000
+      },
+      "orientation": 3
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 35000
+      },
+      "orientation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
         "x": 90000,
         "y": 35000
       },
@@ -82,6 +104,45 @@
       "from": {
         "module": 0,
         "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 8
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 8,
+      "maxLength": 80000
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
           2,
           0
         ]
@@ -93,8 +154,7 @@
           0
         ]
       },
-      "maxSegments": 7,
-      "maxLength": 70000
+      "maxSegments": 8
     },
     {
       "width": 500,
@@ -113,8 +173,7 @@
           0
         ]
       },
-      "maxSegments": 7,
-      "maxLength": 65000,
+      "maxSegments": 6,
       "mandatoryWaypoints": [
       {
         "x": 13000,

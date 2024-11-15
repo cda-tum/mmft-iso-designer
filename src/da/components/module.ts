@@ -3,6 +3,7 @@ import { EnumBitVec, EnumBitVecValue, intVal } from "../z3Helpers";
 import { Orientation } from "../geometry/orientation";
 import { Position } from "../geometry/position";
 import { Placement } from "../geometry/placement";
+import {Constraint, UniqueConstraint} from "../processing/constraint";
 
 export type ModuleID = number
 type ModuleProperties = {
@@ -66,6 +67,13 @@ export class Module {
             positionY: ctx.Int.const(`ebb_${this.id}_position_y`)
         }
 
+        const orientationClauses = orientation.clauses.map(expr => {
+            return {
+                label: `module-orientation-constraints-id-${this.id}` + UniqueConstraint.generateRandomString(5),
+                expr: expr
+            }
+        })
+
         const instance = new EncodedModule({
             ...this,
             encoding: {
@@ -73,7 +81,7 @@ export class Module {
                 orientation,
                 placement,
                 clauses: [
-                    ...orientation.clauses
+                    ...orientationClauses
                 ]
             }
         })
@@ -88,7 +96,7 @@ type EncodedModuleProperties = {
     placement: EnumBitVec | EnumBitVecValue
 
     /* Extra clauses with regard to the variables above, e.g., limits for enums */
-    clauses: Bool[]
+    clauses: Constraint[]
 }
 
 export class EncodedModule extends Module {

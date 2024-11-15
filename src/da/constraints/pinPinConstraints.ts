@@ -1,15 +1,17 @@
-import {EncodedPin, Pin} from "../components/pin";
-import {Bool, Context} from "z3-solver";
+import {EncodedPin} from "../components/pin";
+import {Context} from "z3-solver";
 import {minDistanceSym} from "../geometry/geometry";
 import {EncodedModule} from "../components/module";
+import {Constraint, UniqueConstraint} from "../processing/constraint";
 
-export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedPin, modules: EncodedModule[]): Bool[] {
-    const clauses = []
+export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedPin, modules: EncodedModule[]): Constraint[] {
+    const clauses: Constraint[] = []
 
     const moduleA = modules[a.module]
     const moduleB = modules[b.module]
 
     /* Minimum distance between pins on the same module to ensure proper fixation of the module */
+    let label = "pin-pin-constraints-inter-pin-distance-pinA-id-"
     {
         if (moduleA.id === moduleB.id) {
             const circumference = (2 * moduleA.width) + (2 * moduleA.height)
@@ -23,25 +25,16 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
             }
             const half_distance = Math.round(min_distance / 2)
             clauses.push(
-                ctx.Or(
-                    minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
-                    minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance),
-                    ctx.And(minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, half_distance), minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance))
-                )
+                {
+                    expr: ctx.Or(
+                        minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
+                        minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance),
+                        ctx.And(minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, half_distance), minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance))
+                    ),
+                    label: label + a.id + "-pinB-id-" + b.id + "-module-id-" + moduleA.id + UniqueConstraint.generateRandomString()
+                }
             )
         }
     }
-
-    /* Minimum distance between pins on different modules */
-    // {
-    //     const min_distance = a.radius + b.radius + (Pin.pinSpacing() * 2)
-    //     clauses.push(
-    //         ctx.Or(
-    //             minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
-    //             minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance)
-    //         )
-    //     )
-    // }
-
     return clauses
 }

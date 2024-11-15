@@ -10,7 +10,7 @@ import {
 import {encodePaperConstraints} from "../constraints/paperConstraints"
 import {encodeChannelConstraints} from "../constraints/channelConstraints"
 import {encodeChannelPortConstraints} from "../constraints/channelPortConstraints"
-import {encodeChannelWaypointConstraints} from "../constraints/channelWaypoints"
+import {encodeChannelWaypointConstraints} from "../constraints/channelWaypointsConstraints"
 import {encodeChannelChannelConstraints} from "../constraints/channelChannelConstraints"
 import {
     encodeStaticRoutingExclusionChannels,
@@ -31,8 +31,14 @@ import {encodeClampConstraints} from "../constraints/clampConstraints";
 import {
     encodeDynamicModuleRoutingExclusionPins, encodeDynamicRoutingExclusion, encodeDynamicRoutingExclusionChannels
 } from "../constraints/dynamicRoutingExclusionConstraints";
+import {Constraint} from "./constraint";
 
 export {Input, Output}
+
+export type Clause = {
+    constraint: Bool
+    literal: string
+}
 
 class Input {
     chip!: Chip
@@ -77,10 +83,10 @@ class Input {
 
 
         const moduleRoutingExclusions = this.moduleRoutingExclusions.map(e => e.encode(ctx, modules))
-        const clauses = [
+        let clauses: Constraint[] = []
+        clauses = [
             ...modules.flatMap(b => b.encoding.clauses),
-            ...channels.flatMap(c => c.encoding.clauses),
-            ...pins.flatMap((p => p.encoding.clauses))
+            ...channels.flatMap(c => c.encoding.clauses)
         ]
         const softCorners = this.softCorners
 
@@ -91,7 +97,7 @@ class Input {
         clauses.push(...modules.flatMap(b => encodeModuleConstraints(ctx, b, this.chip)))
 
         /* Encode channel constraints */
-        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, modules, softCorners)))
+        clauses.push(...channels.flatMap(c => encodeChannelConstraints(ctx, c, this.chip, softCorners)))
 
         /* Encode channel ports connections */
         clauses.push(...channels.flatMap(c => encodeChannelPortConstraints(ctx, c, modules[c.from.module], modules[c.to.module])))
@@ -126,7 +132,7 @@ class Input {
         /* Encode inter-pin effects */
         clauses.push(...pairwiseUnique(pins).flatMap(([a, b]) => encodePinPinConstraints(ctx, a, b, modules)))
 
-        /* Encode pin-module effects */
+        /* Encode module-pin effects */
         clauses.push(...cross(modules, pins).flatMap(([m, p]) => encodeModulePinConstraints(ctx, p, m, modules)))
 
         /* Encode channel-pin constraints */
@@ -191,7 +197,7 @@ class Input {
 class EncodedInput extends Input {
     modules!: EncodedModule[]
     channels!: EncodedChannel[]
-    clauses!: Bool[]
+    clauses!: Constraint[]
     pins!: EncodedPin[]
     moduleRoutingExclusions!: EncodedDynamicModuleRoutingExclusion[]
 

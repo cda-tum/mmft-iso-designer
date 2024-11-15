@@ -2,6 +2,7 @@ import { Arith, Bool, Context, Model } from "z3-solver"
 import { Position } from "../geometry/position"
 import { EnumBitVec, boolVal, intVal } from "../z3Helpers"
 import { ModuleID } from "./module"
+import {Constraint, UniqueConstraint} from "../processing/constraint";
 
 export type ChannelID = number
 type ModulePort = {
@@ -60,13 +61,20 @@ export class Channel {
         const clauses = []
         clauses.push(...segments.flatMap(s => s.type.clauses))
 
+        const extraClauses = clauses.map((expr, index) => {
+            return {
+                label: `channel-extra-constraints-id-${this.id}` + UniqueConstraint.generateRandomString(5),
+                expr: expr
+            }
+        })
+
         return new EncodedChannel({
             ...this,
             encoding: {
-                waypoints,
-                segments,
-                length,
-                clauses
+                waypoints: waypoints,
+                segments: segments,
+                length: length,
+                clauses: extraClauses
             }
         })
     }
@@ -84,7 +92,7 @@ type EncodedChannelProperties = {
     length: Arith
 
     /* Extra clauses with regard to the variables above, e.g., limits for enums */
-    clauses: Bool[]
+    clauses: Constraint[]
 }
 export class EncodedChannel extends Channel {
     encoding: EncodedChannelProperties
