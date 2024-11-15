@@ -20,6 +20,7 @@ import {EncodedModule} from "../da/components/module";
 import {Placement} from "../da/geometry/placement";
 import {EnumBitVecValue} from "../da/z3Helpers";
 import {encodeChannelChannelConstraints} from "../da/constraints/channelChannelConstraints";
+import {Constraint} from "../da/processing/constraint";
 
 function get_int_vars(ctx: Context, n: number) {
     return [...Array(n).keys()].map(v => ctx.Int.const(`${v}`))
@@ -1208,350 +1209,350 @@ describe('diagonalDiagonalNoCrossExtra', () => {
     })
 })
 
-// describe('channelSegmentsNoCrossSameSide', () => {
-//     async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
-//         x1: number,
-//         y1: number,
-//         x2: number,
-//         y2: number
-//     }) {
-//         const {Context, em} = await init()
-//         const ctx = Context('main')
-//         try {
-//             const solver = new ctx.Solver()
-//             const chip = new Chip({
-//                 originX: -5000,
-//                 originY: -5000,
-//                 width: 10000,
-//                 height: 10000
-//             })
-//             const channel_a = new Channel({
-//                 id: 0,
-//                 width: 1,
-//                 spacing: 1,
-//                 maxSegments: 1,
-//                 from: {
-//                     module: 0,
-//                     port: [0, 0]
-//                 },
-//                 to: {
-//                     module: 0,
-//                     port: [0, 2]
-//                 }
-//             })
-//             const ea = channel_a.encode(ctx)
-//             const channel_b = new Channel({
-//                 id: 1,
-//                 width: 1,
-//                 spacing: 1,
-//                 maxSegments: 1,
-//                 from: {
-//                     module: 1,
-//                     port: [0, 0]
-//                 },
-//                 to: {
-//                     module: 1,
-//                     port: [0, 2]
-//                 }
-//             })
-//
-//             const clauses: Bool[] = []
-//             const encodingProps = {
-//                 positionX: 0,
-//                 positionY: 0,
-//                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-//                 placement: new EnumBitVecValue(ctx, "placement", 0),
-//                 clauses: clauses
-//             }
-//             const moduleProps0 = {
-//                 id: 0,
-//                 width: 2000,
-//                 height: 1000,
-//                 pitch: 0,
-//                 spacing: 50,
-//                 position: undefined,
-//                 orientation: undefined,
-//                 placement: Placement.Top,
-//                 encoding: encodingProps
-//             }
-//             const moduleProps1 = {
-//                 id: 1,
-//                 width: 2000,
-//                 height: 1000,
-//                 pitch: 0,
-//                 spacing: 50,
-//                 position: undefined,
-//                 orientation: undefined,
-//                 placement: Placement.Top,
-//                 encoding: encodingProps
-//             }
-//
-//             const module0 = new EncodedModule(moduleProps0)
-//             const module1 = new EncodedModule(moduleProps1)
-//
-//             const modules: EncodedModule[] = []
-//             modules.push(module0, module1)
-//             const eb = channel_b.encode(ctx)
-//             solver.add(...ea.encoding.clauses)
-//             solver.add(...eb.encoding.clauses)
-//             solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
-//             solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
-//             solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
-//             solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
-//             solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
-//             solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
-//             solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
-//             solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
-//             solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
-//             solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
-//
-//             let check1 = await solver.check()
-//             let sat1;
-//             if (check1 === 'sat') {
-//                 sat1 = true
-//             } else {
-//                 sat1 = false
-//             }
-//             solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
-//             let check2 = await solver.check()
-//             if (check2 === 'sat') {
-//                 return true
-//             } else {
-//                 return !sat1
-//             }
-//         } catch (e) {
-//             console.error('error', e);
-//         } finally {
-//             em.PThread.terminateAllThreads();
-//         }
-//     }
-//
-//     test('#1 identity', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 0, y1: 0, x2: 10, y2: 0,
-//         }, {
-//             x1: 0, y1: 0, x2: 10, y2: 0,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-//
-//     test('#2', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 0, y1: 0, x2: 0, y2: 10,
-//         }, {
-//             x1: -5, y1: 5, x2: 5, y2: 5,
-//         })
-//         expect(d).toBeFalsy()
-//     })
-//
-//     test('#3', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 0, y1: 0, x2: 9, y2: 0,
-//         }, {
-//             x1: 10, y1: -5, x2: 10, y2: 5,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-//
-//     test('#4', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: -5, y1: 0, x2: 5, y2: 0,
-//         }, {
-//             x1: 0, y1: -5, x2: 0, y2: 5,
-//         })
-//         expect(d).toBeFalsy()
-//     })
-//
-//     test('#5', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 5, y1: 0, x2: -5, y2: 0,
-//         }, {
-//             x1: 0, y1: -5, x2: 0, y2: 5,
-//         })
-//         expect(d).toBeFalsy()
-//     })
-//
-//     test('#6', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 5, y1: 0, x2: -5, y2: 0,
-//         }, {
-//             x1: 0, y1: 5, x2: 0, y2: -5,
-//         })
-//         expect(d).toBeFalsy()
-//     })
-//
-//     test('#7', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: -5, y1: 0, x2: 5, y2: 0,
-//         }, {
-//             x1: 0, y1: 5, x2: 0, y2: -5,
-//         })
-//         expect(d).toBeFalsy()
-//     })
-//
-//     test('#8', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: -5, y1: 0, x2: 5, y2: 0,
-//         }, {
-//             x1: -5, y1: 10, x2: 5, y2: 10,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-//
-//     test('#9', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 5, y1: 0, x2: -5, y2: 0,
-//         }, {
-//             x1: -5, y1: 10, x2: 5, y2: 10,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-//
-//     test('#10', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 5, y1: 0, x2: -5, y2: 0,
-//         }, {
-//             x1: 5, y1: 10, x2: -5, y2: 10,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-//
-//     test('#11', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: -5, y1: 0, x2: 5, y2: 0,
-//         }, {
-//             x1: 5, y1: 10, x2: -5, y2: 10,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-// })
-//
-// describe('channelSegmentsNoCrossDifferentSides', () => {
-//     async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
-//         x1: number,
-//         y1: number,
-//         x2: number,
-//         y2: number
-//     }) {
-//         const {Context, em} = await init()
-//         const ctx = Context('main')
-//         try {
-//             const solver = new ctx.Solver()
-//             const chip = new Chip({
-//                 originX: -5000,
-//                 originY: -5000,
-//                 width: 10000,
-//                 height: 10000
-//             })
-//             const channel_a = new Channel({
-//                 id: 0,
-//                 width: 1,
-//                 spacing: 1,
-//                 maxSegments: 1,
-//                 from: {
-//                     module: 0,
-//                     port: [0, 0]
-//                 },
-//                 to: {
-//                     module: 0,
-//                     port: [0, 2]
-//                 }
-//             })
-//             const ea = channel_a.encode(ctx)
-//             const channel_b = new Channel({
-//                 id: 1,
-//                 width: 1,
-//                 spacing: 1,
-//                 maxSegments: 1,
-//                 from: {
-//                     module: 1,
-//                     port: [0, 0]
-//                 },
-//                 to: {
-//                     module: 1,
-//                     port: [0, 2]
-//                 }
-//             })
-//
-//             const clauses: Bool[] = []
-//             const encodingProps0 = {
-//                 positionX: 1000,
-//                 positionY: 1000,
-//                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-//                 placement: new EnumBitVecValue(ctx, "placement", Placement.Top),
-//                 clauses: clauses
-//             }
-//
-//             const encodingProps1 = {
-//                 positionX: 1000,
-//                 positionY: 1000,
-//                 orientation: new EnumBitVecValue(ctx, "orientation", 1),
-//                 placement: new EnumBitVecValue(ctx, "placement", Placement.Bottom),
-//                 clauses: clauses
-//             }
-//
-//             // one module is placed on top
-//             const moduleProps0 = {
-//                 id: 0,
-//                 width: 9900,
-//                 height: 9900,
-//                 pitch: 0,
-//                 spacing: 50,
-//                 position: {x: 1000, y: 1000},
-//                 orientation: undefined,
-//                 placement: Placement.Top,
-//                 encoding: encodingProps0
-//             }
-//
-//             // one module is placed on the bottom
-//             const moduleProps1 = {
-//                 id: 1,
-//                 width: 9900,
-//                 height: 9900,
-//                 pitch: 0,
-//                 spacing: 50,
-//                 position: {x: 1000, y: 1000},
-//                 orientation: undefined,
-//                 placement: Placement.Bottom,
-//                 encoding: encodingProps1
-//             }
-//
-//             const module0 = new EncodedModule(moduleProps0)
-//             const module1 = new EncodedModule(moduleProps1)
-//
-//             const modules: EncodedModule[] = []
-//             modules.push(module0, module1)
-//             const eb = channel_b.encode(ctx)
-//             solver.add(...ea.encoding.clauses)
-//             solver.add(...eb.encoding.clauses)
-//             solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
-//             solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
-//             solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
-//             solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
-//             solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
-//             solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
-//             solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
-//             solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
-//             solver.add(...encodeChannelConstraints(ctx, ea, chip, modules))
-//             solver.add(...encodeChannelConstraints(ctx, eb, chip, modules))
-//             solver.add(...encodeChannelChannelConstraints(ctx, ea, eb, modules))
-//             return await solver.check()
-//         } catch (e) {
-//             console.error('error', e);
-//         } finally {
-//             em.PThread.terminateAllThreads();
-//         }
-//     }
-//
-//     test('downleft-downright no intersection different sides', async () => {
-//         const d = await testChannelSegmentsNoCross({
-//             x1: 5, y1: 5, x2: -5, y2: -5,
-//         }, {
-//             x1: -5, y1: 5, x2: 5, y2: -5,
-//         })
-//         expect(d).toBeTruthy()
-//     })
-// })
+describe('channelSegmentsNoCrossSameSide', () => {
+    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number
+    }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const chip = new Chip({
+                originX: -5000,
+                originY: -5000,
+                width: 10000,
+                height: 10000
+            })
+            const channel_a = new Channel({
+                id: 0,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 0,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 0,
+                    port: [0, 2]
+                }
+            })
+            const ea = channel_a.encode(ctx)
+            const channel_b = new Channel({
+                id: 1,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 1,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 1,
+                    port: [0, 2]
+                }
+            })
+
+            const clauses: Constraint[] = []
+            const encodingProps = {
+                positionX: 0,
+                positionY: 0,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", 0),
+                clauses: clauses
+            }
+            const moduleProps0 = {
+                id: 0,
+                width: 2000,
+                height: 1000,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps
+            }
+            const moduleProps1 = {
+                id: 1,
+                width: 2000,
+                height: 1000,
+                pitch: 0,
+                spacing: 50,
+                position: undefined,
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps
+            }
+
+            const module0 = new EncodedModule(moduleProps0)
+            const module1 = new EncodedModule(moduleProps1)
+
+            const modules: EncodedModule[] = []
+            modules.push(module0, module1)
+            const eb = channel_b.encode(ctx)
+            ea.encoding.clauses.map(c => solver.add(c.expr))
+            eb.encoding.clauses.map(c => solver.add(c.expr))
+            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
+            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
+            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
+            solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
+            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
+            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
+            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
+            solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
+            encodeChannelConstraints(ctx, ea, chip, true).map(c => solver.add(c.expr))
+            encodeChannelConstraints(ctx, eb, chip, true).map(c => solver.add(c.expr))
+
+            let check1 = await solver.check()
+            let sat1;
+            if (check1 === 'sat') {
+                sat1 = true
+            } else {
+                sat1 = false
+            }
+            solver.add(channelSegmentsNoCross(ctx, ea, 0, eb, 0))
+            let check2 = await solver.check()
+            if (check2 === 'sat') {
+                return true
+            } else {
+                return !sat1
+            }
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('#1 identity', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 0, y1: 0, x2: 10, y2: 0,
+        }, {
+            x1: 0, y1: 0, x2: 10, y2: 0,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#2', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 0, y1: 0, x2: 0, y2: 10,
+        }, {
+            x1: -5, y1: 5, x2: 5, y2: 5,
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#3', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 0, y1: 0, x2: 9, y2: 0,
+        }, {
+            x1: 10, y1: -5, x2: 10, y2: 5,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#4', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: -5, y1: 0, x2: 5, y2: 0,
+        }, {
+            x1: 0, y1: -5, x2: 0, y2: 5,
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#5', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 0, x2: -5, y2: 0,
+        }, {
+            x1: 0, y1: -5, x2: 0, y2: 5,
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#6', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 0, x2: -5, y2: 0,
+        }, {
+            x1: 0, y1: 5, x2: 0, y2: -5,
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#7', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: -5, y1: 0, x2: 5, y2: 0,
+        }, {
+            x1: 0, y1: 5, x2: 0, y2: -5,
+        })
+        expect(d).toBeFalsy()
+    })
+
+    test('#8', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: -5, y1: 0, x2: 5, y2: 0,
+        }, {
+            x1: -5, y1: 10, x2: 5, y2: 10,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#9', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 0, x2: -5, y2: 0,
+        }, {
+            x1: -5, y1: 10, x2: 5, y2: 10,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#10', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 0, x2: -5, y2: 0,
+        }, {
+            x1: 5, y1: 10, x2: -5, y2: 10,
+        })
+        expect(d).toBeTruthy()
+    })
+
+    test('#11', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: -5, y1: 0, x2: 5, y2: 0,
+        }, {
+            x1: 5, y1: 10, x2: -5, y2: 10,
+        })
+        expect(d).toBeTruthy()
+    })
+})
+
+describe('channelSegmentsNoCrossDifferentSides', () => {
+    async function testChannelSegmentsNoCross(a: { x1: number, y1: number, x2: number, y2: number }, b: {
+        x1: number,
+        y1: number,
+        x2: number,
+        y2: number
+    }) {
+        const {Context, em} = await init()
+        const ctx = Context('main')
+        try {
+            const solver = new ctx.Solver()
+            const chip = new Chip({
+                originX: -5000,
+                originY: -5000,
+                width: 10000,
+                height: 10000
+            })
+            const channel_a = new Channel({
+                id: 0,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 0,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 0,
+                    port: [0, 2]
+                }
+            })
+            const ea = channel_a.encode(ctx)
+            const channel_b = new Channel({
+                id: 1,
+                width: 1,
+                spacing: 1,
+                maxSegments: 1,
+                from: {
+                    module: 1,
+                    port: [0, 0]
+                },
+                to: {
+                    module: 1,
+                    port: [0, 2]
+                }
+            })
+
+            const clauses: Constraint[] = []
+            const encodingProps0 = {
+                positionX: 1000,
+                positionY: 1000,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", Placement.Top),
+                clauses: clauses
+            }
+
+            const encodingProps1 = {
+                positionX: 1000,
+                positionY: 1000,
+                orientation: new EnumBitVecValue(ctx, "orientation", 1),
+                placement: new EnumBitVecValue(ctx, "placement", Placement.Bottom),
+                clauses: clauses
+            }
+
+            // one module is placed on top
+            const moduleProps0 = {
+                id: 0,
+                width: 9900,
+                height: 9900,
+                pitch: 0,
+                spacing: 50,
+                position: {x: 1000, y: 1000},
+                orientation: undefined,
+                placement: Placement.Top,
+                encoding: encodingProps0
+            }
+
+            // one module is placed on the bottom
+            const moduleProps1 = {
+                id: 1,
+                width: 9900,
+                height: 9900,
+                pitch: 0,
+                spacing: 50,
+                position: {x: 1000, y: 1000},
+                orientation: undefined,
+                placement: Placement.Bottom,
+                encoding: encodingProps1
+            }
+
+            const module0 = new EncodedModule(moduleProps0)
+            const module1 = new EncodedModule(moduleProps1)
+
+            const modules: EncodedModule[] = []
+            modules.push(module0, module1)
+            const eb = channel_b.encode(ctx)
+            ea.encoding.clauses.map(c => solver.add(c.expr))
+            eb.encoding.clauses.map(c => solver.add(c.expr))
+            solver.add(ea.encoding.waypoints[0].x.eq(a.x1))
+            solver.add(ea.encoding.waypoints[0].y.eq(a.y1))
+            solver.add(ea.encoding.waypoints[1].x.eq(a.x2))
+            solver.add(ea.encoding.waypoints[1].y.eq(a.y2))
+            solver.add(eb.encoding.waypoints[0].x.eq(b.x1))
+            solver.add(eb.encoding.waypoints[0].y.eq(b.y1))
+            solver.add(eb.encoding.waypoints[1].x.eq(b.x2))
+            solver.add(eb.encoding.waypoints[1].y.eq(b.y2))
+            encodeChannelConstraints(ctx, ea, chip, true).map(c => solver.add(c.expr))
+            encodeChannelConstraints(ctx, eb, chip, true).map(c => solver.add(c.expr))
+            encodeChannelChannelConstraints(ctx, ea, eb, modules).map(c => solver.add(c.expr))
+            return await solver.check()
+        } catch (e) {
+            console.error('error', e);
+        } finally {
+            em.PThread.terminateAllThreads();
+        }
+    }
+
+    test('downleft-downright no intersection different sides', async () => {
+        const d = await testChannelSegmentsNoCross({
+            x1: 5, y1: 5, x2: -5, y2: -5,
+        }, {
+            x1: -5, y1: 5, x2: 5, y2: -5,
+        })
+        expect(d).toBeTruthy()
+    })
+})
 
 describe('segmentBoxNoCrossSlopePos', () => {
     async function testSegmentBoxNoCrossSlopePos(segment: {
