@@ -1,4 +1,4 @@
-import {init} from "z3-solver"
+import {init, Z3_app, Z3_ast} from "z3-solver"
 import {Input} from "./inputOutput"
 
 export {design}
@@ -18,106 +18,11 @@ async function design(input: Input) {
         const solver = new ctx.Solver()
         solver.set('unsat_core', true)
 
-        /**
-         *
-         // Access raw pointers
-        const ctxPtr = solver.ctx.ptr;
-        const solverPtr = solver.ptr;
-
-        // Enable unsat core generation
-        const params = Z3.mk_params(ctxPtr);
-        const unsatCoreSymbol = Z3.mk_string_symbol(ctxPtr, 'unsat_core');
-        Z3.params_set_bool(ctxPtr, params, unsatCoreSymbol, true);
-        Z3.solver_set_params(ctxPtr, solverPtr, params);
-
-        const encoded_input = input.encode(ctx)
-        const boolSort = Z3.mk_bool_sort(ctxPtr);
-
-        encoded_input.clauses.forEach((c) => {
-        solver.addAndTrack(c.expr, c.label)
-        const tempLabelSymbol = Z3.mk_string_symbol(ctxPtr, c.label)
-        const tempLabel = Z3.mk_const(ctxPtr, tempLabelSymbol, boolSort);
-        Z3.solver_assert_and_track(ctxPtr, solverPtr, c.expr.ptr, tempLabel)
-        })
-        let start = performance.now()
-        const result = await Z3.solver_check(ctxPtr, solverPtr);
-        const timing = performance.now() - start
-
-         const Z3_L_FALSE = 0
-         const Z3_L_TRUE = 1
-         const Z3_L_UNDEF = -1
-
-
-         if (result === Z3_L_FALSE) {
-         // Constraints are unsatisfiable
-         // Get the unsat core
-         const unsatCoreAstVectorPtr = Z3.solver_get_unsat_core(ctxPtr, solverPtr);
-         const size = Z3.ast_vector_size(ctxPtr, unsatCoreAstVectorPtr);
-
-         for (let i = 0; i < size; i++) {
-         const astPtr = Z3.ast_vector_get(ctxPtr, unsatCoreAstVectorPtr, i);
-
-         // Extract label name
-         const app = Z3.to_app(ctxPtr, astPtr);
-         const decl = Z3.get_app_decl(ctxPtr, app);
-         const symbol = Z3.get_decl_name(ctxPtr, decl);
-         const labelStr = Z3.get_symbol_string(ctxPtr, symbol);
-
-         console.log(`Constraint with label ${labelStr} is in the unsat core.`)
-         return {
-         success: false,
-         timing
-         } as {
-         success: false,
-         timing: number
-         }
-         }
-         let start = performance.now()
-         const check = await solver.check()
-         const timing = performance.now() - start
-
-         console.log(`Result: ${check}; time elapsed: ${timing} ms`)
-         if (check === 'unsat') {
-
-         const ctxPtr = solver.ctx.ptr;
-         const solverPtr = solver.ptr;
-         const unsatCoreAstVectorPtr = Z3.solver_get_unsat_core(ctxPtr, solverPtr);
-         const size = Z3.ast_vector_size(ctxPtr, unsatCoreAstVectorPtr);
-         for (let i = 0; i < size; i++) {
-         // Get the AST pointer at index i
-         const astPtr = Z3.ast_vector_get(ctxPtr, unsatCoreAstVectorPtr, i);
-
-         // Convert the AST pointer to a string
-         const constraintStr = Z3.ast_to_string(ctxPtr, astPtr);
-
-         console.log(`Unsat core constraint ${i}: ${constraintStr}`);
-         }
-         // Create a parameter set
-         const params = Z3.mk_params(ctxPtr);
-
-         // Set the 'unsat_core' parameter to true
-         const unsatCoreSymbol = Z3.mk_string_symbol(ctxPtr, 'unsat_core');
-         Z3.params_set_bool(ctxPtr, params, unsatCoreSymbol, true);
-
-         // Apply the parameters to the solver
-         Z3.solver_set_params(ctxPtr, solverPtr, params);
-
-         }
-         } else if (result === Z3_L_TRUE) {
-         // The constraints are satisfiable
-         // Retrieve the model
-         // const modelPtr = Z3.solver_get_model(ctxPtr, solverPtr)
-         // const model = Z3.mk_model(ctxPtr)
-         // const result = encoded_input.result(model)
-
-         }
-         **/
-
         const encoded_input = input.encode(ctx)
         console.log("adding " + encoded_input.clauses.length + " constraints")
 
         encoded_input.clauses.forEach((c) => {
-            solver.addAndTrack(c.expr, c.label)
+            solver.addAndTrack(c.expr, c.label);
         })
 
         let start = performance.now()
@@ -126,14 +31,52 @@ async function design(input: Input) {
 
 
         if (check === "unsat") {
+            const ctxPtr = solver.ctx.ptr
+            const solverPtr = solver.ptr
+
+            // Get the unsat core as a Z3_ast_vector
+            const unsatCoreAstVector = Z3.solver_get_unsat_core(ctxPtr, solverPtr)
+
+            const unsatCoreSize = Z3.ast_vector_size(ctxPtr, unsatCoreAstVector)
+            const unsatCoreLabels: string[] = []
+
+            // Constants for AST kinds (in this case it is 1)
+            const Z3_APP_AST = 1
+
+            // Iterate over the unsat core vector
+            for (let i = 0; i < unsatCoreSize; i++) {
+
+                const astPtr = Z3.ast_vector_get(ctxPtr, unsatCoreAstVector, i) as Z3_ast;
+                const astKind = Z3.get_ast_kind(ctxPtr, astPtr);
+
+                if (astKind === Z3_APP_AST) {
+                    const appPtr = Z3.to_app(ctxPtr, astPtr) as Z3_app;
+                    const declPtr = Z3.get_app_decl(ctxPtr, appPtr);
+                    const symbolPtr = Z3.get_decl_name(ctxPtr, declPtr);
+                    const labelName = Z3.get_symbol_string(ctxPtr, symbolPtr);
+
+                    if (labelName !== null) {
+                        unsatCoreLabels.push(labelName);
+                    } else {
+                        console.warn(`Label name is null for AST node at index ${i}`);
+                    }
+                } else {
+                    console.warn(`Unexpected AST kind (${astKind}) at index ${i}`);
+                }
+            }
+            console.log('Unsat core labels:', unsatCoreLabels);
             return {
                 success: false,
-                timing
+                timing,
+                unsatCoreLabels
             } as {
                 success: false,
-                timing: number
+                timing: number,
+                unsatCoreLabels: string[]
             }
-        } else if (check === 'unknown') {
+        }
+
+        else if (check === 'unknown') {
             throw "Z3 cannot determine whether there is a solution."
         } else {
             const model = solver.model()

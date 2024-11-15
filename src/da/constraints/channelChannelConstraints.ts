@@ -8,7 +8,7 @@ import {
 import {EncodedChannel} from "../components/channel";
 import {EncodedModule} from "../components/module";
 import {Placement} from "../geometry/placement";
-import {Constraint} from "../processing/constraint";
+import {Constraint, UniqueConstraint} from "../processing/constraint";
 
 export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel, modules: EncodedModule[]): Constraint[] {
     const clauses: Constraint[] = []
@@ -42,7 +42,7 @@ export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel,
                             )
                         })
                     ),
-                    label: label + labelA + "-and-" + labelB
+                    label: label + labelA + "-and-" + labelB + UniqueConstraint.generateRandomString(5)
                 }
             )
         }
@@ -61,7 +61,7 @@ export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel,
                             )
                         })
                     ),
-                    label: label + labelA + "-and-" + labelB
+                    label: label + labelA + "-and-" + labelB + UniqueConstraint.generateRandomString(5)
                 }
             )
         }
@@ -81,7 +81,7 @@ export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel,
                             )
                         })
                     ),
-                    label: label
+                    label: label + UniqueConstraint.generateRandomString(5)
                 }
             )
             label = "channel-channel-constraints-waypoint-" + labelB + "-to-other-segment-" + labelA + "-distance"
@@ -95,7 +95,7 @@ export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel,
                             )
                         })
                     ),
-                    label: label
+                    label: label + UniqueConstraint.generateRandomString(5)
                 }
             )
         }

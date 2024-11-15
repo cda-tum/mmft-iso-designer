@@ -49,7 +49,8 @@ function App() {
               status: StatusType.Result,
               success: false,
               timing: r.timing!,
-              filename: fileName
+              filename: fileName,
+              unsatCores: r.unsatCoreLabels
             })
             setOutput(undefined)
           }
@@ -192,20 +193,24 @@ function App() {
         <ChipView chip={output} ></ChipView>
       </main>
       <footer
-        style={{
-          position: 'absolute',
-          width: '100%',
-          bottom: 0,
-          backgroundColor: '#444',
-        }}
-      >
-        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}><Typography
-          level='h4'
-          sx={{
-            color: '#fff',
-            padding: 1
+          style={{
+            position: 'fixed',
+            width: '100%',
+            bottom: 0,
+            backgroundColor: '#444',
           }}
-        >Chair for Design Automation<br />Technical University of Munich</Typography></a>
+      >
+        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}>
+          <Typography
+              level='h4'
+              sx={{
+                color: '#fff',
+                padding: 1
+              }}
+          >
+            Chair for Design Automation<br />Technical University of Munich
+          </Typography>
+        </a>
       </footer>
     </div>
   );
