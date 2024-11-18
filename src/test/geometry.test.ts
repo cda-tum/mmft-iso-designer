@@ -1,4 +1,4 @@
-import {Bool, Context, init} from "z3-solver"
+import {Context, init} from "z3-solver"
 import {Chip} from "../da/components/chip"
 import {
     channelSegmentsNoCross,

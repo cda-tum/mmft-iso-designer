@@ -13,10 +13,10 @@ export { RoutingExclusion, StaticChipRoutingExclusion, DynamicModuleRoutingExclu
 class RoutingExclusion {
     // TODO: find better counter or include in updateIds function
     private static idCounter = 0
-    id!: number
+    id: number
 
     constructor() {
-        this.id = RoutingExclusion.idCounter++
+        this.id = 0
     }
 }
 

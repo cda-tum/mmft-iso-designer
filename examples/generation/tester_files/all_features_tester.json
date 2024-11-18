@@ -72,7 +72,8 @@
         "x": 90000,
         "y": 35000
       },
-      "orientation": 0
+      "orientation": 0,
+      "pinAmount": 2
     },
     {
       "width": 15000,
@@ -97,111 +98,143 @@
       "orientation": 2
     }
   ],
+
+
+
   "channels": [
     {
       "width": 500,
-      "spacing": 1000,
+      "spacing": 700,
       "from": {
         "module": 0,
         "port": [
-          0,
+          1,
           0
         ]
       },
       "to": {
         "module": 1,
         "port": [
-          0,
+          1,
           0
         ]
       },
-      "maxSegments": 8
+      "maxSegments": 10,
+      "mandatoryWaypoints": [
+        {
+          "x": 5000,
+          "y": 50000
+        },
+        {
+          "x": 8000,
+          "y": 53000
+        },
+        {
+          "x": 45000,
+          "y": 50000
+        }
+      ]
     },
     {
       "width": 500,
-      "spacing": 1000,
+      "spacing": 700,
       "from": {
         "module": 0,
         "port": [
-          1,
+          2,
           0
         ]
       },
       "to": {
         "module": 1,
         "port": [
-          1,
+          2,
           0
         ]
       },
       "maxSegments": 8,
-      "maxLength": 80000
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          2,
-          0
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          2,
-          0
-        ]
-      },
-      "maxSegments": 8
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 0,
-        "port": [
-          3,
-          0
-        ]
-      },
-      "to": {
-        "module": 1,
-        "port": [
-          3,
-          0
-        ]
-      },
-      "maxSegments": 6,
+      "exactLength": 59338,
       "mandatoryWaypoints": [
-      {
-        "x": 13000,
-        "y": 8000
+        {
+          "x": 13000,
+          "y": 11000
+        },
+        {
+          "x": 14202,
+          "y": 9798
+        },
+        {
+          "x": 14202,
+          "y": 4398
+        },
+        {
+          "x": 15769,
+          "y": 2831
+        },
+        {
+          "x": 43881,
+          "y": 2831
+        },
+        {
+          "x": 45081,
+          "y": 4031
+        },
+        {
+          "x": 55031,
+          "y": 4031
+        },
+        {
+          "x": 59000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 700,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          0
+        ]
       },
-      {
-        "x": 14668,
-        "y": 6332
+      "to": {
+        "module": 1,
+        "port": [
+          3,
+          0
+        ]
       },
-      {
-        "x": 14668,
-        "y": 3332
-      },
-      {
-        "x": 16168,
-        "y": 1832
-      },
-      {
-        "x": 55832,
-        "y": 1832
-      },
-      {
-        "x": 62000,
-        "y": 8000
-      }
-    ]
+      "maxSegments": 5,
+      "exactLength": 61746,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 8000
+        },
+        {
+          "x": 13000,
+          "y": 2830
+        },
+        {
+          "x": 14203,
+          "y": 1627
+        },
+        {
+          "x": 55627,
+          "y": 1627
+        },
+        {
+          "x": 62000,
+          "y": 8000
+        }
+      ]
     }
   ],
+
+
+
   "chipRoutingExclusions": [
     {
       "position": {
@@ -214,21 +247,33 @@
     {
       "position": {
         "x": 30000,
-        "y": 50000
+        "y": 20000
       },
-      "width": 15000,
+      "width": 2000,
       "height": 15000
     }
   ],
+
+
+
   "moduleRoutingExclusions": [
     {
       "module": 0,
       "position": {
-        "x": 1500,
+        "x": 2000,
         "y": 11000
       },
-      "width": 12000,
-      "height": 3000
+      "width": 11000,
+      "height": 2000
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 1000,
+        "y": 1000
+      },
+      "width": 13000,
+      "height": 13000
     }
   ]
 }

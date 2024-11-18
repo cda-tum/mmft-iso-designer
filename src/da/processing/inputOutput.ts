@@ -35,11 +35,6 @@ import {Constraint} from "./constraint";
 
 export {Input, Output}
 
-export type Clause = {
-    constraint: Bool
-    literal: string
-}
-
 class Input {
     chip!: Chip
     modules!: Module[]
@@ -58,7 +53,8 @@ class Input {
         this.modules.forEach((m, i) => m.id = i)
         this.channels.forEach((c, i) => c.id = i)
         this.pins.forEach((p, i) => p.id = i)
-        this.moduleRoutingExclusions.forEach((p, i) => p.id = i)
+        this.chipRoutingExclusions.forEach((e, i) => e.id = i)
+        this.moduleRoutingExclusions.forEach((e, i) => e.id = i)
     }
 
     encode(ctx: Context): EncodedInput {

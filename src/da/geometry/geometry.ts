@@ -1,6 +1,5 @@
 import {Arith, Context} from "z3-solver";
 import {
-    DynamicModuleRoutingExclusion,
     EncodedDynamicModuleRoutingExclusion,
     RoutingExclusion,
     StaticChipRoutingExclusion
@@ -11,6 +10,7 @@ import {EncodedModule} from "../components/module";
 import {smtSum} from "../utils";
 
 /** MINIMUM COORDINATE-COORDINATE DISTANCE CALCULATION METHODS */
+
 
 // Helper function to calculate asymmetric distance
 export function minDistanceAsym(ctx: Context, c1: Arith | number, c2: Arith | number, distance: Arith | number) {

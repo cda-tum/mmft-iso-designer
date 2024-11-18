@@ -17,7 +17,6 @@ type ChannelProperties = {
     from: ModulePort
     to: ModulePort
     mandatoryWaypoints?: Position[]
-    staticWaypoints?: Position[]
     maxLength?: number
     exactLength?: number
 }

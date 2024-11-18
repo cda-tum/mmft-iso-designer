@@ -1,5 +1,6 @@
 import {init, Z3_app, Z3_ast} from "z3-solver"
 import {Input} from "./inputOutput"
+import {SegmentType} from "../components/channel";
 
 export {design}
 
@@ -46,25 +47,25 @@ async function design(input: Input) {
             // Iterate over the unsat core vector
             for (let i = 0; i < unsatCoreSize; i++) {
 
-                const astPtr = Z3.ast_vector_get(ctxPtr, unsatCoreAstVector, i) as Z3_ast;
-                const astKind = Z3.get_ast_kind(ctxPtr, astPtr);
+                const astPtr = Z3.ast_vector_get(ctxPtr, unsatCoreAstVector, i) as Z3_ast
+                const astKind = Z3.get_ast_kind(ctxPtr, astPtr)
 
                 if (astKind === Z3_APP_AST) {
-                    const appPtr = Z3.to_app(ctxPtr, astPtr) as Z3_app;
-                    const declPtr = Z3.get_app_decl(ctxPtr, appPtr);
-                    const symbolPtr = Z3.get_decl_name(ctxPtr, declPtr);
-                    const labelName = Z3.get_symbol_string(ctxPtr, symbolPtr);
+                    const appPtr = Z3.to_app(ctxPtr, astPtr) as Z3_app
+                    const declPtr = Z3.get_app_decl(ctxPtr, appPtr)
+                    const symbolPtr = Z3.get_decl_name(ctxPtr, declPtr)
+                    const labelName = Z3.get_symbol_string(ctxPtr, symbolPtr)
 
                     if (labelName !== null) {
-                        unsatCoreLabels.push(labelName);
+                        unsatCoreLabels.push(labelName)
                     } else {
-                        console.warn(`Label name is null for AST node at index ${i}`);
+                        console.warn(`Label name is null for AST node at index ${i}`)
                     }
                 } else {
-                    console.warn(`Unexpected AST kind (${astKind}) at index ${i}`);
+                    console.warn(`Unexpected AST kind (${astKind}) at index ${i}`)
                 }
             }
-            console.log('Unsat core labels:', unsatCoreLabels);
+            console.log('Unsat core labels:', unsatCoreLabels)
             return {
                 success: false,
                 timing,
@@ -87,8 +88,22 @@ async function design(input: Input) {
             for (let k = 0; k < result.channels.length; k++) {
                 console.log("Resulting channel length of channel " + k + ": " + result.channels[k].results.length)
                 console.log("Waypoint coordinates for channel " + k + ": ")
-                for (let i = 0; i < result.channels[k].results.waypoints.length; i++) {
+                let w = 1
+                for (let i = 0, j = 0; i < result.channels[k].results.waypoints.length, j < result.channels[k].maxSegments; i++, j++) {
                     console.log("Waypoint " + i + ": (" + result.channels[k].results.waypoints[i].x + " | " + result.channels[k].results.waypoints[i].y + ")")
+                    let segmentLength = 0
+                    if (result.channels[k].results.segments[j].type === SegmentType.UpRight ||
+                        result.channels[k].results.segments[j].type === SegmentType.UpLeft ||
+                        result.channels[k].results.segments[j].type === SegmentType.DownRight ||
+                        result.channels[k].results.segments[j].type === SegmentType.DownLeft) {
+                        segmentLength = 2 *  Math.abs(result.channels[k].results.waypoints[w].x - result.channels[k].results.waypoints[w - 1].x)
+                    } else if (result.channels[k].results.segments[j].type === SegmentType.Up || result.channels[k].results.segments[j].type === SegmentType.Down) {
+                        segmentLength = Math.abs(result.channels[k].results.waypoints[w].y - result.channels[k].results.waypoints[w - 1].y)
+                    } else {
+                        segmentLength = Math.abs(result.channels[k].results.waypoints[w].x - result.channels[k].results.waypoints[w - 1].x)
+                    }
+                    console.log("Segment length for segment " + i + ": " + segmentLength)
+                    w++
                 }
             }
 
