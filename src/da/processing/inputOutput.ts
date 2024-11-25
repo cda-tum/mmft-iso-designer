@@ -1,4 +1,4 @@
-import {Bool, Context, Model} from "z3-solver"
+import {Context, Model} from "z3-solver"
 import {Chip} from "../components/chip"
 import {cross, pairwiseUnique} from "../utils"
 import {

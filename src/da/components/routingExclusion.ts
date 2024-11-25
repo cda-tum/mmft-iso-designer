@@ -11,11 +11,10 @@ export { RoutingExclusion, StaticChipRoutingExclusion, DynamicModuleRoutingExclu
 /** PARENT CLASS FOR ROUTING EXCLUSIONS **/
 
 class RoutingExclusion {
-    // TODO: find better counter or include in updateIds function
-    private static idCounter = 0
     id: number
 
     constructor() {
+        // gets updated before processing
         this.id = 0
     }
 }

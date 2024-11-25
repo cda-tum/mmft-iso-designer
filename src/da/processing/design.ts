@@ -1,11 +1,19 @@
 import {init, Z3_app, Z3_ast} from "z3-solver"
 import {Input} from "./inputOutput"
-import {SegmentType} from "../components/channel";
+
 
 export {design}
 
 async function design(input: Input) {
+
+    (window as any).Module = {
+        wasmMemory: {
+            initial: 1536 * 1024 * 1024, // bytes
+            maximum: 2048 * 1024 * 1024
+        }
+    }
     const {Context, em, Z3} = await init()
+
     // Comes out unsat if more than one thread ...
     //Z3.global_param_set('parallel.enable', 'true')
     //Z3.global_param_set('smt.threads', '1') // fails if > 1
@@ -89,8 +97,10 @@ async function design(input: Input) {
                 console.log("Resulting channel length of channel " + k + ": " + result.channels[k].results.length)
                 console.log("Waypoint coordinates for channel " + k + ": ")
                 let w = 1
+                let waypoints = ""
                 for (let i = 0, j = 0; i < result.channels[k].results.waypoints.length, j < result.channels[k].maxSegments; i++, j++) {
-                    console.log("Waypoint " + i + ": (" + result.channels[k].results.waypoints[i].x + " | " + result.channels[k].results.waypoints[i].y + ")")
+                    waypoints += ("{ \"x\": " + result.channels[k].results.waypoints[i].x + ", \"y\": " + result.channels[k].results.waypoints[i].y + "},")
+                    /*
                     let segmentLength = 0
                     if (result.channels[k].results.segments[j].type === SegmentType.UpRight ||
                         result.channels[k].results.segments[j].type === SegmentType.UpLeft ||
@@ -103,8 +113,10 @@ async function design(input: Input) {
                         segmentLength = Math.abs(result.channels[k].results.waypoints[w].x - result.channels[k].results.waypoints[w - 1].x)
                     }
                     console.log("Segment length for segment " + i + ": " + segmentLength)
+                        */
                     w++
                 }
+                console.log(waypoints)
             }
 
             result.timing = timing
