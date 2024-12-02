@@ -96,27 +96,11 @@ async function design(input: Input) {
             for (let k = 0; k < result.channels.length; k++) {
                 console.log("Resulting channel length of channel " + k + ": " + result.channels[k].results.length)
                 console.log("Waypoint coordinates for channel " + k + ": ")
-                let w = 1
                 let waypoints = ""
-                for (let i = 0, j = 0; i < result.channels[k].results.waypoints.length, j < result.channels[k].maxSegments; i++, j++) {
+                for (let i = 0; i < result.channels[k].results.waypoints.length; i++) {
                     waypoints += ("{ \"x\": " + result.channels[k].results.waypoints[i].x + ", \"y\": " + result.channels[k].results.waypoints[i].y + "},")
-                    /*
-                    let segmentLength = 0
-                    if (result.channels[k].results.segments[j].type === SegmentType.UpRight ||
-                        result.channels[k].results.segments[j].type === SegmentType.UpLeft ||
-                        result.channels[k].results.segments[j].type === SegmentType.DownRight ||
-                        result.channels[k].results.segments[j].type === SegmentType.DownLeft) {
-                        segmentLength = 2 *  Math.abs(result.channels[k].results.waypoints[w].x - result.channels[k].results.waypoints[w - 1].x)
-                    } else if (result.channels[k].results.segments[j].type === SegmentType.Up || result.channels[k].results.segments[j].type === SegmentType.Down) {
-                        segmentLength = Math.abs(result.channels[k].results.waypoints[w].y - result.channels[k].results.waypoints[w - 1].y)
-                    } else {
-                        segmentLength = Math.abs(result.channels[k].results.waypoints[w].x - result.channels[k].results.waypoints[w - 1].x)
-                    }
-                    console.log("Segment length for segment " + i + ": " + segmentLength)
-                        */
-                    w++
                 }
-                console.log(waypoints)
+                console.log(waypoints.slice(0, waypoints.length - 1))
             }
 
             result.timing = timing

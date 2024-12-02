@@ -40,49 +40,10 @@ export function ChipView(props: { chip: Output | undefined }) {
             <g transform="scale(0.005 -0.005) translate(20000 -100000)">
 
                 {props.chip &&
-                    <g className="ruler" transform="scale(0.005 -0.005) translate(20000 -100000)">
-                        {/* Horizontal Ruler */}
-                        {Array.from({length: Math.ceil(props.chip.chip.width / 5000)}, (_, i) => i * 5000).map((x) => (
-                            <g key={`horizontal-ruler-${x}`}>
-                                <line
-                                    x1={x}
-                                    y1={0}
-                                    x2={x}
-                                    y2={-5000}
-                                    stroke="gray"
-                                    strokeWidth={100}
-                                />
-                                <text x={x} y={-5200} fontSize={800} fill="black" textAnchor="middle">
-                                    {x}
-                                </text>
-                            </g>
-                        ))}
-                        {/* Vertical Ruler */}
-                        {Array.from({length: Math.ceil(props.chip.chip.height / 5000)}, (_, i) => i * 5000).map((y) => (
-                            <g key={`vertical-ruler-${y}`}>
-                                <line
-                                    x1={0}
-                                    y1={y}
-                                    x2={-5000}
-                                    y2={y}
-                                    stroke="gray"
-                                    strokeWidth={100}
-                                />
-                                <text x={-5200} y={y} fontSize={800} fill="black" textAnchor="end"
-                                      dominantBaseline="middle">
-                                    {y}
-                                </text>
-                            </g>
-                        ))}
-                    </g>
-                }
-
-                {props.chip &&
                     <rect x={-boundaryOffset} y={-boundaryOffset} width={props.chip.chip.width + boundaryStrokeWidth}
                           height={props.chip.chip.height + boundaryStrokeWidth} fill='none'
                           strokeWidth={boundaryStrokeWidth} stroke={boundaryColor}></rect>
                 }
-
                 {props.chip &&
                     props.chip.modules.map((b, i) => <ModuleInstance module={b}
                                                                      ports={props.chip?.channels.flatMap(c => {
@@ -102,26 +63,21 @@ export function ChipView(props: { chip: Output | undefined }) {
                                                                          return ports
                                                                      })}></ModuleInstance>)
                 }
-
                 {props.chip &&
                     props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement}
                                                                     spacing={1000}></ClampInstance>)
                 }
-
                 {props.chip &&
                     props.chip.pins.map((p, i) => <PinRoutingExclusion pin={p}></PinRoutingExclusion>)
                 }
-
                 {props.chip &&
                     props.chip.pins.map((p, i) => <PinInstance pin={p} modules={props.chip?.modules}></PinInstance>)
                 }
-
                 {props.chip &&
                     props.chip.channels.map((c, i) => {
                         if (props.chip) {
                             const fromModule = props.chip.modules[c.from.module];
                             const toModule = props.chip.modules[c.to.module];
-
                             if (fromModule.placement === toModule.placement && fromModule.placement === Placement.Bottom) {
                                 return (
                                     <Channel channel={c} placement={Placement.Bottom}></Channel>
@@ -134,12 +90,10 @@ export function ChipView(props: { chip: Output | undefined }) {
                         }
                     })
                 }
-
                 {props.chip &&
                     props.chip.chipRoutingExclusions.map((e, i) => <ChipRoutingExclusion
                         exclusion={e}></ChipRoutingExclusion>)
                 }
-
                 {props.chip && props.chip.modules &&
                     props.chip.moduleRoutingExclusions.map((e, i) => <ModuleRoutingExclusion
                         exclusion={e}></ModuleRoutingExclusion>)
