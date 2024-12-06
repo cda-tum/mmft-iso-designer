@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { design } from './da/design';
-import { Input, Output } from './da/inputOutput';
+import { design } from './da/processing/design';
+import { Input, Output } from './da/processing/inputOutput';
 import { ChipView, svgAsString } from './gui/view/ChipView';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
@@ -49,7 +49,8 @@ function App() {
               status: StatusType.Result,
               success: false,
               timing: r.timing!,
-              filename: fileName
+              filename: fileName,
+              unsatCores: r.unsatCoreLabels
             })
             setOutput(undefined)
           }
@@ -192,20 +193,24 @@ function App() {
         <ChipView chip={output} ></ChipView>
       </main>
       <footer
-        style={{
-          position: 'absolute',
-          width: '100%',
-          bottom: 0,
-          backgroundColor: '#444',
-        }}
-      >
-        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}><Typography
-          level='h4'
-          sx={{
-            color: '#fff',
-            padding: 1
+          style={{
+            position: 'fixed',
+            width: '100%',
+            bottom: 0,
+            backgroundColor: '#444',
           }}
-        >Chair for Design Automation<br />Technical University of Munich</Typography></a>
+      >
+        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}>
+          <Typography
+              level='h4'
+              sx={{
+                color: '#fff',
+                padding: 1
+              }}
+          >
+            Chair for Design Automation<br />Technical University of Munich
+          </Typography>
+        </a>
       </footer>
     </div>
   );
@@ -245,7 +250,7 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
       length: c.results.length
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
+    routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
       positionY: e.position.y,
       width: e.width,
@@ -290,7 +295,7 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
       length: c.results.length
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
+    routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
       positionY: e.position.y,
       width: e.width,

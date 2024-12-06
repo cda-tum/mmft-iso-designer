@@ -1,8 +1,9 @@
 import { Arith, Bool, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, intVal } from "./z3Helpers";
-import { Orientation } from "./orientation";
-import { Position } from "./position";
-import { Placement } from "./placement";
+import { EnumBitVec, EnumBitVecValue, intVal } from "../z3Helpers";
+import { Orientation } from "../geometry/orientation";
+import { Position } from "../geometry/position";
+import { Placement } from "../geometry/placement";
+import {Constraint, UniqueConstraint} from "../processing/constraint";
 
 export type ModuleID = number
 type ModuleProperties = {
@@ -14,6 +15,7 @@ type ModuleProperties = {
     position?: Position
     orientation?: Orientation
     placement?: Placement
+    pinAmount?: number
 }
 export class Module {
     id: ModuleID
@@ -24,7 +26,7 @@ export class Module {
     position?: Position
     orientation?: Orientation
     placement?: Placement
-
+    pinAmount?: number
 
     pitchOffsetX: number
     pitchOffsetY: number
@@ -42,6 +44,7 @@ export class Module {
         this.position = o.position
         this.orientation = o.orientation
         this.placement = o.placement
+        this.pinAmount = o.pinAmount
         this.portsX = Math.floor(this.width / this.pitch) - 1
         const p_offset_x = (this.width - (this.portsX - 1) * this.pitch) / 2
         this.pitchOffsetX = Math.floor(p_offset_x)
@@ -64,6 +67,13 @@ export class Module {
             positionY: ctx.Int.const(`ebb_${this.id}_position_y`)
         }
 
+        const orientationClauses = orientation.clauses.map(expr => {
+            return {
+                label: `module-orientation-constraints-id-${this.id}` + UniqueConstraint.generateRandomString(5),
+                expr: expr
+            }
+        })
+
         const instance = new EncodedModule({
             ...this,
             encoding: {
@@ -71,11 +81,10 @@ export class Module {
                 orientation,
                 placement,
                 clauses: [
-                    ...orientation.clauses
+                    ...orientationClauses
                 ]
             }
         })
-
         return instance
     }
 }
@@ -87,7 +96,7 @@ type EncodedModuleProperties = {
     placement: EnumBitVec | EnumBitVecValue
 
     /* Extra clauses with regard to the variables above, e.g., limits for enums */
-    clauses: Bool[]
+    clauses: Constraint[]
 }
 
 export class EncodedModule extends Module {

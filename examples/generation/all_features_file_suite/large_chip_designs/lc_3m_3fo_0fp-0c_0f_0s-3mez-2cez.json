@@ -1,0 +1,88 @@
+{
+  "timing": 2907,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "modules": [
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000,
+      "position": {
+        "x": 10000,
+        "y": 10000
+      }
+    },
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000,
+      "position": {
+        "x": 50000,
+        "y": 10000
+      }
+    },
+    {
+      "width": 30000,
+      "height": 60000,
+      "pitch": 3000,
+      "spacing": 8000,
+      "position": {
+        "x": 90000,
+        "y": 10000
+      }
+    }
+  ],
+  "channels": [
+  ],
+  "chipRoutingExclusions": [
+    {
+      "position": {
+        "x": 10000,
+        "y": 78000
+      },
+      "width": 100000,
+      "height": 5000
+    },
+    {
+      "position": {
+        "x": 3000,
+        "y": 3000
+      },
+      "width": 3000,
+      "height": 60000
+    }
+  ],
+  "moduleRoutingExclusions": [
+    {
+      "module": 0,
+      "position": {
+        "x": 7000,
+        "y": 7000
+      },
+      "width": 15000,
+      "height": 15000
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 10000,
+        "y": 15000
+      },
+      "width": 15000,
+      "height": 30000
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 7000,
+        "y": 7000
+      },
+      "width": 20000,
+      "height": 20000
+    }
+  ]
+}

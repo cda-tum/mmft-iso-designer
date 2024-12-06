@@ -1,62 +1,119 @@
 import {Bool, Context} from "z3-solver";
-import {EncodedPin} from "../pin";
-import {EncodedChannel} from "../channel";
+import {EncodedPin, Pin} from "../components/pin";
+import {EncodedChannel, SegmentType} from "../components/channel";
 import {
-    channelSegmentRoutingExclusionDistance,
-    channelSegmentRoutingExclusionNoCross,
-    waypointRoutingExclusionDistance
+    channelSegmentRoutingExclusionDistance, channelSegmentRoutingExclusionNoCross,
+    minDistanceSym,
+    pointSegmentDistance,
+    pointSegmentDistanceDiag, segmentBoxMinDistance, segmentBoxMinDistanceDiagonal
 } from "../geometry/geometry";
-import {PinRoutingExclusion} from "../routingExclusion";
+import {Constraint} from "../processing/constraint";
+import {min} from "d3";
+import {StaticChipRoutingExclusion} from "../components/routingExclusion";
+import {Position} from "../geometry/position";
 
 
-export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, channel: EncodedChannel): Bool[] {
+export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, channel: EncodedChannel): Constraint[] {
     const clauses = []
-
-    /* Routing exclusion zone for every pin position on both sides of chip */
-    const diameter = pin.radius * 2
-    const exclusionProps = {
-        position: {
-            x: pin.encoding.positionX.sub(pin.radius),
-            y: pin.encoding.positionY.sub(pin.radius)
-        }, width: diameter, height: diameter
-    }
-    const exclusion = new PinRoutingExclusion(pin.id, exclusionProps)
-
-    /* Channels segments may not be near pins on both sides */
-    {
-        const min_distance = (channel.width / 2 + channel.spacing) + pin.radius
-        for (let i = 0; i < channel.maxSegments; i++) {
-            clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-                )
-            )
-        }
+    const exclusionRadius = pin.radius + Pin.pinSpacing()
+    const min_distance_from_center = ((channel.width / 2) + channel.spacing) + exclusionRadius
+    const min_distance_from_exclusion = ((channel.width / 2) + channel.spacing)
+    const exclusionPosition = {
+        x: pin.encoding.positionX.sub(exclusionRadius),
+        y: pin.encoding.positionY.sub(exclusionRadius)
     }
 
-    /* Channels waypoints may not be near pin-hole zones */
-    {
-        const min_distance = (channel.width / 2 + channel.spacing) + 200
-        for (let i = 0; i <= channel.maxSegments; i++) {
-            clauses.push(
-                waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-            )
-        }
-    }
-
-    /* Channel segments may not cross pin-hole zones */
+    /* Channels segments must keep minimum distance to pin hole exclusion zones */
+    let label = "channel-pin-constraints-segments-near-pins-channel-id-"
     {
         for (let i = 0; i < channel.maxSegments; i++) {
             clauses.push(
-                ctx.Implies(
-                    channel.encoding.segments[i].active,
-                    channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
-                )
+                {
+                    expr: ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        ctx.And(
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Up),
+                                minDistanceSym(ctx, pin.encoding.positionX, channel.encoding.waypoints[i].x, min_distance_from_center)
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Down),
+                                minDistanceSym(ctx, pin.encoding.positionX, channel.encoding.waypoints[i].x, min_distance_from_center)
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Right),
+                                minDistanceSym(ctx, pin.encoding.positionY, channel.encoding.waypoints[i].y, min_distance_from_center)
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.Left),
+                                minDistanceSym(ctx, pin.encoding.positionY, channel.encoding.waypoints[i].y, min_distance_from_center)
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.UpRight),
+                                segmentBoxMinDistanceDiagonal(ctx, {
+                                        x_lower: channel.encoding.waypoints[i].x,
+                                        y_lower: channel.encoding.waypoints[i].y,
+                                        x_higher: channel.encoding.waypoints[i + 1].x,
+                                        y_higher: channel.encoding.waypoints[i + 1].y
+                                    }, true, {
+                                        x: exclusionPosition.x,
+                                        y: exclusionPosition.y,
+                                        x_span: exclusionRadius * 2,
+                                        y_span: exclusionRadius * 2
+                                    }, min_distance_from_exclusion
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.DownRight),
+                                segmentBoxMinDistanceDiagonal(ctx, {
+                                        x_lower: channel.encoding.waypoints[i].x,
+                                        y_lower: channel.encoding.waypoints[i + 1].y,
+                                        x_higher: channel.encoding.waypoints[i + 1].x,
+                                        y_higher: channel.encoding.waypoints[i].y
+                                    }, false, {
+                                        x: exclusionPosition.x,
+                                        y: exclusionPosition.y,
+                                        x_span: exclusionRadius * 2,
+                                        y_span: exclusionRadius * 2
+                                    }, min_distance_from_exclusion
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.DownLeft),
+                                segmentBoxMinDistanceDiagonal(ctx, {
+                                        x_lower: channel.encoding.waypoints[i + 1].x,
+                                        y_lower: channel.encoding.waypoints[i + 1].y,
+                                        x_higher: channel.encoding.waypoints[i].x,
+                                        y_higher: channel.encoding.waypoints[i].y
+                                    }, true, {
+                                        x: exclusionPosition.x,
+                                        y: exclusionPosition.y,
+                                        x_span: exclusionRadius * 2,
+                                        y_span: exclusionRadius * 2
+                                    }, min_distance_from_exclusion
+                                )
+                            ),
+                            ctx.Implies(
+                                channel.encoding.segments[i].type.eq(ctx, SegmentType.UpLeft),
+                                segmentBoxMinDistanceDiagonal(ctx, {
+                                        x_lower: channel.encoding.waypoints[i + 1].x,
+                                        y_lower: channel.encoding.waypoints[i].y,
+                                        x_higher: channel.encoding.waypoints[i].x,
+                                        y_higher: channel.encoding.waypoints[i + 1].y
+                                    }, false, {
+                                        x: exclusionPosition.x,
+                                        y: exclusionPosition.y,
+                                        x_span: exclusionRadius * 2,
+                                        y_span: exclusionRadius * 2
+                                    }, min_distance_from_exclusion
+                                )
+                            )
+                        )
+                    ),
+                    label: label + channel.id + "-segment-id-" + i + "-with-pin-id-" + pin.id
+                }
             )
         }
     }
-
-    clauses.push(ctx.And())
     return clauses
 }

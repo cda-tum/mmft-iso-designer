@@ -229,7 +229,7 @@
       "actualLength": 51000
     }
   ],
-  "routingExclusions": [
+  "chipRoutingExclusions": [
     {
       "position": {
         "x": 40000,
