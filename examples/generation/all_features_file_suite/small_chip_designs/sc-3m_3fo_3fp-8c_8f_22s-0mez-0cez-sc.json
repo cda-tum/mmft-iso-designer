@@ -1,28 +1,31 @@
 {
-  "timing": 43152,
+  "timing": 35142,
   "softCorners": true,
   "chip": {
-    "width": 51000,
+    "width": 25000,
     "height": 75000
   },
   "modules": [
     {
       "width": 15000,
-      "height": 30000,
-      "pitch": 3000,
-      "spacing": 5000
+      "height": 15000,
+      "pitch": 1500,
+      "spacing": 5000,
+      "pinAmount": 2
     },
     {
       "width": 15000,
-      "height": 30000,
-      "pitch": 3000,
-      "spacing": 5000
+      "height": 15000,
+      "pitch": 1500,
+      "spacing": 5000,
+      "pinAmount": 2
     },
     {
       "width": 15000,
-      "height": 30000,
-      "pitch": 3000,
-      "spacing": 5000
+      "height": 15000,
+      "pitch": 1500,
+      "spacing": 5000,
+      "pinAmount": 2
     }
   ],
   "channels": [
@@ -33,7 +36,7 @@
         "module": 0,
         "port": [
           0,
-          0
+          7
         ]
       },
       "to": {
@@ -43,7 +46,7 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 1
     },
     {
       "width": 500,
@@ -52,7 +55,7 @@
         "module": 0,
         "port": [
           1,
-          0
+          7
         ]
       },
       "to": {
@@ -62,61 +65,23 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 1
     },
     {
       "width": 500,
       "spacing": 1000,
       "from": {
+        "module": 0,
+        "port": [
+          2,
+          7
+        ]
+      },
+      "to": {
         "module": 1,
         "port": [
           2,
           0
-        ]
-      },
-      "to": {
-        "module": 2,
-        "port": [
-          1,
-          0
-        ]
-      },
-      "maxSegments": 3
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 1,
-        "port": [
-          2,
-          2
-        ]
-      },
-      "to": {
-        "module": 2,
-        "port": [
-          1,
-          1
-        ]
-      },
-      "maxSegments": 3
-    },
-    {
-      "width": 500,
-      "spacing": 1000,
-      "from": {
-        "module": 1,
-        "port": [
-          2,
-          6
-        ]
-      },
-      "to": {
-        "module": 2,
-        "port": [
-          1,
-          6
         ]
       },
       "maxSegments": 1
@@ -128,17 +93,93 @@
         "module": 0,
         "port": [
           3,
-          6
+          0
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          4,
+          0
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          5,
+          0
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 5
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          4,
+          4
         ]
       },
       "to": {
         "module": 2,
         "port": [
           3,
-          6
+          3
         ]
       },
       "maxSegments": 3
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          4,
+          3
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          3,
+          4
+        ]
+      },
+      "maxSegments": 5
     }
   ],
   "routingExclusions": []

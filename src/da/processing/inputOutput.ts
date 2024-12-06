@@ -111,7 +111,7 @@ class Input {
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
         /* Encode module-based routing exclusion zones */
-        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e)))
+        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules)))
 
         /* Encode chip-based routing exclusion zones and channels */
         clauses.push(...cross(channels, this.chipRoutingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))

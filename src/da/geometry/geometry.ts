@@ -585,13 +585,25 @@ export function segmentBoxNoCross(ctx: Context, segment: { c1_lower: Arith, c1_h
                                       y: Arith | number,
                                       x_span: Arith | number,
                                       y_span: Arith | number
-                                  }) {
-    return ctx.Or(
-        ctx.LE(segment.c1_higher, box.x),
-        minDistanceAsym(ctx, box.x, segment.c1_lower, box.x_span),
-        ctx.LE(segment.c2, box.y),
-        minDistanceAsym(ctx, box.y, segment.c2, box.y_span),
-    )
+                                  }, isHorizontal: boolean) {
+    const boxUpperX = typeof box.x_span !== "number" ? box.x_span.add(box.x) : typeof box.x !== "number" ? box.x.add(box.x_span) : box.x + box.x_span
+    const boxUpperY = typeof box.y_span !== "number" ? box.y_span.add(box.y) : typeof box.y !== "number" ? box.y.add(box.y_span) : box.y + box.y_span
+    if (isHorizontal) {
+        return ctx.Or(
+            ctx.LE(segment.c1_higher, box.x),
+            ctx.GE(segment.c1_lower, boxUpperX),
+            ctx.LE(segment.c2, box.y),
+            ctx.GE(segment.c2, boxUpperY),
+        )
+    } else {
+        return ctx.Or(
+            ctx.LE(segment.c1_higher, box.y),
+            ctx.GE(segment.c1_lower, boxUpperY),
+            ctx.LE(segment.c2, box.x),
+            ctx.GE(segment.c2, boxUpperX),
+        )
+    }
+
 }
 
 // Helper function for several functions to check whether an UpRight/DownLeft segment crosses a given box (e.g. exclusion zone)
@@ -687,7 +699,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment].y,
                     c1_higher: channel.encoding.waypoints[segment + 1].y,
                     c2: channel.encoding.waypoints[segment].x
-                }, routingExclusion)
+                }, routingExclusion, false)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
@@ -695,7 +707,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment + 1].y,
                     c1_higher: channel.encoding.waypoints[segment].y,
                     c2: channel.encoding.waypoints[segment].x
-                }, routingExclusion)
+                }, routingExclusion, false)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
@@ -703,7 +715,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment].x,
                     c1_higher: channel.encoding.waypoints[segment + 1].x,
                     c2: channel.encoding.waypoints[segment].y
-                }, routingExclusion)
+                }, routingExclusion, true)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
@@ -711,7 +723,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment + 1].x,
                     c1_higher: channel.encoding.waypoints[segment].x,
                     c2: channel.encoding.waypoints[segment].y
-                }, routingExclusion)
+                }, routingExclusion, true)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),
@@ -764,7 +776,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment].y,
                     c1_higher: channel.encoding.waypoints[segment + 1].y,
                     c2: channel.encoding.waypoints[segment].x
-                }, routingExclusion)
+                }, routingExclusion, false)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Down),
@@ -772,7 +784,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment + 1].y,
                     c1_higher: channel.encoding.waypoints[segment].y,
                     c2: channel.encoding.waypoints[segment].x
-                }, routingExclusion)
+                }, routingExclusion, false)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Right),
@@ -780,7 +792,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment].x,
                     c1_higher: channel.encoding.waypoints[segment + 1].x,
                     c2: channel.encoding.waypoints[segment].y
-                }, routingExclusion)
+                }, routingExclusion, true)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.Left),
@@ -788,7 +800,7 @@ export function channelSegmentRoutingExclusionNoCross(ctx: Context, channel: Enc
                     c1_lower: channel.encoding.waypoints[segment + 1].x,
                     c1_higher: channel.encoding.waypoints[segment].x,
                     c2: channel.encoding.waypoints[segment].y
-                }, routingExclusion)
+                }, routingExclusion, true)
             ),
             ctx.Implies(
                 channel.encoding.segments[segment].type.eq(ctx, SegmentType.UpRight),

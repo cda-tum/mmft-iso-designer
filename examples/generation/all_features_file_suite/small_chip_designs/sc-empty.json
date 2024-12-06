@@ -1,0 +1,14 @@
+{
+  "timing": 43152,
+  "softCorners": true,
+  "chip": {
+    "width": 25000,
+    "height": 75000
+  },
+  "modules": [
+  ],
+  "channels": [
+
+  ],
+  "routingExclusions": []
+}

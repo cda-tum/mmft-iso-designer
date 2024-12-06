@@ -1,4 +1,4 @@
-import {Bool, Context} from "z3-solver";
+import {Context} from "z3-solver";
 import {EncodedChannel} from "../components/channel";
 import {
     boxBoxMinDistance, channelSegmentRoutingExclusionDistance,
@@ -14,9 +14,9 @@ import {EncodedModule} from "../components/module";
 import {Placement} from "../geometry/placement";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
 
-export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion): Constraint[] {
+export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion, modules: EncodedModule[]): Constraint[] {
     const clauses: Constraint[] = []
-    const module = exclusion.encoding.moduleInstance
+    const module = modules[exclusion.module]
     let label = ""
 
     /* Dynamic module-based exclusion zones must have same orientation as its module */
