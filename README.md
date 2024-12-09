@@ -1,3 +1,5 @@
+This is the version used for the ISVLSI24 paper.
+
 # MMFT ISO Designer
 
 The MMFT ISO Designer is a tool that validates and generates microfluidic chip designs following the ISO 22916 standard. It is developed as part of the [Munich Microfluidics Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/) by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the Technical University of Munich. Currently, it is able to place and route basic modules and channels while validating a number of geometric constraints. For more details, please check out the relevant research paper:
