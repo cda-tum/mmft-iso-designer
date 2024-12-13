@@ -9,6 +9,7 @@ type ClampProperties = {
     spacing?: number
 }
 
+
 export class Clamp {
     clampID: ClampID
     clampingModuleID: ModuleID
@@ -20,5 +21,10 @@ export class Clamp {
         this.clampingModuleID = o.clampingModuleID
         this.placement = o.placement
         this.spacing = o.spacing
+    }
+
+    /******************* ADJUST CLAMP SPACING (FROM MODULE) HERE ********************/
+    static clampSpacing() {
+        return 1000
     }
 }

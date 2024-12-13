@@ -156,62 +156,51 @@ export function encodeDynamicRoutingExclusionChannels(ctx: Context, channel: Enc
     the other side is not affected and can be routing channels there
      */
     const clauses = []
-    const channelModule = modules[channel.from.module]
-    const exclusionModule = modules[exclusion.module]
 
-    const channelOnSameSide = (channelModule.placement === Placement.Top && exclusionModule.placement === Placement.Top) ||
-        (channelModule.placement === Placement.Bottom && exclusionModule.placement === Placement.Bottom) ||
-        (channelModule.placement === undefined && exclusionModule.placement === undefined) ||
-        (channelModule.placement === undefined && exclusionModule.placement === Placement.Top) ||
-        (channelModule.placement === Placement.Top && exclusionModule.placement === undefined)
-
-    if (channelOnSameSide) {
-
-        /* Channels segments may not be near dynamic routing exclusion zones */
-        let label = "dynamic-routing-exclusion-constraints-segments-near-exclusion-id-"
-        {
-            const min_distance = channel.width / 2 + channel.spacing
-            for (let i = 0; i < channel.maxSegments; i++) {
-                clauses.push(
-                    {
-                        expr: ctx.Implies(
-                            channel.encoding.segments[i].active,
-                            channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
-                        ),
-                        label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i + UniqueConstraint.generateRandomString()
-                    }
-                )
-            }
+    /* Channels segments may not be near dynamic routing exclusion zones */
+    let label = "dynamic-routing-exclusion-constraints-segments-near-exclusion-id-"
+    {
+        const min_distance = channel.width / 2 + channel.spacing
+        for (let i = 0; i < channel.maxSegments; i++) {
+            clauses.push(
+                {
+                    expr: ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance)
+                    ),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i + UniqueConstraint.generateRandomString()
+                }
+            )
         }
+    }
 
-        /* Channels waypoints may not be near dynamic routing exclusion zones */
-        label = "dynamic-routing-exclusion-constraints-waypoints-near-exclusion-id-"
-        {
-            const min_distance = channel.width / 2 + channel.spacing
-            for (let i = 0; i <= channel.maxSegments; i++) {
-                clauses.push(
-                    {
-                        expr: waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance),
-                        label: label + exclusion.id + "-channel-id-" + channel.id + "-waypoint-id-" + i + UniqueConstraint.generateRandomString()
-                    }
-                )
-            }
+    /* Channels waypoints may not be near dynamic routing exclusion zones */
+    label = "dynamic-routing-exclusion-constraints-waypoints-near-exclusion-id-"
+    {
+        const min_distance = channel.width / 2 + channel.spacing
+        for (let i = 0; i <= channel.maxSegments; i++) {
+            clauses.push(
+                {
+                    expr: waypointRoutingExclusionDistance(ctx, channel, i, exclusion, min_distance),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-waypoint-id-" + i + UniqueConstraint.generateRandomString()
+                }
+            )
         }
+    }
 
-        /* Channel segments may not cross dynamic routing exclusion zones */
-        label = "dynamic-routing-exclusion-constraints-segments-cross-exclusion-id-"
-        {
-            for (let i = 0; i < channel.maxSegments; i++) {
-                clauses.push(
-                    {
-                        expr: ctx.Implies(
-                            channel.encoding.segments[i].active,
-                            channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
-                        ),
-                        label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i + UniqueConstraint.generateRandomString()
-                    }
-                )
-            }
+    /* Channel segments may not cross dynamic routing exclusion zones */
+    label = "dynamic-routing-exclusion-constraints-segments-cross-exclusion-id-"
+    {
+        for (let i = 0; i < channel.maxSegments; i++) {
+            clauses.push(
+                {
+                    expr: ctx.Implies(
+                        channel.encoding.segments[i].active,
+                        channelSegmentRoutingExclusionNoCross(ctx, channel, i, exclusion)
+                    ),
+                    label: label + exclusion.id + "-channel-id-" + channel.id + "-segment-id-" + i + UniqueConstraint.generateRandomString()
+                }
+            )
         }
     }
     return clauses

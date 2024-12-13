@@ -105,7 +105,7 @@ class Input {
         clauses.push(...pairwiseUnique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b, modules)))
+        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
 
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
@@ -160,7 +160,7 @@ class Input {
 
         // fill a new clamps array with a clamp for each module
         o.modules?.forEach((c, i) => {
-            clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement}))
+            clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement, spacing: Clamp.clampSpacing()}))
         })
 
         // fill a new pins array with three pins for each module

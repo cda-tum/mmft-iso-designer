@@ -1,13 +1,13 @@
-import { Arith, Context, Model } from "z3-solver";
-import { EnumBitVec, EnumBitVecValue, intVal } from "../z3Helpers";
-import { Orientation } from "../geometry/orientation";
-import { Position } from "../geometry/position";
-import { Placement } from "../geometry/placement";
+import {Position} from "../geometry/position";
+import {Orientation} from "../geometry/orientation";
+import {Placement} from "../geometry/placement";
+import {Arith, Context, Model} from "z3-solver";
+import {EnumBitVec, EnumBitVecValue, intVal} from "../z3Helpers";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
 
-export type ModuleID = number
-type ModuleProperties = {
-    id: ModuleID
+export type InlineComponentID = number
+type InlineComponentProperties = {
+    id: InlineComponentID
     width: number
     height: number
     pitch: number
@@ -17,8 +17,9 @@ type ModuleProperties = {
     placement?: Placement
     pinAmount?: number
 }
-export class Module {
-    id: ModuleID
+
+export class InlineComponent {
+    id: InlineComponentID
     width: number
     height: number
     pitch: number
@@ -35,7 +36,7 @@ export class Module {
     portsX: number
     portsY: number
 
-    constructor(o: ModuleProperties) {
+    constructor(o: InlineComponentProperties) {
         this.id = o.id
         this.width = o.width
         this.height = o.height
@@ -55,26 +56,26 @@ export class Module {
         this.pitchOffsetOddY = this.pitchOffsetY !== p_offset_y
     }
 
-    encode(ctx: Context): EncodedModule {
-        const orientation = this.orientation !== undefined ? new EnumBitVecValue(ctx, Orientation, this.orientation) : new EnumBitVec(ctx, `ebb_${this.id}_rotation`, Orientation)
-        const placement = this.placement !== undefined ? new EnumBitVecValue(ctx, Placement, this.placement) : new EnumBitVec(ctx, `ebb_${this.id}_placement`, Placement)
+    encode(ctx: Context): EncodedInlineComponent {
+        const orientation = this.orientation !== undefined ? new EnumBitVecValue(ctx, Orientation, this.orientation) : new EnumBitVec(ctx, `ilc_${this.id}_rotation`, Orientation)
+        const placement = this.placement !== undefined ? new EnumBitVecValue(ctx, Placement, this.placement) : new EnumBitVec(ctx, `ilc_${this.id}_placement`, Placement)
 
         const position = this.position ? {
             positionX: this.position.x,
             positionY: this.position.y
         } : {
-            positionX: ctx.Int.const(`ebb_${this.id}_position_x`),
-            positionY: ctx.Int.const(`ebb_${this.id}_position_y`)
+            positionX: ctx.Int.const(`ilc_${this.id}_position_x`),
+            positionY: ctx.Int.const(`ilc_${this.id}_position_y`)
         }
 
         const orientationClauses = orientation.clauses.map(expr => {
             return {
-                label: `module-orientation-constraints-id-${this.id}` + UniqueConstraint.generateRandomString(5),
+                label: `inline-component-orientation-constraints-id-${this.id}` + UniqueConstraint.generateRandomString(5),
                 expr: expr
             }
         })
 
-        const instance = new EncodedModule({
+        const instance = new EncodedInlineComponent({
             ...this,
             encoding: {
                 ...position,
@@ -89,7 +90,8 @@ export class Module {
     }
 }
 
-type EncodedModuleProperties = {
+
+type EncodedInlineComponentProperties = {
     positionX: Arith | number
     positionY: Arith | number
     orientation: EnumBitVec | EnumBitVecValue
@@ -99,10 +101,10 @@ type EncodedModuleProperties = {
     clauses: Constraint[]
 }
 
-export class EncodedModule extends Module {
-    encoding: EncodedModuleProperties
+export class EncodedInlineComponent extends InlineComponent {
+    encoding: EncodedInlineComponentProperties
 
-    constructor(o: ModuleProperties & { encoding: EncodedModuleProperties }) {
+    constructor(o: InlineComponentProperties & { encoding: EncodedInlineComponentProperties }) {
         super(o)
         this.encoding = o.encoding
     }
@@ -172,6 +174,8 @@ export class EncodedModule extends Module {
             throw ''
         }
     }
+
+    // TODO: change this logic to represent connection points on the edges of the component
 
     portPosition(ctx: Context, x: number, y: number) {
         if (typeof this.encoding.positionX == 'number' && typeof this.encoding.positionY == 'number') {
@@ -294,8 +298,8 @@ export class EncodedModule extends Module {
         }
     }
 
-    result(m: Model): ResultModule {
-        return new ResultModule({
+    result(m: Model): ResultInlineComponent {
+        return new ResultInlineComponent({
             ...this,
             results: {
                 positionX: intVal(m, this.encoding.positionX),
@@ -306,18 +310,20 @@ export class EncodedModule extends Module {
     }
 }
 
-type ResultModuleProperties = {
+type ResultInlineComponentProperties = {
     positionX: number
     positionY: number
     orientation: Orientation
 }
-export class ResultModule extends EncodedModule {
-    results: ResultModuleProperties
+export class ResultInlineComponent extends EncodedInlineComponent {
+    results: ResultInlineComponentProperties
 
-    constructor(o: ModuleProperties & { encoding: EncodedModuleProperties } & { results: ResultModuleProperties }) {
+    constructor(o: InlineComponentProperties & { encoding: EncodedInlineComponentProperties } & { results: ResultInlineComponentProperties }) {
         super(o)
         this.results = o.results
     }
+
+    // TODO: change this logic to represent connection points on the edges of the component
 
     resultPortPosition(ix: number, iy: number): { x: number, y: number } {
         switch (this.results.orientation) {
