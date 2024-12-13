@@ -12,6 +12,8 @@
 #### `lc_3m_3fo_0fp_0b-0c_0f_0ml_0s-3mez-2cez.json`: 0.1s
 #### `lc_3m_3fo_0fp_0b-8c_8f_0ml_24s-3mez-2cez-sc.json`: 90s
 #### `lc-9m_0fo_0fp_0b-24c_0f_0ml_129s_24el-0mez-0cez-sc.json`: 218s
+#### `lc_3m_0fo_2fp_0b-10c_10f_0ml_33s-1mez-2cez.json`: 522s
+#### `lc_3m_3fo_3fp_0b-10c_10f_0ml_33s-0mez-2cez.json`: 1629s
 
 
 ### Medium chips

@@ -10,7 +10,11 @@
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "orientation": 0
+      "orientation": 0,
+      "position": {
+        "x": 8000,
+        "y": 8000
+      }
     },
     {
       "width": 30000,
@@ -241,8 +245,8 @@
     {
       "module": 0,
       "position": {
-        "x": 7000,
-        "y": 7000
+        "x": 8000,
+        "y": 8000
       },
       "width": 5000,
       "height": 5000
