@@ -6,12 +6,13 @@
 ### Large chips
 
 #### `lc_3m_3fo_0fp_0b-4c_4f_0ml_12s-3mez-2cez-sc.json`: 14s
+#### `lc-3m_0fo_3fp_1b-9c_9f_0ml_33s-0mez-2cez-sc.json`: 239s
 #### `lc_3m_0fo_3fp_0b-10c_10f_0ml_33s-0mez-2cez.json`: 810s
 #### `lc_3m_0fo_3fp_0b-10c_5f_0ml_33s_5el-0mez-2cez.json`: 3511s 
 #### `lc_3m_1fo_3fp_0b-10c_10f_0ml_33s-0mez-2cez.json`: 1052s
 #### `lc_3m_3fo_0fp_0b-0c_0f_0ml_0s-3mez-2cez.json`: 0.1s
 #### `lc_3m_3fo_0fp_0b-8c_8f_0ml_24s-3mez-2cez-sc.json`: 90s
-#### `lc-9m_0fo_0fp_0b-24c_0f_0ml_129s_24el-0mez-0cez-sc.json`: 218s
+#### `lc-9m_0fo_0fp_0b-24c_0f_0ml_129s_24el-0mez-0cez-sc.json`: 205s
 #### `lc_3m_0fo_2fp_0b-10c_10f_0ml_33s-1mez-2cez.json`: 522s
 #### `lc_3m_3fo_3fp_0b-10c_10f_0ml_33s-0mez-2cez.json`: 1629s
 

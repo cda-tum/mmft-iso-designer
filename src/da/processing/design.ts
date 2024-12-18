@@ -103,6 +103,17 @@ async function design(input: Input) {
                 console.log(waypoints.slice(0, waypoints.length - 1))
             }
 
+            for (let m = 0; m < result.modules.length; m++) {
+                console.log("Resulting pins for module : " + m)
+                let pinPositions = ""
+                result.pins.forEach(pin => {
+                    if (pin.module === m) {
+                        pinPositions +=("{ \"x\": " + pin.results.positionX + ", \"y\": " + pin.results.positionY + "},")
+                    }
+                })
+                console.log(pinPositions.slice(0, pinPositions.length - 1))
+            }
+
             result.timing = timing
             return result
         }

@@ -1251,8 +1251,6 @@
       ]
     }
   ],
-  "chipRoutingExclusions": [
-  ],
-  "moduleRoutingExclusions": [
-  ]
+  "chipRoutingExclusions": [],
+  "moduleRoutingExclusions": []
 }

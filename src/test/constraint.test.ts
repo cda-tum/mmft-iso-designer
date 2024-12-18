@@ -16,9 +16,9 @@ describe('encodePinConstraints', () => {
         const ctx = Context('main')
         try {
             const solver = new ctx.Solver()
-            let testPin0 = new Pin({ radius: radius, module: 0, id: 0})
-            let testPin1 = new Pin({ radius: radius, module: 0, id: 1})
-            let testPin2 = new Pin({ radius: radius, module: 0, id: 2})
+            let testPin0 = new Pin({ module: 0, id: 0})
+            let testPin1 = new Pin({ module: 0, id: 1})
+            let testPin2 = new Pin({ module: 0, id: 2})
 
             const pins = []
             pins.push(testPin0, testPin1, testPin2)
@@ -29,7 +29,7 @@ describe('encodePinConstraints', () => {
             let check = await solver.check()
             if (check === 'sat') {
                 const m = solver.model()
-                console.log(encodedPins.map((p, i) => p.encoding.positionX.name()))
+                console.log(encodedPins.map((p, i) => p.encoding.positionX))
                 const intVal0 = intVal(m, encodedPins[0].encoding.positionX)
                 console.log(intVal0)
                 const resultPin0 = encodedPins[0].result(m)

@@ -525,52 +525,58 @@ export function channelSegmentRoutingExclusionDistance(ctx: Context, channel: En
 
 // function to extract/calculate the coordinates of a clamp for the respective given encoded module
 export function moduleToClampCoordinates(ctx: Context, module: EncodedModule, clampSpacing: number) {
-    let lowerX = module.encoding.positionX
-    let lowerY = module.encoding.positionY
+    const moduleLowerX = module.encoding.positionX
+    const moduleLowerY = module.encoding.positionY
 
-    lowerX = typeof lowerX === "number" ? lowerX - clampSpacing : lowerX.sub(clampSpacing)
-    lowerY = typeof lowerY === "number" ? lowerY - clampSpacing : lowerY.sub(clampSpacing)
+    const lowerX = typeof moduleLowerX === "number" ? moduleLowerX - clampSpacing : moduleLowerX.sub(clampSpacing)
+    const lowerY = typeof moduleLowerY === "number" ? moduleLowerY - clampSpacing : moduleLowerY.sub(clampSpacing)
 
     let spanX = module.spanX(ctx)
     let spanY = module.spanY(ctx)
     let higherX
     let higherY
 
-    clampSpacing = clampSpacing * 2
-    higherX = smtSum(ctx, lowerX, spanX, clampSpacing)
-    higherY = smtSum(ctx, lowerY, spanY, clampSpacing)
+    const doubleClampSpacing = clampSpacing * 2
+    higherX = smtSum(ctx, lowerX, spanX, doubleClampSpacing)
+    higherY = smtSum(ctx, lowerY, spanY, doubleClampSpacing)
 
     return {lowerX: lowerX, lowerY: lowerY, higherX: higherX, higherY: higherY}
 }
 
 // function to ensure that a given pin defined by its position keeps a minimum distance (here clampSpacing) from a given module (the one it is fixing)
 export function pinModuleMinMaxDistance(ctx: Context, point: {
-    x1: Arith,
-    y1: Arith
+    x: Arith | number,
+    y: Arith | number
 }, module: EncodedModule, clampSpacing: number) {
 
     const clampFrame = moduleToClampCoordinates(ctx, module, clampSpacing)
 
+    const pointYGreaterClampLowerY = typeof point.y === "number" ? point.y >= clampFrame.lowerY : ctx.GE(point.y, clampFrame.lowerY)
+    const pointYLesserClampHigherY = typeof point.y === "number" ? point.y <= clampFrame.higherY : ctx.LE(point.y, clampFrame.higherY)
+
+    const pointXGreaterClampLowerX = typeof point.x === "number" ? point.x >= clampFrame.lowerX : ctx.GE(point.x, clampFrame.lowerX)
+    const pointXGLesserClampHigherX = typeof point.x === "number" ? point.x <= clampFrame.higherX : ctx.LE(point.x, clampFrame.higherX)
+
     return ctx.Or(
         ctx.And(
-            ctx.Eq(point.x1, clampFrame.lowerX),
-            ctx.GE(point.y1, clampFrame.lowerY),
-            ctx.LE(point.y1, clampFrame.higherY),
+            ctx.Eq(point.x, clampFrame.lowerX),
+            pointYGreaterClampLowerY,
+            pointYLesserClampHigherY,
         ),
         ctx.And(
-            ctx.Eq(point.x1, clampFrame.higherX),
-            ctx.GE(point.y1, clampFrame.lowerY),
-            ctx.LE(point.y1, clampFrame.higherY)
+            ctx.Eq(point.x, clampFrame.higherX),
+            pointYGreaterClampLowerY,
+            pointYLesserClampHigherY
         ),
         ctx.And(
-            ctx.Eq(point.y1, clampFrame.lowerY),
-            ctx.GE(point.x1, clampFrame.lowerX),
-            ctx.LE(point.x1, clampFrame.higherX)
+            ctx.Eq(point.y, clampFrame.lowerY),
+            pointXGreaterClampLowerX,
+            pointXGLesserClampHigherX
         ),
         ctx.And(
-            ctx.Eq(point.y1, clampFrame.higherY),
-            ctx.GE(point.x1, clampFrame.lowerX),
-            ctx.LE(point.x1, clampFrame.higherX)
+            ctx.Eq(point.y, clampFrame.higherY),
+            pointXGreaterClampLowerX,
+            pointXGLesserClampHigherX
         )
     )
 }

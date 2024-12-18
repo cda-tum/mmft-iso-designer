@@ -163,16 +163,34 @@ class Input {
             clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement, spacing: Clamp.clampSpacing()}))
         })
 
-        // fill a new pins array with three pins for each module
+        // fill a new pins array with three pins for each module or pre-defined pins
+        let id = 0
         o.modules?.forEach((c, k) => {
-            if (c.pinAmount !== undefined) {
-                for (let i = 0; i < c.pinAmount; i++) {
-                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+            const totalPinAmount = c.pinAmount !== undefined ? c.pinAmount : Pin.defaultPins()
+            if (o.pins !== undefined) {
+                let pinCount = 0
+                o.pins.forEach((pin) => {
+                    if (pin.module === k) {
+                        pins.push(new Pin({id: pin.id, module: k, position: pin.position}))
+                        pinCount++
+                    }
+                    id = pin.id
+                })
+                id++
+                while (pinCount < totalPinAmount) {
+                    pins.push(new Pin({id: id, module: k}))
+                    pinCount++
                 }
             } else {
-                // default number of pins is 3
-                for (let i = 0; i < Pin.defaultPins(); i++) {
-                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+                if (c.pinAmount !== undefined) {
+                    for (let i = 0; i < c.pinAmount; i++) {
+                        pins.push(new Pin({id: i, module: k}))
+                    }
+                } else {
+                    // default number of pins is 3
+                    for (let i = 0; i < Pin.defaultPins(); i++) {
+                        pins.push(new Pin({id: i, module: k}))
+                    }
                 }
             }
         })

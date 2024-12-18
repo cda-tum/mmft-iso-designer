@@ -4,6 +4,7 @@ import {EncodedModule} from "../components/module";
 import {boxBoxMinDistance} from "../geometry/geometry";
 import {Placement} from "../geometry/placement";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
+import {UncertainPosition} from "../geometry/position";
 
 
 export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module: EncodedModule, modules: EncodedModule[]): Constraint[] {
@@ -19,9 +20,13 @@ export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module
     let label = "module-pin-constraints-other-side-module-id-"
     {
         if (exclusionCondition) {
-            const pinExclusionX = pin.encoding.positionX.sub((pin.radius + Pin.pinSpacing()))
-            const pinExclusionY = pin.encoding.positionY.sub((pin.radius + Pin.pinSpacing()))
-            const pinExclusionSpan = Pin.diameter(pin.radius)
+            const exclusionRadius = Pin.pinRadius() + Pin.pinSpacing()
+            let exclusionPosition: UncertainPosition
+            const exclPosX = typeof pin.encoding.positionX === "number" ? pin.encoding.positionX - (exclusionRadius) : pin.encoding.positionX.sub(exclusionRadius)
+            const exclPosY = typeof pin.encoding.positionY === "number" ? pin.encoding.positionY - (exclusionRadius) : pin.encoding.positionY.sub(exclusionRadius)
+            exclusionPosition = { x: exclPosX, y: exclPosY }
+
+            const pinExclusionSpan = Pin.diameter(Pin.pinRadius())
 
             const moduleX = module.encoding.positionX
             const moduleY = module.encoding.positionY
@@ -33,8 +38,8 @@ export function encodeModulePinConstraints(ctx: Context, pin: EncodedPin, module
                 {
                     expr: ctx.And(
                         boxBoxMinDistance(ctx, {
-                                x: pinExclusionX,
-                                y: pinExclusionY,
+                                x: exclusionPosition.x,
+                                y: exclusionPosition.y,
                                 x_span: pinExclusionSpan,
                                 y_span: pinExclusionSpan
                             },

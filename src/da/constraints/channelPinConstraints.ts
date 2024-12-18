@@ -1,4 +1,4 @@
-import {Bool, Context} from "z3-solver";
+import {Arith, Bool, Context} from "z3-solver";
 import {EncodedPin, Pin} from "../components/pin";
 import {EncodedChannel, SegmentType} from "../components/channel";
 import {
@@ -10,18 +10,21 @@ import {
 import {Constraint} from "../processing/constraint";
 import {min} from "d3";
 import {StaticChipRoutingExclusion} from "../components/routingExclusion";
-import {Position} from "../geometry/position";
+import {Position, UncertainPosition} from "../geometry/position";
 
 
 export function encodeChannelPinConstraints(ctx: Context, pin: EncodedPin, channel: EncodedChannel): Constraint[] {
     const clauses = []
-    const exclusionRadius = pin.radius + Pin.pinSpacing()
+    const exclusionRadius = Pin.pinRadius() + Pin.pinSpacing()
     const min_distance_from_center = ((channel.width / 2) + channel.spacing) + exclusionRadius
     const min_distance_from_exclusion = ((channel.width / 2) + channel.spacing)
-    const exclusionPosition = {
-        x: pin.encoding.positionX.sub(exclusionRadius),
-        y: pin.encoding.positionY.sub(exclusionRadius)
-    }
+
+    let exclusionPosition: UncertainPosition
+
+    const exclPosX = typeof pin.encoding.positionX === "number" ? pin.encoding.positionX - (exclusionRadius) : pin.encoding.positionX.sub(exclusionRadius)
+    const exclPosY = typeof pin.encoding.positionY === "number" ? pin.encoding.positionY - (exclusionRadius) : pin.encoding.positionY.sub(exclusionRadius)
+
+    exclusionPosition = { x: exclPosX, y: exclPosY }
 
     /* Channels segments must keep minimum distance to pin hole exclusion zones */
     let label = "channel-pin-constraints-segments-near-pins-channel-id-"

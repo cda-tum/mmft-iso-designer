@@ -77,8 +77,8 @@ export function encodeStaticRoutingExclusionPins(ctx: Context, pin: EncodedPin, 
         const pinExclusion = {
             x: pin.encoding.exclusionPositionX,
             y: pin.encoding.exclusionPositionY,
-            x_span: Pin.diameter(pin.radius),
-            y_span: Pin.diameter(pin.radius)
+            x_span: Pin.diameter(Pin.pinRadius()),
+            y_span: Pin.diameter(Pin.pinRadius())
         }
         clauses.push(
             {

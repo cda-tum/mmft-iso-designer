@@ -1,4 +1,4 @@
-import {EncodedPin} from "../components/pin";
+import {EncodedPin, Pin} from "../components/pin";
 import {Context} from "z3-solver";
 import {minDistanceSym} from "../geometry/geometry";
 import {EncodedModule} from "../components/module";
@@ -19,9 +19,9 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
             if (moduleA.pinAmount !== undefined && moduleA.pinAmount == 2) {
                 min_distance = Math.max(moduleA.width, moduleA.height)
             } else if (moduleA.pinAmount !== undefined && moduleA.pinAmount > 3) {
-                min_distance = Math.round(circumference / 9)
+                min_distance = Pin.pinRadius() + Math.round(circumference / 9)
             } else {
-                min_distance = a.radius + b.radius + (Math.round(circumference / 6))
+                min_distance = Pin.pinRadius() + Pin.pinRadius() + (Math.round(circumference / 6))
             }
             const half_distance = Math.round(min_distance / 2)
             clauses.push(
@@ -29,7 +29,10 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
                     expr: ctx.Or(
                         minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
                         minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance),
-                        ctx.And(minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, half_distance), minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance))
+                        ctx.And(
+                            minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, half_distance),
+                            minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance)
+                        )
                     ),
                     label: label + a.id + "-pinB-id-" + b.id + "-module-id-" + moduleA.id + UniqueConstraint.generateRandomString()
                 }

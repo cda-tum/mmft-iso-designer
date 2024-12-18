@@ -5,7 +5,7 @@ import {Orientation} from "../../da/geometry/orientation"
 import {ResultDynamicModuleRoutingExclusion, StaticChipRoutingExclusion} from "../../da/components/routingExclusion"
 import {renderToString} from "react-dom/server"
 import {Placement} from "../../da/geometry/placement";
-import {ResultPin} from "../../da/components/pin";
+import {Pin, ResultPin} from "../../da/components/pin";
 import React from "react"
 import {Layer} from "../../da/geometry/layer";
 import {Clamp} from "../../da/components/clamp";
@@ -187,7 +187,7 @@ function Channel(props: { channel: ResultChannel, color?: string }) {
 function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefined, color?: string }) {
     //const color = props.color ?? '#87b7ff'
     const assignedColor = getColorForId(props.pin.module)
-    const pinRadius = props.pin.radius
+    const pinRadius = Pin.pinRadius()
     const pinStrokeWidth = pinRadius / 3
     const strokeDashArray = "200, 200"
 

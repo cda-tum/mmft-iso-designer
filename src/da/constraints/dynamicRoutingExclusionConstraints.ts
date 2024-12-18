@@ -6,7 +6,7 @@ import {
     waypointRoutingExclusionDistance
 } from "../geometry/geometry";
 import {EncodedDynamicModuleRoutingExclusion} from "../components/routingExclusion";
-import {EncodedPin} from "../components/pin";
+import {EncodedPin, Pin} from "../components/pin";
 import {EnumBitVecValue} from "../z3Helpers";
 import {Orientation} from "../geometry/orientation";
 import {smtSum} from "../utils";
@@ -220,8 +220,8 @@ export function encodeDynamicModuleRoutingExclusionPins(ctx: Context, pin: Encod
                 expr: ctx.And(boxBoxMinDistance(ctx, {
                         x: pin.encoding.positionX,
                         y: pin.encoding.positionY,
-                        x_span: pin.radius * 2,
-                        y_span: pin.radius * 2
+                        x_span: Pin.pinRadius() * 2,
+                        y_span: Pin.pinRadius() * 2
                     },
                     {
                         x: exclusion.encoding.positionX,

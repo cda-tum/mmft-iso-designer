@@ -1,5 +1,5 @@
 {
-  "timing": 698214,
+  "timing": 1932,
   "softCorners": true,
   "chip": {
     "width": 128000,
@@ -12,32 +12,21 @@
       "pitch": 3000,
       "spacing": 3000,
       "position": {
-        "x": 10000,
-        "y": 5000
-      },
-      "orientation": 1
-    },
-    {
-      "width": 15000,
-      "height": 15000,
-      "pitch": 3000,
-      "spacing": 3000,
-      "position": {
         "x": 90000,
         "y": 5000
       },
-      "orientation": 0
+      "pinAmount": 5
     },
     {
       "width": 15000,
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
+      "orientation": 0,
       "position": {
         "x": 10000,
         "y": 65000
-      },
-      "orientation": 0
+      }
     },
     {
       "width": 15000,
@@ -47,8 +36,7 @@
       "position": {
         "x": 90000,
         "y": 65000
-      },
-      "orientation": 0
+      }
     }
   ],
   "channels": [
@@ -58,19 +46,43 @@
       "from": {
         "module": 0,
         "port": [
-          1,
-          1
+          0,
+          0
         ]
       },
       "to": {
-        "module": 3,
+        "module": 2,
         "port": [
-          1,
-          1
+          0,
+          0
         ]
       },
       "maxSegments": 2
     }
   ],
-  "routingExclusions": []
+  "routingExclusions": [],
+  "moduleRoutingExclusions": [],
+  "pins": [
+    {
+      "module": 1,
+      "position": {
+        "x": 26000,
+        "y": 81000
+      }
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 26000,
+        "y": 64000
+      }
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 9000,
+        "y": 64000
+      }
+    }
+  ]
 }

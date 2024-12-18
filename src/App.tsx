@@ -219,6 +219,7 @@ function App() {
 function transformToInput(o: Output, waypoints_fixed = true) {
   const output = {
     timing: o.timing,
+    softCorners: o.softCorners,
     chip: {
       width: o.chip.width,
       height: o.chip.height
@@ -232,7 +233,8 @@ function transformToInput(o: Output, waypoints_fixed = true) {
         x: b.results.positionX,
         y: b.results.positionY
       },
-      orientation: b.results.orientation
+      orientation: b.results.orientation,
+      pinAmount: b.pinAmount
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -247,15 +249,36 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       },
       maxSegments: c.maxSegments,
       maxLength: c.maxLength,
-      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
-      length: c.results.length
+      exactLength: c.results.length,
+      mandatoryWaypoints: c.results.waypoints.map(wp => ({
+        x: wp.x,
+        y: wp.y
+      })),
     })),
-    routingExclusions: o.chipRoutingExclusions.map(e => ({
-      positionX: e.position.x,
-      positionY: e.position.y,
+    chipRoutingExclusions: o.chipRoutingExclusions.map(e => ({
+      position: {
+        x: e.position.x,
+        y: e.position.y
+      },
       width: e.width,
       height: e.height
-    }))
+    })),
+    moduleRoutingExclusions: o.moduleRoutingExclusions.map(e => ({
+      module: e.module,
+      position: {
+        x: e.results.positionX,
+        y: e.results.positionY
+      },
+      width: e.width,
+      height: e.height
+    })),
+    pins: o.pins.map(p => ({
+      module: p.module,
+      position: {
+        x: p.results.positionX,
+        y: p.results.positionY
+      }
+    })),
   }
 
   return output
