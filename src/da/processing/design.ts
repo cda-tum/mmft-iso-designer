@@ -4,7 +4,7 @@ import {Input} from "./inputOutput"
 
 export {design}
 
-async function design(input: Input) {
+async function design(input: Input, onInputReadComplete?: () => void) {
 
     (window as any).Module = {
         wasmMemory: {
@@ -34,6 +34,9 @@ async function design(input: Input) {
             solver.addAndTrack(c.expr, c.label);
         })
 
+        if (onInputReadComplete) {
+            onInputReadComplete();
+        }
         let start = performance.now()
         const check = await solver.check()
         const timing = performance.now() - start

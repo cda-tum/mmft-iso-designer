@@ -8,6 +8,7 @@ import { nanoid } from '@reduxjs/toolkit';
 import { Status, StatusProps, StatusType } from './gui/view/Status';
 import MakerJs, { IModel } from 'makerjs';
 
+
 function App() {
 
   const tempInput = useRef<HTMLInputElement>(null);
@@ -18,14 +19,21 @@ function App() {
 
   useEffect(() => {
     if (input) {
-      console.log("Running...")
+      console.log("Running...");
       setStatus({
-        status: StatusType.Computing,
-        startTime: performance.now(),
-        filename: fileName
+        status: StatusType.Reading
+      });
+      setOutput(undefined);
+
+      design(input, () => {
+        // This callback gets triggered when input reading ends and designing starts
+        setStatus({
+          status: StatusType.Computing,
+          startTime: performance.now(),
+          filename: fileName,
+        });
       })
-      setOutput(undefined)
-      design(input).then(r => {
+          .then(r => {
         if (!r) {
           throw 'An error occurred while designing. Please check the console output for further details.'
         } else {
@@ -234,7 +242,8 @@ function transformToInput(o: Output, waypoints_fixed = true) {
         y: b.results.positionY
       },
       orientation: b.results.orientation,
-      pinAmount: b.pinAmount
+      pinAmount: b.pinAmount,
+      placement: b.placement ? b.placement : 0
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -250,6 +259,7 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       maxSegments: c.maxSegments,
       maxLength: c.maxLength,
       exactLength: c.results.length,
+      channelLayer: c.channelLayer ? c.channelLayer : 0,
       mandatoryWaypoints: c.results.waypoints.map(wp => ({
         x: wp.x,
         y: wp.y
@@ -280,7 +290,6 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       }
     })),
   }
-
   return output
 }
 
@@ -300,7 +309,9 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
         x: b.results.positionX,
         y: b.results.positionY
       },
-      orientation: b.results.orientation
+      orientation: b.results.orientation,
+      pinAmount: b.pinAmount,
+      placement: b.placement ? b.placement : 0
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -316,7 +327,8 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       maxSegments: c.maxSegments,
       maxLength: c.maxLength,
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
-      length: c.results.length
+      length: c.results.length,
+      channelLayer: c.channelLayer ? c.channelLayer : 0
     })),
     routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
