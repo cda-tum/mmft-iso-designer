@@ -1,0 +1,1459 @@
+{
+  "timing": 183218.68000000005,
+  "softCorners": true,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "modules": [
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 5000
+      },
+      "orientation": 1,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 5000
+      },
+      "orientation": 0,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 5000
+      },
+      "orientation": 0,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 35000
+      },
+      "orientation": 3,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 35000
+      },
+      "orientation": 1,
+      "pinAmount": 2,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 35000
+      },
+      "orientation": 2,
+      "pinAmount": 2,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 10000,
+        "y": 65000
+      },
+      "orientation": 0,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 65000
+      },
+      "orientation": 2,
+      "placement": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 65000
+      },
+      "orientation": 0,
+      "pinAmount": 2,
+      "placement": 0
+    }
+  ],
+  "channels": [
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 11,
+      "exactLength": 147980,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 17000
+        },
+        {
+          "x": 4993,
+          "y": 17000
+        },
+        {
+          "x": 1751,
+          "y": 20242
+        },
+        {
+          "x": 1751,
+          "y": 51500
+        },
+        {
+          "x": 3251,
+          "y": 53000
+        },
+        {
+          "x": 29500,
+          "y": 53000
+        },
+        {
+          "x": 31000,
+          "y": 51500
+        },
+        {
+          "x": 31000,
+          "y": 14995
+        },
+        {
+          "x": 40236,
+          "y": 5759
+        },
+        {
+          "x": 50759,
+          "y": 5759
+        },
+        {
+          "x": 53000,
+          "y": 8000
+        },
+        {
+          "x": 53000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 7,
+      "exactLength": 56496,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 14000
+        },
+        {
+          "x": 14752,
+          "y": 14000
+        },
+        {
+          "x": 17754,
+          "y": 10998
+        },
+        {
+          "x": 17754,
+          "y": 5760
+        },
+        {
+          "x": 19262,
+          "y": 4252
+        },
+        {
+          "x": 54498,
+          "y": 4252
+        },
+        {
+          "x": 56000,
+          "y": 5754
+        },
+        {
+          "x": 56000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 6,
+      "exactLength": 59500,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 11000
+        },
+        {
+          "x": 14751,
+          "y": 9249
+        },
+        {
+          "x": 14751,
+          "y": 5753
+        },
+        {
+          "x": 17754,
+          "y": 2750
+        },
+        {
+          "x": 56001,
+          "y": 2750
+        },
+        {
+          "x": 59000,
+          "y": 5749
+        },
+        {
+          "x": 59000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 1,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 62500,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 8000
+        },
+        {
+          "x": 13000,
+          "y": 4504
+        },
+        {
+          "x": 16254,
+          "y": 1250
+        },
+        {
+          "x": 59497,
+          "y": 1250
+        },
+        {
+          "x": 62000,
+          "y": 3753
+        },
+        {
+          "x": 62000,
+          "y": 8000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "maxSegments": 2,
+      "exactLength": 27000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 22000,
+          "y": 17000
+        },
+        {
+          "x": 22000,
+          "y": 38000
+        },
+        {
+          "x": 19000,
+          "y": 41000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 38878,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 22000,
+          "y": 14000
+        },
+        {
+          "x": 13061,
+          "y": 22939
+        },
+        {
+          "x": 13061,
+          "y": 38061
+        },
+        {
+          "x": 16000,
+          "y": 41000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 61016,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 22000,
+          "y": 11000
+        },
+        {
+          "x": 4992,
+          "y": 28008
+        },
+        {
+          "x": 4992,
+          "y": 32992
+        },
+        {
+          "x": 16000,
+          "y": 44000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 0,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "module": 3,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "maxSegments": 4,
+      "exactLength": 52990,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 22000,
+          "y": 8000
+        },
+        {
+          "x": 28995,
+          "y": 14995
+        },
+        {
+          "x": 28995,
+          "y": 37006
+        },
+        {
+          "x": 22001,
+          "y": 44000
+        },
+        {
+          "x": 19000,
+          "y": 44000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 49000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 53000,
+          "y": 17000
+        },
+        {
+          "x": 56000,
+          "y": 14000
+        },
+        {
+          "x": 93000,
+          "y": 14000
+        },
+        {
+          "x": 96000,
+          "y": 11000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 43000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 56000,
+          "y": 17000
+        },
+        {
+          "x": 57500,
+          "y": 15500
+        },
+        {
+          "x": 94500,
+          "y": 15500
+        },
+        {
+          "x": 96000,
+          "y": 14000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 57000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 59000,
+          "y": 17000
+        },
+        {
+          "x": 59000,
+          "y": 20000
+        },
+        {
+          "x": 63000,
+          "y": 24000
+        },
+        {
+          "x": 96023,
+          "y": 24000
+        },
+        {
+          "x": 99000,
+          "y": 21023
+        },
+        {
+          "x": 99000,
+          "y": 14000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "module": 2,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "maxSegments": 4,
+      "exactLength": 43000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 62000,
+          "y": 17000
+        },
+        {
+          "x": 96000,
+          "y": 17000
+        },
+        {
+          "x": 97500,
+          "y": 15500
+        },
+        {
+          "x": 97500,
+          "y": 12500
+        },
+        {
+          "x": 99000,
+          "y": 11000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          0,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          1,
+          1
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 58000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 62000,
+          "y": 47000
+        },
+        {
+          "x": 74876,
+          "y": 47000
+        },
+        {
+          "x": 96000,
+          "y": 68124
+        },
+        {
+          "x": 96000,
+          "y": 71000
+        },
+        {
+          "x": 96000,
+          "y": 71000
+        },
+        {
+          "x": 96000,
+          "y": 71000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          1,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          1,
+          2
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 67000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 62000,
+          "y": 44000
+        },
+        {
+          "x": 76376,
+          "y": 44000
+        },
+        {
+          "x": 97500,
+          "y": 65124
+        },
+        {
+          "x": 97500,
+          "y": 72500
+        },
+        {
+          "x": 96000,
+          "y": 74000
+        },
+        {
+          "x": 96000,
+          "y": 74000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          2,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          2,
+          2
+        ]
+      },
+      "maxSegments": 8,
+      "exactLength": 90496,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 62000,
+          "y": 41000
+        },
+        {
+          "x": 56002,
+          "y": 46998
+        },
+        {
+          "x": 56002,
+          "y": 48500
+        },
+        {
+          "x": 61502,
+          "y": 54000
+        },
+        {
+          "x": 69000,
+          "y": 54000
+        },
+        {
+          "x": 93250,
+          "y": 78250
+        },
+        {
+          "x": 96250,
+          "y": 78250
+        },
+        {
+          "x": 99000,
+          "y": 75500
+        },
+        {
+          "x": 99000,
+          "y": 74000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          3,
+          3
+        ]
+      },
+      "to": {
+        "module": 8,
+        "port": [
+          2,
+          1
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 76806,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 62000,
+          "y": 38000
+        },
+        {
+          "x": 63500,
+          "y": 39500
+        },
+        {
+          "x": 76377,
+          "y": 39500
+        },
+        {
+          "x": 102403,
+          "y": 65526
+        },
+        {
+          "x": 102403,
+          "y": 67597
+        },
+        {
+          "x": 99000,
+          "y": 71000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 6,
+      "exactLength": 77998,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 53000,
+          "y": 47000
+        },
+        {
+          "x": 59000,
+          "y": 41000
+        },
+        {
+          "x": 59000,
+          "y": 35000
+        },
+        {
+          "x": 61499,
+          "y": 32501
+        },
+        {
+          "x": 90500,
+          "y": 32501
+        },
+        {
+          "x": 102000,
+          "y": 44001
+        },
+        {
+          "x": 102000,
+          "y": 47000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 9,
+      "exactLength": 108490,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 53000,
+          "y": 44000
+        },
+        {
+          "x": 57500,
+          "y": 39500
+        },
+        {
+          "x": 57500,
+          "y": 33500
+        },
+        {
+          "x": 60501,
+          "y": 30499
+        },
+        {
+          "x": 92999,
+          "y": 30499
+        },
+        {
+          "x": 109499,
+          "y": 46999
+        },
+        {
+          "x": 109499,
+          "y": 50746
+        },
+        {
+          "x": 107500,
+          "y": 52745
+        },
+        {
+          "x": 104745,
+          "y": 52745
+        },
+        {
+          "x": 99000,
+          "y": 47000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 10,
+      "exactLength": 118770,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 53000,
+          "y": 41000
+        },
+        {
+          "x": 56000,
+          "y": 38000
+        },
+        {
+          "x": 56000,
+          "y": 32000
+        },
+        {
+          "x": 59496,
+          "y": 28504
+        },
+        {
+          "x": 94004,
+          "y": 28504
+        },
+        {
+          "x": 110999,
+          "y": 45499
+        },
+        {
+          "x": 110999,
+          "y": 52889
+        },
+        {
+          "x": 109498,
+          "y": 54390
+        },
+        {
+          "x": 103390,
+          "y": 54390
+        },
+        {
+          "x": 96000,
+          "y": 47000
+        },
+        {
+          "x": 96000,
+          "y": 47000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 4,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 9,
+      "exactLength": 142292,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 53000,
+          "y": 38000
+        },
+        {
+          "x": 53000,
+          "y": 32000
+        },
+        {
+          "x": 59001,
+          "y": 25999
+        },
+        {
+          "x": 96001,
+          "y": 25999
+        },
+        {
+          "x": 112499,
+          "y": 42497
+        },
+        {
+          "x": 112499,
+          "y": 54391
+        },
+        {
+          "x": 104744,
+          "y": 62146
+        },
+        {
+          "x": 102402,
+          "y": 62146
+        },
+        {
+          "x": 93000,
+          "y": 52744
+        },
+        {
+          "x": 93000,
+          "y": 47000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 6,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 7,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 75996,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 13000,
+          "y": 68000
+        },
+        {
+          "x": 21998,
+          "y": 59002
+        },
+        {
+          "x": 44002,
+          "y": 59002
+        },
+        {
+          "x": 62000,
+          "y": 77000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 6,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 7,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 3,
+      "exactLength": 66500,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 16000,
+          "y": 68000
+        },
+        {
+          "x": 32250,
+          "y": 84250
+        },
+        {
+          "x": 51750,
+          "y": 84250
+        },
+        {
+          "x": 59000,
+          "y": 77000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 6,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 7,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 57998,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 19000,
+          "y": 68000
+        },
+        {
+          "x": 24999,
+          "y": 62001
+        },
+        {
+          "x": 44001,
+          "y": 62001
+        },
+        {
+          "x": 52672,
+          "y": 70672
+        },
+        {
+          "x": 52672,
+          "y": 73672
+        },
+        {
+          "x": 56000,
+          "y": 77000
+        }
+      ]
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 6,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 7,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 5,
+      "exactLength": 40000,
+      "channelLayer": 0,
+      "mandatoryWaypoints": [
+        {
+          "x": 22000,
+          "y": 68000
+        },
+        {
+          "x": 44000,
+          "y": 68000
+        },
+        {
+          "x": 53000,
+          "y": 77000
+        },
+        {
+          "x": 53000,
+          "y": 77000
+        },
+        {
+          "x": 53000,
+          "y": 77000
+        },
+        {
+          "x": 53000,
+          "y": 77000
+        }
+      ]
+    }
+  ],
+  "chipRoutingExclusions": [],
+  "moduleRoutingExclusions": [],
+  "pins": [
+    {
+      "module": 0,
+      "position": {
+        "x": 9000,
+        "y": 9000
+      }
+    },
+    {
+      "module": 0,
+      "position": {
+        "x": 9000,
+        "y": 21000
+      }
+    },
+    {
+      "module": 0,
+      "position": {
+        "x": 26000,
+        "y": 21000
+      }
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 65999,
+        "y": 21000
+      }
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 49000,
+        "y": 21000
+      }
+    },
+    {
+      "module": 1,
+      "position": {
+        "x": 49000,
+        "y": 9000
+      }
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 89000,
+        "y": 20999
+      }
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 89000,
+        "y": 8999
+      }
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 106000,
+        "y": 21000
+      }
+    },
+    {
+      "module": 3,
+      "position": {
+        "x": 26000,
+        "y": 49995
+      }
+    },
+    {
+      "module": 3,
+      "position": {
+        "x": 9000,
+        "y": 49750
+      }
+    },
+    {
+      "module": 3,
+      "position": {
+        "x": 26000,
+        "y": 36750
+      }
+    },
+    {
+      "module": 4,
+      "position": {
+        "x": 66000,
+        "y": 49750
+      }
+    },
+    {
+      "module": 4,
+      "position": {
+        "x": 49000,
+        "y": 49995
+      }
+    },
+    {
+      "module": 5,
+      "position": {
+        "x": 106000,
+        "y": 49750
+      }
+    },
+    {
+      "module": 5,
+      "position": {
+        "x": 89000,
+        "y": 36750
+      }
+    },
+    {
+      "module": 6,
+      "position": {
+        "x": 9000,
+        "y": 81000
+      }
+    },
+    {
+      "module": 6,
+      "position": {
+        "x": 24750,
+        "y": 81000
+      }
+    },
+    {
+      "module": 6,
+      "position": {
+        "x": 9000,
+        "y": 65250
+      }
+    },
+    {
+      "module": 7,
+      "position": {
+        "x": 66000,
+        "y": 65250
+      }
+    },
+    {
+      "module": 7,
+      "position": {
+        "x": 66000,
+        "y": 81000
+      }
+    },
+    {
+      "module": 7,
+      "position": {
+        "x": 49922,
+        "y": 81000
+      }
+    },
+    {
+      "module": 8,
+      "position": {
+        "x": 105999,
+        "y": 81000
+      }
+    },
+    {
+      "module": 8,
+      "position": {
+        "x": 90250,
+        "y": 81000
+      }
+    }
+  ]
+}
