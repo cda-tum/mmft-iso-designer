@@ -276,8 +276,8 @@ function transformToInput(o: Output, waypoints_fixed = true) {
     moduleRoutingExclusions: o.moduleRoutingExclusions.map(e => ({
       module: e.module,
       position: {
-        x: e.results.positionX,
-        y: e.results.positionY
+        x: e.results.positionX - o.modules[e.module].results.positionX,
+        y: e.results.positionY - o.modules[e.module].results.positionY
       },
       width: e.width,
       height: e.height

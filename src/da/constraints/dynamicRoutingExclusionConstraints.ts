@@ -11,13 +11,12 @@ import {EnumBitVecValue} from "../z3Helpers";
 import {Orientation} from "../geometry/orientation";
 import {smtSum} from "../utils";
 import {EncodedModule} from "../components/module";
-import {Placement} from "../geometry/placement";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
 
 export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion, modules: EncodedModule[]): Constraint[] {
     const clauses: Constraint[] = []
     const module = modules[exclusion.module]
-    let label = ""
+    let label
 
     /* Dynamic module-based exclusion zones must have same orientation as its module */
     {
