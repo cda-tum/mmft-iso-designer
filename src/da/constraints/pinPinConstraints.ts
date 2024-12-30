@@ -11,7 +11,7 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
     const moduleB = modules[b.module]
 
     /* Minimum distance between pins on the same module to ensure proper fixation of the module */
-    let label = "pin-pin-constraints-inter-pin-distance-pinA-id-"
+    let label = "pin-pin-constraints-inter-pin-distance-same-module-id-" + moduleA.id + "-pinA-id-"
     {
         if (moduleA.id === moduleB.id) {
             const circumference = (2 * moduleA.width) + (2 * moduleA.height)
@@ -34,10 +34,36 @@ export function encodePinPinConstraints(ctx: Context, a: EncodedPin, b: EncodedP
                             minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance)
                         )
                     ),
-                    label: label + a.id + "-pinB-id-" + b.id + "-module-id-" + moduleA.id + UniqueConstraint.generateRandomString()
+                    label: label + a.id + "-pinB-id-" + b.id + UniqueConstraint.generateRandomString()
                 }
             )
         }
     }
+
+    /* Minimum distance between pins on the different modules to ensure no overlap */
+    label = "pin-pin-constraints-inter-pin-distance-module-id-" + moduleA.id + "-and-module-id-" + moduleB.id + "pinA-id-"
+
+    // TODO: define meaningful min distance between pins and pins of other modules
+    {
+        if (moduleA.id !== moduleB.id) {
+            let half_distance = (Pin.pinRadius() + Pin.pinSpacing()) + 500
+            let min_distance = 2 * half_distance
+            clauses.push(
+                {
+                    expr: ctx.Or(
+                        minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, min_distance),
+                        minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, min_distance),
+                        ctx.And(
+                            minDistanceSym(ctx, a.encoding.positionX, b.encoding.positionX, half_distance),
+                            minDistanceSym(ctx, a.encoding.positionY, b.encoding.positionY, half_distance)
+                        )
+                    ),
+                    label: label + a.id + "-and-pinB-id-" + b.id + UniqueConstraint.generateRandomString()
+                }
+            )
+        }
+    }
+
     return clauses
+
 }

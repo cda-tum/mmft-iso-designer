@@ -29,6 +29,7 @@ import {encodeModulePinConstraints} from "../constraints/modulePinConstraints";
 import {encodeChannelPinConstraints} from "../constraints/channelPinConstraints";
 import {encodeClampConstraints} from "../constraints/clampConstraints";
 import {
+    encodeDynamicModuleRoutingExclusionModules,
     encodeDynamicModuleRoutingExclusionPins, encodeDynamicRoutingExclusion, encodeDynamicRoutingExclusionChannels
 } from "../constraints/dynamicRoutingExclusionConstraints";
 import {Constraint} from "./constraint";
@@ -111,7 +112,7 @@ class Input {
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
         /* Encode module-based routing exclusion zones */
-        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules)))
+        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules, this.chip)))
 
         /* Encode chip-based routing exclusion zones and channels */
         clauses.push(...cross(channels, this.chipRoutingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
@@ -131,14 +132,17 @@ class Input {
         /* Encode module-pin effects */
         clauses.push(...cross(modules, pins).flatMap(([m, p]) => encodeModulePinConstraints(ctx, p, m, modules)))
 
-        /* Encode channel-pin constraints */
+        /* Encode channel-pin effects */
         clauses.push(...cross(channels, pins).flatMap(([c, p]) => encodeChannelPinConstraints(ctx, p, c)))
 
-        /* Encode routing exclusion zones and pins */
+        /* Encode static chip routing exclusion zones and pins effects */
         clauses.push(...cross(pins, this.chipRoutingExclusions).flatMap(([p, e]) => encodeStaticRoutingExclusionPins(ctx, p, e)))
 
-        /* Encode routing exclusion zones and pins */
+        /* Encode module-based routing exclusion zones and pins effects */
         clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
+
+        /* Encode module-based routing exclusion zones and (other) modules effects */
+        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m)))
 
         return new EncodedInput({
             ...this,
