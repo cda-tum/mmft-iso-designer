@@ -11,12 +11,6 @@
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
-      "position": {
-        "x": 5000,
-        "y": 5000
-      },
-      "placement": 1,
-      "orientation": 0,
       "pinAmount": 2
     },
     {
@@ -24,11 +18,7 @@
       "height": 15000,
       "pitch": 3000,
       "spacing": 3000,
-      "orientation": 0,
-      "position": {
-        "x": 90000,
-        "y": 40000
-      }
+      "orientation": 3
     },
     {
       "width": 15000,
@@ -44,7 +34,12 @@
       "width": 15000,
       "height": 15000,
       "pitch": 3000,
-      "spacing": 3000
+      "spacing": 3000,
+      "orientation": 2,
+      "position": {
+        "x": 90000,
+        "y": 40000
+      }
     }
   ],
   "channels": [
@@ -94,8 +89,8 @@
         "x": 5000,
         "y": 5000
       },
-      "width": 10000,
-      "height": 10000
+      "width": 5000,
+      "height": 9000
     },
     {
       "module": 3,
@@ -103,8 +98,8 @@
         "x": 5000,
         "y": 5000
       },
-      "width": 10000,
-      "height": 10000
+      "width": 5000,
+      "height": 9000
     }
   ]
 }

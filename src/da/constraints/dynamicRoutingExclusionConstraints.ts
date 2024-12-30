@@ -35,8 +35,8 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
@@ -52,37 +52,36 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
                         )
                     } else if (module.encoding.orientation.value === Orientation.Right) {
-                        const absExclusionY = module.position.y + exclusion.position.y
                         const exclusionLowerX = module.position.x + exclusion.position.y
-                        const exclusionLowerY = absExclusionY - exclusion.width
+                        const newRelativeExclusionY = module.width - exclusion.position.x - exclusion.width
+                        const exclusionLowerY = module.position.y + newRelativeExclusionY
                         label = "dynamic-routing-exclusion-constraints-fixed-position-and-orientation-right-id" + exclusion.id
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
                         )
                     } else { // orientation = Left
                         const exclusionLowerY = module.position.y + exclusion.position.x
-                        const moduleUpperX = module.position.x + module.height
-                        const exclusionUpperX = moduleUpperX - exclusion.position.y
-                        const exclusionLowerX = exclusionUpperX - exclusion.height
+                        const newRelativeExclusionX = module.height - exclusion.position.y - exclusion.height
+                        const exclusionLowerX = module.position.x + newRelativeExclusionX
                         label = "dynamic-routing-exclusion-constraints-fixed-position-and-orientation-left-id" + exclusion.id
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
@@ -98,8 +97,8 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY),
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
@@ -109,43 +108,43 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                         const moduleUpperY = smtSum(ctx, module.encoding.positionY, module.height)
                         const exclusionUpperX = typeof moduleUpperX === "number" ? moduleUpperX - exclusion.position.x : moduleUpperX.sub(exclusion.position.x)
                         const exclusionUpperY = typeof moduleUpperY === "number" ? moduleUpperY - exclusion.position.y : moduleUpperY.sub(exclusion.position.y)
-                        const exclusionLowerX = typeof exclusionUpperX === "number" ? exclusionUpperX - exclusion.width : exclusionUpperX.sub(exclusion.width)
-                        const exclusionLowerY = typeof exclusionUpperY === "number" ? exclusionUpperY - exclusion.height : exclusionUpperY.sub(exclusion.height)
+                        const exclusionLowerX = typeof exclusionUpperX === "number" ? exclusionUpperX - module.width : exclusionUpperX.sub(module.width)
+                        const exclusionLowerY = typeof exclusionUpperY === "number" ? exclusionUpperY - module.height : exclusionUpperY.sub(module.height)
+
                         label = "dynamic-routing-exclusion-constraints-free-position-fixed-orientation-down-id" + exclusion.id
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
                         )
                     } else if (module.encoding.orientation.value === Orientation.Right) {
-                        const originalExclusionY = smtSum(ctx, module.encoding.positionY, exclusion.position.y)
                         const exclusionLowerX = smtSum(ctx, module.encoding.positionX, exclusion.position.y)
-                        const exclusionLowerY = typeof originalExclusionY === "number" ? originalExclusionY - exclusion.width : originalExclusionY.sub(exclusion.width)
+                        const newRelativeExclusionY = module.width - exclusion.position.x - exclusion.width
+                        const exclusionLowerY = smtSum(ctx, module.encoding.positionY, newRelativeExclusionY)
                         label = "dynamic-routing-exclusion-constraints-free-position-fixed-orientation-right-id" + exclusion.id
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
                         )
                     } else { // orientation = Left
                         const exclusionLowerY = smtSum(ctx, module.encoding.positionY, exclusion.position.x)
-                        const moduleUpperX = smtSum(ctx, module.encoding.positionX, module.height)
-                        const exclusionUpperX = typeof moduleUpperX === "number" ? moduleUpperX - exclusion.position.y : moduleUpperX.sub(exclusion.position.y)
-                        const exclusionLowerX = typeof exclusionUpperX === "number" ? exclusionUpperX - exclusion.height : exclusionUpperX.sub(exclusion.height)
+                        const newRelativeExclusionX = module.height - exclusion.position.y - exclusion.height
+                        const exclusionLowerX = smtSum(ctx, module.encoding.positionX, newRelativeExclusionX)
                         label = "dynamic-routing-exclusion-constraints-free-position-fixed-orientation-left-id" + exclusion.id
                         clauses.push(
                             {
                                 expr: ctx.And(
-                                    exclusion.encoding.positionX.eq(exclusionLowerX),
-                                    exclusion.encoding.positionY.eq(exclusionLowerY)
+                                    ctx.Eq(exclusion.encoding.positionX, exclusionLowerX),
+                                    ctx.Eq(exclusion.encoding.positionY, exclusionLowerY)
                                 ),
                                 label: label + UniqueConstraint.generateRandomString()
                             }
@@ -159,8 +158,8 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                 // If position of module is pre-defined -> exclusion position can only have four possible final positions depending on orientation
                 if (module.position !== undefined) {
                     // ORIGINAL coordinates of exclusion (in the whole grid of the chip) -> UP direction
-                    const originalX = exclusion.position.x + module.position.x
-                    const originalY = exclusion.position.y + module.position.y
+                    const upExclusionLowerX = exclusion.position.x + module.position.x
+                    const upExclusionLowerY = exclusion.position.y + module.position.y
 
                     // DOWN direction
                     const downModuleUpperX = module.position.x + module.width
@@ -171,15 +170,14 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                     const downExclusionLowerY = downExclusionUpperY - exclusion.height
 
                     // RIGHT direction
-                    const rightAbsExclusionY = module.position.y + exclusion.position.y
                     const rightExclusionLowerX = module.position.x + exclusion.position.y
-                    const rightExclusionLowerY = rightAbsExclusionY - exclusion.width
+                    const rightNewRelativeExclusionY = module.width - exclusion.position.x - exclusion.width
+                    const rightExclusionLowerY = module.position.y + rightNewRelativeExclusionY
 
                     // LEFT direction
                     const leftExclusionLowerY = module.position.y + exclusion.position.x
-                    const leftModuleUpperX = module.position.x + module.height
-                    const leftExclusionUpperX = leftModuleUpperX - exclusion.position.y
-                    const leftExclusionLowerX = leftExclusionUpperX - exclusion.height
+                    const leftNewRelativeExclusionX = module.height - exclusion.position.y - exclusion.height
+                    const leftExclusionLowerX = module.position.x + leftNewRelativeExclusionX
 
                     label = "dynamic-routing-exclusion-constraints-fixed-position-free-orientation-id" + exclusion.id
 
@@ -189,29 +187,29 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Up),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(originalX),
-                                        exclusion.encoding.positionY.eq(originalY)
+                                        ctx.Eq(exclusion.encoding.positionX, upExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, upExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Down),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(downExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(downExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, downExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, downExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Right),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(rightExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(rightExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, rightExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, rightExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Left),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(leftExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(leftExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, leftExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, leftExclusionLowerY)
                                     )
                                 )
                             ),
@@ -222,8 +220,8 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                 // If position of module is not pre-defined -> exclusion position depends entirely on position and orientation of the free module
                 else {
                     // ORIGINAL coordinates of exclusion (in the whole grid of the chip) -> UP direction
-                    const originalX = smtSum(ctx, exclusion.position.x, module.encoding.positionX)
-                    const originalY = smtSum(ctx, exclusion.position.y, module.encoding.positionY)
+                    const upExclusionLowerX = smtSum(ctx, exclusion.position.x, module.encoding.positionX)
+                    const upExclusionLowerY = smtSum(ctx, exclusion.position.y, module.encoding.positionY)
 
                     // DOWN direction
                     const downModuleUpperX = smtSum(ctx, module.encoding.positionX, module.width)
@@ -234,15 +232,14 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                     const downExclusionLowerY = typeof downExclusionUpperY === "number" ? downExclusionUpperY - exclusion.height : downExclusionUpperY.sub(exclusion.height)
 
                     // RIGHT direction
-                    const rightAbsExclusionY = smtSum(ctx, module.encoding.positionY, exclusion.position.y)
                     const rightExclusionLowerX = smtSum(ctx, module.encoding.positionX, exclusion.position.y)
-                    const rightExclusionLowerY = typeof rightAbsExclusionY === "number" ? rightAbsExclusionY - exclusion.width : rightAbsExclusionY.sub(exclusion.width)
+                    const rightNewRelativeExclusionY = module.width - exclusion.position.x - exclusion.width
+                    const rightExclusionLowerY = smtSum(ctx, module.encoding.positionY, rightNewRelativeExclusionY)
 
                     // LEFT direction
                     const leftExclusionLowerY = smtSum(ctx, module.encoding.positionY, exclusion.position.x)
-                    const leftModuleUpperX = smtSum(ctx, module.encoding.positionX, module.height)
-                    const leftExclusionUpperX = typeof leftModuleUpperX === "number" ? leftModuleUpperX - exclusion.position.y : leftModuleUpperX.sub(exclusion.position.y)
-                    const leftExclusionLowerX = typeof leftExclusionUpperX === "number" ? leftExclusionUpperX - exclusion.height : leftExclusionUpperX.sub(exclusion.height)
+                    const leftNewRelativeExclusionX = module.height - exclusion.position.y - exclusion.height
+                    const leftExclusionLowerX = smtSum(ctx, module.encoding.positionX, leftNewRelativeExclusionX)
 
                     label = "dynamic-routing-exclusion-constraints-free-position-free-orientation-id" + exclusion.id
 
@@ -252,29 +249,29 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Up),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(originalX),
-                                        exclusion.encoding.positionY.eq(originalY)
+                                        ctx.Eq(exclusion.encoding.positionX, upExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, upExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Down),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(downExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(downExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, downExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, downExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Right),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(rightExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(rightExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, rightExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, rightExclusionLowerY)
                                     )
                                 ),
                                 ctx.Implies(
                                     module.encoding.orientation.eq(ctx, Orientation.Left),
                                     ctx.And(
-                                        exclusion.encoding.positionX.eq(leftExclusionLowerX),
-                                        exclusion.encoding.positionY.eq(leftExclusionLowerY)
+                                        ctx.Eq(exclusion.encoding.positionX, leftExclusionLowerX),
+                                        ctx.Eq(exclusion.encoding.positionY, leftExclusionLowerY)
                                     )
                                 )
                             ),

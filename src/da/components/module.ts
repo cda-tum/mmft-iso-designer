@@ -63,8 +63,8 @@ export class Module {
             positionX: this.position.x,
             positionY: this.position.y
         } : {
-            positionX: ctx.Int.const(`ebb_${this.id}_position_x`),
-            positionY: ctx.Int.const(`ebb_${this.id}_position_y`)
+            positionX: ctx.Int.const(`ebb_${this.id}_module_position_x`),
+            positionY: ctx.Int.const(`ebb_${this.id}_module_position_y`)
         }
 
         const orientationClauses = orientation.clauses.map(expr => {
