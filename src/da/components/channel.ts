@@ -3,6 +3,7 @@ import { Position } from "../geometry/position"
 import { EnumBitVec, boolVal, intVal } from "../z3Helpers"
 import { ModuleID } from "./module"
 import {Constraint, UniqueConstraint} from "../processing/constraint";
+import {Layer} from "../geometry/layer";
 
 export type ChannelID = number
 type ModulePort = {
@@ -19,6 +20,7 @@ type ChannelProperties = {
     mandatoryWaypoints?: Position[]
     maxLength?: number
     exactLength?: number
+    channelLayer?: Layer
 }
 export class Channel {
     id: number
@@ -30,6 +32,7 @@ export class Channel {
     mandatoryWaypoints?: Position[]
     maxLength?: number
     exactLength?: number
+    channelLayer?: Layer
 
     constructor(o: ChannelProperties) {
         this.id = o.id
@@ -41,6 +44,7 @@ export class Channel {
         this.mandatoryWaypoints = o.mandatoryWaypoints
         this.maxLength = o.maxLength
         this.exactLength = o.exactLength
+        this.channelLayer = o.channelLayer
     }
 
     encode(ctx: Context): EncodedChannel {

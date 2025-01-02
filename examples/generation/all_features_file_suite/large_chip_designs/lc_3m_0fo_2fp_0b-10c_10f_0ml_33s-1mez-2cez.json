@@ -9,19 +9,26 @@
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
-      "spacing": 8000
+      "spacing": 8000,
+      "orientation": 0,
+      "position": {
+        "x": 8000,
+        "y": 8000
+      }
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
-      "spacing": 8000
+      "spacing": 8000,
+      "orientation": 0
     },
     {
       "width": 30000,
       "height": 60000,
       "pitch": 3000,
-      "spacing": 8000
+      "spacing": 8000,
+      "orientation": 0
     }
   ],
   "channels": [
@@ -42,8 +49,7 @@
           0
         ]
       },
-      "maxSegments": 3,
-      "length": 88500
+      "maxSegments": 3
     },
     {
       "width": 500,
@@ -62,8 +68,7 @@
           0
         ]
       },
-      "maxSegments": 1,
-      "actualLength": 0
+      "maxSegments": 1
     },
     {
       "width": 500,
@@ -82,8 +87,7 @@
           0
         ]
       },
-      "maxSegments": 3,
-      "actualLength": 37500
+      "maxSegments": 3
     },
     {
       "width": 500,
@@ -102,8 +106,7 @@
           0
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 111000
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -122,8 +125,7 @@
           18
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 34500
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -142,8 +144,7 @@
           18
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 38500
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -162,8 +163,7 @@
           17
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 93000
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -182,8 +182,7 @@
           18
         ]
       },
-      "maxSegments": 4,
-      "actualLength": 63000
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -202,8 +201,7 @@
           18
         ]
       },
-      "maxSegments": 3,
-      "actualLength": 41500
+      "maxSegments": 3
     },
     {
       "width": 500,
@@ -222,8 +220,7 @@
           18
         ]
       },
-      "maxSegments": 3,
-      "actualLength": 51000
+      "maxSegments": 3
     }
   ],
   "chipRoutingExclusions": [
@@ -242,6 +239,17 @@
       },
       "width": 60000,
       "height": 10000
+    }
+  ],
+  "moduleRoutingExclusions": [
+    {
+      "module": 0,
+      "position": {
+        "x": 8000,
+        "y": 8000
+      },
+      "width": 5000,
+      "height": 5000
     }
   ]
 }

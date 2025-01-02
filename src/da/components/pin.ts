@@ -1,26 +1,25 @@
-import {Arith, Bool, Context, Model} from "z3-solver";
+import {Arith, Context, Model} from "z3-solver";
 import {ModuleID} from "./module";
 import {intVal} from "../z3Helpers";
-import {Constraint} from "../processing/constraint";
+import {Position} from "../geometry/position";
 
 export type pinID = number
 type PinProperties = {
     id: pinID
     module: ModuleID
-    radius: number
+    position?: Position
 }
-
 
 
 export class Pin {
     id: pinID
     module: ModuleID
-    radius: number
+    position?: Position
 
     constructor(o: PinProperties) {
         this.id = o.id
         this.module = o.module
-        this.radius = o.radius
+        this.position = o.position
     }
 
     /******************* ADJUST PIN SPACING HERE ********************/
@@ -44,15 +43,26 @@ export class Pin {
 
     encode(ctx: Context): EncodedPin {
 
-        const pinPosX = ctx.Int.const(`epp_${this.id}_pin_position_x`)
-        const pinPosY = ctx.Int.const(`epp_${this.id}_pin_position_y`)
-        const exclusionRadius = this.radius - Pin.pinSpacing()
+        const exclusionRadius = Pin.pinRadius() + Pin.pinSpacing()
+        let pinX, pinY, exclusionX, exclusionY
+
+        if (this.position !== undefined) {
+            pinX = this.position.x
+            pinY = this.position.y
+            exclusionX = this.position.x - exclusionRadius
+            exclusionY = this.position.y - exclusionRadius
+        } else {
+            pinX = ctx.Int.const(`epp_${this.id}_pin_position_x`)
+            pinY = ctx.Int.const(`epp_${this.id}_pin_position_y`)
+            exclusionX = pinX.sub(exclusionRadius)
+            exclusionY = pinY.sub(exclusionRadius)
+        }
 
         const encodedPinProperties = {
-            positionX: pinPosX,
-            positionY: pinPosY,
-            exclusionPositionX: pinPosX.sub(exclusionRadius),
-            exclusionPositionY: pinPosY.sub(exclusionRadius),
+            positionX: pinX,
+            positionY: pinY,
+            exclusionPositionX: exclusionX,
+            exclusionPositionY: exclusionY,
         }
 
         const instance = new EncodedPin({
@@ -64,10 +74,10 @@ export class Pin {
 }
 
 type EncodedPinProperties = {
-    positionX: Arith
-    positionY: Arith
-    exclusionPositionX: Arith
-    exclusionPositionY: Arith
+    positionX: Arith | number
+    positionY: Arith | number
+    exclusionPositionX: Arith | number
+    exclusionPositionY: Arith | number
 }
 
 export class EncodedPin extends Pin {
@@ -79,7 +89,7 @@ export class EncodedPin extends Pin {
     }
 
     result(m: Model): ResultPin {
-        const exclusionRadius = this.radius + Pin.pinSpacing()
+        const exclusionRadius = Pin.pinRadius() + Pin.pinSpacing()
         const resultPinX = intVal(m, this.encoding.positionX)
         const resultPinY = intVal(m, this.encoding.positionY)
         return new ResultPin({
@@ -89,7 +99,7 @@ export class EncodedPin extends Pin {
                 positionY: resultPinY,
                 exclusionPositionX: resultPinX - exclusionRadius,
                 exclusionPositionY: resultPinY - exclusionRadius,
-                exclusionSideLength: Pin.diameter(this.radius)
+                exclusionSideLength: Pin.diameter(Pin.pinRadius())
             }
         })
     }

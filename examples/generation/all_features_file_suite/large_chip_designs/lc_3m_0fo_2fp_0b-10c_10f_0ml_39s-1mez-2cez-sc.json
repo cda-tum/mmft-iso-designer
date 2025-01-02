@@ -1,5 +1,6 @@
 {
   "timing": 2907,
+  "softCorners": true,
   "chip": {
     "width": 128000,
     "height": 85500
@@ -10,7 +11,11 @@
       "height": 60000,
       "pitch": 3000,
       "spacing": 8000,
-      "orientation": 0
+      "orientation": 0,
+      "position": {
+        "x": 8000,
+        "y": 8000
+      }
     },
     {
       "width": 30000,
@@ -45,7 +50,7 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 5
     },
     {
       "width": 500,
@@ -64,7 +69,7 @@
           0
         ]
       },
-      "maxSegments": 1
+      "maxSegments": 2
     },
     {
       "width": 500,
@@ -83,7 +88,7 @@
           0
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -197,7 +202,7 @@
           18
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 4
     },
     {
       "width": 500,
@@ -216,7 +221,7 @@
           18
         ]
       },
-      "maxSegments": 3
+      "maxSegments": 4
     }
   ],
   "chipRoutingExclusions": [
@@ -241,8 +246,8 @@
     {
       "module": 0,
       "position": {
-        "x": 7000,
-        "y": 7000
+        "x": 8000,
+        "y": 8000
       },
       "width": 5000,
       "height": 5000

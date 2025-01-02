@@ -6,24 +6,20 @@ import {
     waypointSegmentDistance
 } from "../geometry/geometry";
 import {EncodedChannel} from "../components/channel";
-import {EncodedModule} from "../components/module";
-import {Placement} from "../geometry/placement";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
+import {Layer} from "../geometry/layer";
 
-export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel, modules: EncodedModule[]): Constraint[] {
+export function encodeChannelChannelConstraints(ctx: Context, a: EncodedChannel, b: EncodedChannel): Constraint[] {
     const clauses: Constraint[] = []
 
-    const moduleA = modules[a.from.module]
-    const moduleB = modules[b.from.module]
+    const channelsInSameLayer =
+        (a.channelLayer === Layer.One && b.channelLayer === Layer.One) ||
+        (a.channelLayer === Layer.Two && b.channelLayer === Layer.Two) ||
+        (a.channelLayer === undefined && b.channelLayer === undefined) ||
+        (a.channelLayer === undefined && b.channelLayer === Layer.One) ||
+        (a.channelLayer === Layer.One && b.channelLayer === undefined)
 
-    const channelSamePlacement =
-        (moduleA.placement === Placement.Top && moduleB.placement === Placement.Top) ||
-        (moduleA.placement === Placement.Bottom && moduleB.placement === Placement.Bottom) ||
-        (moduleA.placement === undefined && moduleB.placement === undefined) ||
-        (moduleA.placement === undefined && moduleB.placement === Placement.Top) ||
-        (moduleA.placement === Placement.Top && moduleB.placement === undefined)
-
-    if (channelSamePlacement) {
+    if (channelsInSameLayer) {
         /* Avoid segment crossings */
         let label = "channel-channel-constraints-segment-crossing-"
         const labelA = "id-" + a.id

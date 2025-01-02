@@ -58,8 +58,8 @@ class DynamicModuleRoutingExclusion extends RoutingExclusion {
     encode(ctx: Context, modules: EncodedModule[]): EncodedDynamicModuleRoutingExclusion {
         const encodedModule = modules[this.module]
         const encodedModuleRoutingExclusionProperties = {
-            positionX: ctx.Int.const(`ebb_${this.id}_position_x`),
-            positionY: ctx.Int.const(`ebb_${this.id}_position_y`),
+            positionX: ctx.Int.const(`ebb_${this.id}_mre_position_x`),
+            positionY: ctx.Int.const(`ebb_${this.id}_mre_position_y`),
             moduleInstance: encodedModule,
             clauses: []
         }

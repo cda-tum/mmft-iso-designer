@@ -2,14 +2,13 @@ import {ResultChannel} from "../../da/components/channel"
 import {Output} from "../../da/processing/inputOutput"
 import {ResultModule} from "../../da/components/module"
 import {Orientation} from "../../da/geometry/orientation"
-import {
-    ResultDynamicModuleRoutingExclusion,
-    StaticChipRoutingExclusion
-} from "../../da/components/routingExclusion"
+import {ResultDynamicModuleRoutingExclusion, StaticChipRoutingExclusion} from "../../da/components/routingExclusion"
 import {renderToString} from "react-dom/server"
 import {Placement} from "../../da/geometry/placement";
-import {ResultPin} from "../../da/components/pin";
+import {Pin, ResultPin} from "../../da/components/pin";
 import React from "react"
+import {Layer} from "../../da/geometry/layer";
+import {Clamp} from "../../da/components/clamp";
 
 function randomColor() {
     return '#' + [...Array(3).keys()].map(_ => Math.floor(Math.random() * 7 + 2)).join('')
@@ -65,7 +64,7 @@ export function ChipView(props: { chip: Output | undefined }) {
                 }
                 {props.chip &&
                     props.chip.modules.map((b, i) => <ClampInstance module={b} placement={b.placement}
-                                                                    spacing={1000}></ClampInstance>)
+                                                                    spacing={Clamp.clampSpacing()}></ClampInstance>)
                 }
                 {props.chip &&
                     props.chip.pins.map((p, i) => <PinRoutingExclusion pin={p}></PinRoutingExclusion>)
@@ -76,17 +75,9 @@ export function ChipView(props: { chip: Output | undefined }) {
                 {props.chip &&
                     props.chip.channels.map((c, i) => {
                         if (props.chip) {
-                            const fromModule = props.chip.modules[c.from.module];
-                            const toModule = props.chip.modules[c.to.module];
-                            if (fromModule.placement === toModule.placement && fromModule.placement === Placement.Bottom) {
-                                return (
-                                    <Channel channel={c} placement={Placement.Bottom}></Channel>
-                                );
-                            } else {
-                                return (
-                                    <Channel channel={c} placement={Placement.Top}></Channel>
-                                );
-                            }
+                            return (
+                                <Channel channel={c}></Channel>
+                            )
                         }
                     })
                 }
@@ -163,11 +154,10 @@ function ModuleInstance(props: {
     }
 }
 
-function Channel(props: { channel: ResultChannel, color?: string, placement?: Placement | undefined }) {
+function Channel(props: { channel: ResultChannel, color?: string }) {
     const color = props.color ?? randomColor()
     //const color = '#000'
     const points = [...props.channel.results.waypoints]
-    const placement = props.placement ?? undefined
     const strokeDashArray = "400, 800"
 
     const d = points.map((p, i) => {
@@ -178,7 +168,7 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
         }
     }).join(' ')
 
-    if (placement === Placement.Bottom) {
+    if (props.channel.channelLayer === Layer.Two) {
         return (
             <g>
                 <path d={d} strokeWidth={props.channel.width} stroke={color} strokeDasharray={strokeDashArray}
@@ -197,7 +187,7 @@ function Channel(props: { channel: ResultChannel, color?: string, placement?: Pl
 function PinInstance(props: { pin: ResultPin, modules: ResultModule[] | undefined, color?: string }) {
     //const color = props.color ?? '#87b7ff'
     const assignedColor = getColorForId(props.pin.module)
-    const pinRadius = props.pin.radius
+    const pinRadius = Pin.pinRadius()
     const pinStrokeWidth = pinRadius / 3
     const strokeDashArray = "200, 200"
 

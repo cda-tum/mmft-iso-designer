@@ -4,7 +4,7 @@ import {Input} from "./inputOutput"
 
 export {design}
 
-async function design(input: Input) {
+async function design(input: Input, onInputReadComplete?: () => void) {
 
     (window as any).Module = {
         wasmMemory: {
@@ -34,6 +34,9 @@ async function design(input: Input) {
             solver.addAndTrack(c.expr, c.label);
         })
 
+        if (onInputReadComplete) {
+            onInputReadComplete();
+        }
         let start = performance.now()
         const check = await solver.check()
         const timing = performance.now() - start
@@ -101,6 +104,17 @@ async function design(input: Input) {
                     waypoints += ("{ \"x\": " + result.channels[k].results.waypoints[i].x + ", \"y\": " + result.channels[k].results.waypoints[i].y + "},")
                 }
                 console.log(waypoints.slice(0, waypoints.length - 1))
+            }
+
+            for (let m = 0; m < result.modules.length; m++) {
+                console.log("Resulting pins for module : " + m)
+                let pinPositions = ""
+                result.pins.forEach(pin => {
+                    if (pin.module === m) {
+                        pinPositions +=("{ \"x\": " + pin.results.positionX + ", \"y\": " + pin.results.positionY + "},")
+                    }
+                })
+                console.log(pinPositions.slice(0, pinPositions.length - 1))
             }
 
             result.timing = timing

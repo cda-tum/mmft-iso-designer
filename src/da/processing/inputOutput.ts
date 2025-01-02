@@ -29,6 +29,7 @@ import {encodeModulePinConstraints} from "../constraints/modulePinConstraints";
 import {encodeChannelPinConstraints} from "../constraints/channelPinConstraints";
 import {encodeClampConstraints} from "../constraints/clampConstraints";
 import {
+    encodeDynamicModuleRoutingExclusionModules,
     encodeDynamicModuleRoutingExclusionPins, encodeDynamicRoutingExclusion, encodeDynamicRoutingExclusionChannels
 } from "../constraints/dynamicRoutingExclusionConstraints";
 import {Constraint} from "./constraint";
@@ -105,13 +106,13 @@ class Input {
         clauses.push(...pairwiseUnique(modules).flatMap(([a, b]) => encodeModuleModuleConstraints(ctx, a, b)))
 
         /* Encode inter-channel effects */
-        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b, modules)))
+        clauses.push(...pairwiseUnique(channels).flatMap(([a, b]) => encodeChannelChannelConstraints(ctx, a, b)))
 
         /* Encode channel-module effects */
         clauses.push(...cross(channels, modules).flatMap(([c, b]) => encodeChannelModuleConstraints(ctx, c, b)))
 
         /* Encode module-based routing exclusion zones */
-        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules)))
+        clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules, this.chip)))
 
         /* Encode chip-based routing exclusion zones and channels */
         clauses.push(...cross(channels, this.chipRoutingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
@@ -131,14 +132,17 @@ class Input {
         /* Encode module-pin effects */
         clauses.push(...cross(modules, pins).flatMap(([m, p]) => encodeModulePinConstraints(ctx, p, m, modules)))
 
-        /* Encode channel-pin constraints */
+        /* Encode channel-pin effects */
         clauses.push(...cross(channels, pins).flatMap(([c, p]) => encodeChannelPinConstraints(ctx, p, c)))
 
-        /* Encode routing exclusion zones and pins */
+        /* Encode static chip routing exclusion zones and pins effects */
         clauses.push(...cross(pins, this.chipRoutingExclusions).flatMap(([p, e]) => encodeStaticRoutingExclusionPins(ctx, p, e)))
 
-        /* Encode routing exclusion zones and pins */
+        /* Encode module-based routing exclusion zones and pins effects */
         clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
+
+        /* Encode module-based routing exclusion zones and (other) modules effects */
+        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m)))
 
         return new EncodedInput({
             ...this,
@@ -160,19 +164,37 @@ class Input {
 
         // fill a new clamps array with a clamp for each module
         o.modules?.forEach((c, i) => {
-            clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement}))
+            clamps.push(new Clamp({clampID: i, clampingModuleID: c.id, placement: c.placement, spacing: Clamp.clampSpacing()}))
         })
 
-        // fill a new pins array with three pins for each module
+        // fill a new pins array with three pins for each module or pre-defined pins
+        let id = 0
         o.modules?.forEach((c, k) => {
-            if (c.pinAmount !== undefined) {
-                for (let i = 0; i < c.pinAmount; i++) {
-                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+            const totalPinAmount = c.pinAmount !== undefined ? c.pinAmount : Pin.defaultPins()
+            if (o.pins !== undefined) {
+                let pinCount = 0
+                o.pins.forEach((pin) => {
+                    if (pin.module === k) {
+                        pins.push(new Pin({id: pin.id, module: k, position: pin.position}))
+                        pinCount++
+                    }
+                    id = pin.id
+                })
+                id++
+                while (pinCount < totalPinAmount) {
+                    pins.push(new Pin({id: id, module: k}))
+                    pinCount++
                 }
             } else {
-                // default number of pins is 3
-                for (let i = 0; i < Pin.defaultPins(); i++) {
-                    pins.push(new Pin({id: i, module: k, radius: Pin.pinRadius()}))
+                if (c.pinAmount !== undefined) {
+                    for (let i = 0; i < c.pinAmount; i++) {
+                        pins.push(new Pin({id: i, module: k}))
+                    }
+                } else {
+                    // default number of pins is 3
+                    for (let i = 0; i < Pin.defaultPins(); i++) {
+                        pins.push(new Pin({id: i, module: k}))
+                    }
                 }
             }
         })

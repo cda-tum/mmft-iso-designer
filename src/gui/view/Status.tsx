@@ -4,6 +4,7 @@ import {useEffect, useState} from "react"
 export enum StatusType {
     Idle,
     Error,
+    Reading,
     Computing,
     Result
 }
@@ -15,6 +16,10 @@ type IdleStatus = {
 type ErrorStatus = {
     status: StatusType.Error
     message?: string
+}
+
+type ReadingStatus = {
+    status: StatusType.Reading
 }
 
 type ComputingStatus = {
@@ -31,7 +36,12 @@ type ResultStatus = {
     unsatCores?: string[]
 }
 
-export type StatusProps = IdleStatus | ErrorStatus | ComputingStatus | ResultStatus
+const LoadingSpinner: React.FC = () => (
+    <div className="loading-spinner">
+    </div>
+)
+
+export type StatusProps = IdleStatus | ErrorStatus | ReadingStatus | ComputingStatus | ResultStatus
 
 export function Status(props: StatusProps) {
 
@@ -63,6 +73,17 @@ export function Status(props: StatusProps) {
                     wrong{props.message === undefined && '.'}{props.message !== undefined && `:${props.message}`}</Typography>
             }
             {
+                props.status === StatusType.Reading &&
+                <div className="center-container">
+                    <Typography>
+                        <span className="input-reading">Reading and encoding input file...{' '}</span>
+                        For larger files, this can take a while, please be patient. <span className="input-reading">The status will automatically update.</span>
+                    </Typography>
+                    <br/>
+                    <LoadingSpinner/>
+                </div>
+            }
+            {
                 props.status === StatusType.Computing &&
                 <Typography>Computing design for file <span className="filename">{props.filename}</span>. <br/> Time
                     elapsed: {elapsedTime} s</Typography>
@@ -70,7 +91,7 @@ export function Status(props: StatusProps) {
             {
                 props.status === StatusType.Result && (
                     <>
-                        <Typography>
+                    <Typography>
                             Computation for file <span className="filename">{props.filename}</span> terminated.
                             <br />
                             Result: {props.success ? (

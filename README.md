@@ -11,7 +11,19 @@ To use the tool locally, install `node` and `npm`, then run
 
 ```sh
 npm install
+```
+
+To start a single instance on a local port run
+
+```sh
 npm start
+```
+
+To start two instances on two local ports (possible since the computational load is single-cored) run
+
+```sh
+npm run start:port1
+npm run start:port2
 ```
 
 A browser window should open up where you can load an input file using the `Load` button.
