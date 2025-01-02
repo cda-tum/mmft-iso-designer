@@ -1,4 +1,4 @@
-# Timings of the all-feature test suite
+# Timings of the all-feature test suite generation test files
 
 ## Files
 
@@ -25,7 +25,7 @@
 #### `mc-3m_3fo_3fp_0b-8c_5f_0ml_24s-0mez-0cez-sc.json`: 15s
 #### `mc-3m_3fo_3fp_0b-8c_5f_0ml_24s_3el-0mez-0cez-sc.json`: 706s
 #### `mc-3m_3fo_3fp_0b-9c_9f_0ml_24s-0mez-0cez-sc.json`: 134s
-#### `mc-3m_0fo_0fp_0b-12c_12f_0ml_34s-0mez-0cez-sc.json`: 106s
+#### `mc-3m_0fo_0fp_0b-12c_12f_0ml_34s-0mez-0cez-sc.json`: 96s
 #### `mc-3m_3fo_3fp_0b-12c_12f_6ml_34s-0mez-0cez-sc.json`: 474s
 #### `mc-3m_3fo_3fp_0b-12c_12f_0ml_34s-0mez-0cez-sc.json`: 1377s
 
