@@ -1,5 +1,5 @@
 {
-  "timing": 613.1999999955297,
+  "timing": 1124.1849999427795,
   "softCorners": true,
   "chip": {
     "width": 25000,
@@ -13,7 +13,7 @@
       "spacing": 5000,
       "position": {
         "x": 5000,
-        "y": 18000
+        "y": 6771
       },
       "orientation": 2,
       "pinAmount": 2,
@@ -26,7 +26,7 @@
       "spacing": 5000,
       "position": {
         "x": 5000,
-        "y": 5000
+        "y": 29271
       },
       "orientation": 2,
       "pinAmount": 2,
@@ -39,7 +39,7 @@
       "spacing": 5000,
       "position": {
         "x": 5000,
-        "y": 55000
+        "y": 51771
       },
       "orientation": 2,
       "pinAmount": 2,
@@ -65,16 +65,16 @@
         ]
       },
       "maxSegments": 1,
-      "exactLength": 2500,
+      "exactLength": 33000,
       "channelLayer": 0,
       "mandatoryWaypoints": [
         {
           "x": 18500,
-          "y": 21000
+          "y": 9771
         },
         {
           "x": 18500,
-          "y": 18500
+          "y": 42771
         }
       ]
     },
@@ -96,16 +96,16 @@
         ]
       },
       "maxSegments": 1,
-      "exactLength": 2500,
+      "exactLength": 33000,
       "channelLayer": 0,
       "mandatoryWaypoints": [
         {
           "x": 17000,
-          "y": 21000
+          "y": 9771
         },
         {
           "x": 17000,
-          "y": 18500
+          "y": 42771
         }
       ]
     },
@@ -127,16 +127,16 @@
         ]
       },
       "maxSegments": 1,
-      "exactLength": 2500,
+      "exactLength": 33000,
       "channelLayer": 0,
       "mandatoryWaypoints": [
         {
           "x": 15500,
-          "y": 21000
+          "y": 9771
         },
         {
           "x": 15500,
-          "y": 18500
+          "y": 42771
         }
       ]
     },
@@ -158,24 +158,24 @@
         ]
       },
       "maxSegments": 3,
-      "exactLength": 41500,
+      "exactLength": 64000,
       "channelLayer": 0,
       "mandatoryWaypoints": [
         {
           "x": 14000,
-          "y": 31500
+          "y": 20271
         },
         {
-          "x": 16999,
-          "y": 34499
+          "x": 6750,
+          "y": 27521
         },
         {
-          "x": 16999,
-          "y": 66999
+          "x": 6750,
+          "y": 53521
         },
         {
           "x": 18500,
-          "y": 68500
+          "y": 65271
         }
       ]
     }
@@ -187,42 +187,42 @@
       "module": 0,
       "position": {
         "x": 4000,
-        "y": 26500
+        "y": 5771
       }
     },
     {
       "module": 0,
       "position": {
-        "x": 12250,
-        "y": 34000
+        "x": 4000,
+        "y": 22771
       }
     },
     {
       "module": 1,
       "position": {
         "x": 4000,
-        "y": 11500
+        "y": 28271
       }
     },
     {
       "module": 1,
       "position": {
-        "x": 12750,
-        "y": 4000
-      }
-    },
-    {
-      "module": 2,
-      "position": {
-        "x": 5250,
-        "y": 54000
+        "x": 4000,
+        "y": 45271
       }
     },
     {
       "module": 2,
       "position": {
         "x": 12750,
-        "y": 71000
+        "y": 50771
+      }
+    },
+    {
+      "module": 2,
+      "position": {
+        "x": 12750,
+        "y": 67771
       }
     }
   ]
