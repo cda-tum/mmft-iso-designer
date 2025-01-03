@@ -4,6 +4,7 @@ import {EncodedModule} from "../components/module";
 import {smtSum} from "../utils";
 import {Placement} from "../geometry/placement";
 import {Constraint} from "../processing/constraint";
+import {Clamp} from "../components/clamp";
 
 export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b: EncodedModule): Constraint[] {
     const clauses: Constraint[] = []
@@ -12,7 +13,7 @@ export function encodeModuleModuleConstraints(ctx: Context, a: EncodedModule, b:
     let label = "module-module-constraints-inter-module-distance-id-"
     {
         const sameSideCondition = ((a.placement === Placement.Top || a.placement === undefined) && (b.placement === Placement.Top || b.placement === undefined))
-        const min_distance = Math.max(a.spacing + 1000, b.spacing + 1000)
+        const min_distance = Math.max(a.spacing + Clamp.clampSpacing(), b.spacing + Clamp.clampSpacing())
         if (sameSideCondition) {
             clauses.push(
                 {
