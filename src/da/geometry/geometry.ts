@@ -270,8 +270,9 @@ export function segmentBoxMinDistanceDiagonal(ctx: Context, segment: {
                                               }, min_distance: number) {
     const c1SubMinDist = typeof box.x === "number" ? box.x - min_distance : box.x.sub(min_distance)
     const c2SubMinDist = typeof box.y === "number" ? box.y - min_distance : box.y.sub(min_distance)
-    const minDistC1Span = typeof box.x_span === "number" ? box.x_span + min_distance : box.x_span.add(min_distance)
-    const minDistC2Span = typeof box.y_span === "number" ? box.y_span + min_distance : box.y_span.add(min_distance)
+    const doubleMinDist = min_distance * 2
+    const minDistC1Span = typeof box.x_span === "number" ? box.x_span + doubleMinDist : box.x_span.add(doubleMinDist)
+    const minDistC2Span = typeof box.y_span === "number" ? box.y_span + doubleMinDist : box.y_span.add(doubleMinDist)
 
     const expandedBox = {
         x: c1SubMinDist,

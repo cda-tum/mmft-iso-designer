@@ -299,7 +299,7 @@ export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDy
                     ctx.GE(exclusion.encoding.positionY, chipLowerY),
                     ctx.LE(exclusion.encoding.positionY, chipHigherY),
                 ),
-                label: label + UniqueConstraint.generateRandomString()
+                label: label + exclusion.id + UniqueConstraint.generateRandomString()
             }
         )
     }
@@ -403,7 +403,7 @@ export function encodeDynamicModuleRoutingExclusionModules(ctx: Context, exclusi
     {
         if (exclusion.module !== module.id) {
             let label = "dynamic-routing-exclusion-constraints-module-id-" + module.id + "-no-cross-exclusion-id-" + exclusion.id
-            const min_distance = Clamp.clampSpacing()
+            const min_distance = Clamp.clampSpacing() + Pin.pinSpacing() + Pin.pinRadius()
             {
                 clauses.push(
                     {

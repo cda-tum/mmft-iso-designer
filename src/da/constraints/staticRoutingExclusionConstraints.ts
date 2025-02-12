@@ -1,15 +1,41 @@
-import {Bool, Context} from "z3-solver";
+import {Context} from "z3-solver";
 import {StaticChipRoutingExclusion} from "../components/routingExclusion";
 import {
     boxBoxMinDistance,
-    channelSegmentRoutingExclusionDistance,
-    channelSegmentRoutingExclusionNoCross,
+    channelSegmentRoutingExclusionDistance, channelSegmentRoutingExclusionNoCross,
     waypointRoutingExclusionDistance
 } from "../geometry/geometry";
 import {EncodedChannel} from "../components/channel";
 import {EncodedPin, Pin} from "../components/pin";
-import {Constraint} from "../processing/constraint";
+import {Constraint, UniqueConstraint} from "../processing/constraint";
+import {Chip} from "../components/chip";
 
+
+export function encodeStaticRoutingExclusion(ctx: Context, chip: Chip, exclusion: StaticChipRoutingExclusion): Constraint[] {
+    const clauses: Constraint[] = []
+
+    /* Dynamic module-based exclusion zones must be within the boundaries of the chip */
+    let label = "static-routing-exclusion-constraints-chip-boundaries-exclusion-id-"
+    {
+        const chipLowerX = chip.originX
+        const chipHigherX = chip.originX + chip.width
+        const chipLowerY = chip.originY
+        const chipHigherY = chip.originY + chip.height
+
+        clauses.push(
+            {
+                expr: ctx.And(
+                    exclusion.position.x >= chipLowerX,
+                    exclusion.position.x <= chipHigherX,
+                    exclusion.position.y >= chipLowerY,
+                    exclusion.position.y <= chipHigherY
+                ),
+                label: label + exclusion.id + UniqueConstraint.generateRandomString()
+            }
+        )
+    }
+    return clauses
+}
 
 export function encodeStaticRoutingExclusionChannels(ctx: Context, channel: EncodedChannel, exclusion: StaticChipRoutingExclusion): Constraint[] {
     const clauses: Constraint[] = []

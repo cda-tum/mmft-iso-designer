@@ -15,7 +15,8 @@
 #### `json_output_lc_3m_3fo_3fp_0b-10c_10f_0ml_33s-0mez-2cez_1471s.json`: 2.943s
 #### `json_output_lc-3m_0fo_3fp_1b-9c_9f_0ml_33s-0mez-2cez-sc_368s.json`: 3.158s
 #### `json_output_lc-3m_3fo_3fp_1b-7c_7f_0ml_21s-0mez-0cez-sc_82s.json`: 1.490s
-#### `json_output_lc-9m_0fo_0fp_0b-24c_0f_0ml_129s_24el-0mez-0cez-sc_197s.json`: 110s
+#### `json_output_lc-9m_0fo_0fp_0b-24c_1f_0ml_135s_23el-0mez-0cez-sc-adjusted_332s.json`: 98.63s
+#### `json_output_lc-6m_0fo_0fp_0b-8c_8f_0ml_40s_0el-0mez-0cez-sc_808s.json`: 4.463s
 
 
 ### Medium chips
