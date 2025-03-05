@@ -13,7 +13,7 @@
 #### `lc_3m_3fo_0fp_0b-0c_0f_0ml_0s-3mez-2cez.json`: 0.1s
 #### `lc_3m_3fo_0fp_0b-8c_8f_0ml_24s-3mez-2cez-sc.json`: 103.99s
 #### `lc_3m_0fo_2fp_0b-10c_10f_0ml_33s-1mez-2cez.json`: 596s
-#### `lc_3m_0fo_2fp_0b-10c_10f_0ml_39s-1mez-2cez-sc.json`: 399s
+#### `lc_3m_0fo_2fp_0b-10c_10f_0ml_39s-1mez-2cez-sc.json`: 577.47s
 #### `lc-3m_3fo_3fp_1b-7c_7f_0ml_21s-0mez-0cez-sc.json`: 99.98s
 
 #### `lc-6m_4fo_4fp_1b-4c_4f_0ml_20s_0el-0mez-0cez-sc`: 44.32s

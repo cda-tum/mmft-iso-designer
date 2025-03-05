@@ -142,7 +142,7 @@ class Input {
         clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
 
         /* Encode module-based routing exclusion zones and (other) modules effects */
-        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m)))
+        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m, modules)))
 
         return new EncodedInput({
             ...this,
