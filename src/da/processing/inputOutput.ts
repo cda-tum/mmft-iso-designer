@@ -13,6 +13,7 @@ import {encodeChannelPortConstraints} from "../constraints/channelPortConstraint
 import {encodeChannelWaypointConstraints} from "../constraints/channelWaypointsConstraints"
 import {encodeChannelChannelConstraints} from "../constraints/channelChannelConstraints"
 import {
+    encodeStaticRoutingExclusion,
     encodeStaticRoutingExclusionChannels,
     encodeStaticRoutingExclusionPins
 } from "../constraints/staticRoutingExclusionConstraints"
@@ -114,6 +115,9 @@ class Input {
         /* Encode module-based routing exclusion zones */
         clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules, this.chip)))
 
+        /* Encode module-based routing exclusion zones */
+        clauses.push(...this.chipRoutingExclusions.flatMap(e => encodeStaticRoutingExclusion(ctx, this.chip, e)))
+
         /* Encode chip-based routing exclusion zones and channels */
         clauses.push(...cross(channels, this.chipRoutingExclusions).flatMap(([c, e]) => encodeStaticRoutingExclusionChannels(ctx, c, e)))
 
@@ -142,7 +146,7 @@ class Input {
         clauses.push(...cross(pins, moduleRoutingExclusions).flatMap(([p, e]) => encodeDynamicModuleRoutingExclusionPins(ctx, p, e)))
 
         /* Encode module-based routing exclusion zones and (other) modules effects */
-        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m, modules)))
+        clauses.push(...cross(modules, moduleRoutingExclusions).flatMap(([m, e]) => encodeDynamicModuleRoutingExclusionModules(ctx, e, m)))
 
         return new EncodedInput({
             ...this,
