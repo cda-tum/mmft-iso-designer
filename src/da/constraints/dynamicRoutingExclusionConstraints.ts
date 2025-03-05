@@ -14,7 +14,6 @@ import {EncodedModule} from "../components/module";
 import {Constraint, UniqueConstraint} from "../processing/constraint";
 import {Chip} from "../components/chip";
 import {Clamp} from "../components/clamp";
-import {Placement} from "../geometry/placement";
 
 export function encodeDynamicRoutingExclusion(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion, modules: EncodedModule[], chip: Chip): Constraint[] {
     const clauses: Constraint[] = []
@@ -397,15 +396,12 @@ export function encodeDynamicModuleRoutingExclusionPins(ctx: Context, pin: Encod
     return clauses
 }
 
-export function encodeDynamicModuleRoutingExclusionModules(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion, module: EncodedModule, modules: EncodedModule[]): Constraint[] {
+export function encodeDynamicModuleRoutingExclusionModules(ctx: Context, exclusion: EncodedDynamicModuleRoutingExclusion, module: EncodedModule): Constraint[] {
     const clauses: Constraint[] = []
 
     /* Other modules on the other side of the chip may not lie inside or overlap with routing exclusion zones */
     {
-        const exclusionModule = modules[exclusion.module]
-        const otherSideCondition = ((exclusionModule.placement === Placement.Top || exclusionModule.placement === undefined) && (module.placement === Placement.Bottom)) ||
-            ((exclusionModule.placement === Placement.Bottom) && (module.placement === Placement.Top || module.placement === undefined))
-        if (otherSideCondition) {
+        if (exclusion.module !== module.id) {
             let label = "dynamic-routing-exclusion-constraints-module-id-" + module.id + "-no-cross-exclusion-id-" + exclusion.id
             const min_distance = Clamp.clampSpacing() + 500
             {
