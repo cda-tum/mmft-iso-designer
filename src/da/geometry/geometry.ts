@@ -632,7 +632,7 @@ export function segmentBoxNoCrossSlopePos(ctx: Context, segment: {
     const minimumY = boxUpperSideOverlap.add(boxTopSide_y)          // minimum upper y-value that the segment must have not to cut the box in the upper left corner
 
     // x-value of the right side of the box
-    const boxRightSide_x = typeof box.x_span !== "number" ? box.x_span.add(box.x) : typeof box.x !== "number" ? box.x.add(box.y_span) : box.x + box.x_span
+    const boxRightSide_x = typeof box.x_span !== "number" ? box.x_span.add(box.x) : typeof box.x !== "number" ? box.x.add(box.x_span) : box.x + box.x_span
     const boxRightSideOverlap = segment.y_higher.sub(box.y)   // overlap of the segment on the right of the box
     const minimumX = boxRightSideOverlap.add(boxRightSide_x)    // minimum upper x-value that the segment must have not to cut the box in the lower right corner
 
