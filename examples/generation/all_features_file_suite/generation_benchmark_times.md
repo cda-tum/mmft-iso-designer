@@ -24,6 +24,9 @@
 #### `lc-9m_0fo_0fp_0b-24c_0f_0ml_135s_24el-0mez-0cez-sc-adjusted-no-pins.json`: 250.65s
 #### `lc-9m_0fo_0fp_0b-4c_4f_0ml_18s_0el-0mez-0cez-sc.json`: 50.83s
 
+#### `lc-6m_0fo_0fp_0b-8c_8f_0ml_40s_0el-0mez-0cez-sc-invalid`: 5.54s
+#### `lc-9m_0fo_0fp_0b-24c_1f_0ml_135s_23el-0mez-0cez-sc-adjusted-invalid`: 177.51s
+
 
 
 ### Medium chips
@@ -36,6 +39,11 @@
 #### `mc-3m_3fo_3fp_0b-12c_12f_6ml_34s-0mez-0cez-sc.json`: 808.21s
 #### `mc-3m_3fo_3fp_0b-12c_12f_0ml_34s-0mez-0cez-sc.json`: 1377s
 
+#### `mc-3m_0fo_0fp_0b-12c_12f_0ml_34s-0mez-0cez-sc-invalid`: 3.52s
+#### `mc-3m_3fo_3fp_0b-12c_12f_0ml_12s-0mez-0cez-sc-invalid`: 13.07s
+
+
+
 
 ### Small chips (up-to-date)
 
@@ -46,6 +54,9 @@
 #### `sc-3m_3fo_3fp_0b-8c_8f_4ml_22s-0mez-0cez-sc.json`: 29s
 #### `sc-3m_3fo_3fp_0b-6c_6f_0ml_22s-0mez-0cez-sc.json`: 55s
 #### `sc-3m_3fo_3fp_0b-8c_8f_0ml_22s-0mez-0cez-sc.json`: 61s
+
+#### `sc-3m_3fo_3fp_0b-6c_6f_0ml_12s-0mez-0cez-invalid`: 0.70s
+#### `sc-3m_3fo_3fp_0b-8c_8f_0ml_22s-0mez-0cez-sc-invalid`: 7.66s
 
 
 
