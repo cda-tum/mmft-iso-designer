@@ -115,7 +115,7 @@ class Input {
         /* Encode module-based routing exclusion zones */
         clauses.push(...moduleRoutingExclusions.flatMap(e => encodeDynamicRoutingExclusion(ctx, e, modules, this.chip)))
 
-        /* Encode module-based routing exclusion zones */
+        /* Encode chip-based routing exclusion zones */
         clauses.push(...this.chipRoutingExclusions.flatMap(e => encodeStaticRoutingExclusion(ctx, this.chip, e)))
 
         /* Encode chip-based routing exclusion zones and channels */
