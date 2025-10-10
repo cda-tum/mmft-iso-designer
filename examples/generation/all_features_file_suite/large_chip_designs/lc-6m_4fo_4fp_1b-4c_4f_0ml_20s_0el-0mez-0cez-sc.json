@@ -1,0 +1,138 @@
+{
+  "timing": 3829,
+  "softCorners": true,
+  "chip": {
+    "width": 128000,
+    "height": 85500
+  },
+  "modules": [
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 50000,
+        "y": 5000
+      },
+      "orientation": 0
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "placement": 1
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000
+    },
+    {
+      "width": 15000,
+      "height": 15000,
+      "pitch": 3000,
+      "spacing": 3000,
+      "position": {
+        "x": 90000,
+        "y": 65000
+      },
+      "orientation": 0
+    }
+  ],
+  "channels": [
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          0,
+          0
+        ]
+      },
+      "maxSegments": 5
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          1,
+          0
+        ]
+      },
+      "maxSegments": 5
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          2,
+          0
+        ]
+      },
+      "maxSegments": 5
+    },
+    {
+      "width": 500,
+      "spacing": 1000,
+      "from": {
+        "module": 1,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "to": {
+        "module": 5,
+        "port": [
+          3,
+          0
+        ]
+      },
+      "maxSegments": 5
+    }
+  ],
+  "chipRoutingExclusions": [],
+  "moduleRoutingExclusions": [],
+  "pins": []
+}

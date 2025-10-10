@@ -1,44 +1,64 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import { design } from './da/design';
-import { Input, Output } from './da/inputOutput';
+import { design } from './da/processing/design';
+import { Input, Output } from './da/processing/inputOutput';
 import { ChipView, svgAsString } from './gui/view/ChipView';
 import { Button, Typography } from '@mui/joy';
 import { nanoid } from '@reduxjs/toolkit';
 import { Status, StatusProps, StatusType } from './gui/view/Status';
 import MakerJs, { IModel } from 'makerjs';
 
+
 function App() {
 
   const tempInput = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState(undefined as undefined | Input)
   const [output, setOutput] = useState(undefined as undefined | Output)
-
+  const [fileName, setFileName] = useState(undefined as undefined | string)
+  const [timing, setTiming] = useState(undefined as undefined | number)
 
   useEffect(() => {
     if (input) {
-      console.log("Running...")
+      console.log("Running...");
       setStatus({
-        status: StatusType.Computing,
-        startTime: performance.now()
+        status: StatusType.Reading
+      });
+      setOutput(undefined);
+
+      design(input, () => {
+        // This callback gets triggered when input reading ends and designing starts
+        setStatus({
+          status: StatusType.Computing,
+          startTime: performance.now(),
+          filename: fileName,
+        });
       })
-      setOutput(undefined)
-      design(input).then(r => {
+          .then(r => {
         if (!r) {
-          throw 'An unknown error has occurred.'
+          throw 'An error occurred while designing. Please check the console output for further details.'
         } else {
           if (r.success) {
             setStatus({
               status: StatusType.Result,
               success: true,
-              timing: r.timing!
+              timing: r.timing!,
+              filename: fileName
             })
+            if (r.timing) {
+              if (r.timing! < 1) {
+                setTiming(1)
+              } else {
+                setTiming(Math.trunc(r.timing!))
+              }
+            }
             setOutput(r)
           } else {
             setStatus({
               status: StatusType.Result,
               success: false,
-              timing: r.timing!
+              timing: r.timing!,
+              filename: fileName,
+              unsatCores: r.unsatCoreLabels
             })
             setOutput(undefined)
           }
@@ -89,6 +109,7 @@ function App() {
                 return
               }
               const file = e.target.files[0];
+              setFileName(file.name);
 
               const reader = new FileReader();
               reader.readAsText(file, 'UTF-8');
@@ -127,7 +148,11 @@ function App() {
             onClick={() => {
               if (output !== undefined) {
                 const o = transformToInput(output)
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "json_output_" + outputName + "_" + timing + "s"
+                }
                 downloadJSON(o, id)
               }
             }}
@@ -140,7 +165,11 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "output_" + outputName + "_" + timing + "s"
+                }
                 downloadSVG(svgAsString(output), id)
               }
             }}
@@ -153,7 +182,11 @@ function App() {
           <Button
             onClick={() => {
               if (output !== undefined) {
-                const id = nanoid()
+                let id = nanoid()
+                if (fileName !== undefined) {
+                  const outputName = fileName.slice(0, -5)
+                  id = "dxf_output_" + outputName + "_" + timing + "s"
+                }
                 downloadDXF(output, id)
               }
             }}
@@ -165,23 +198,27 @@ function App() {
           </Button>
         </div>
         <Status {...status}></Status>
-        <ChipView chip={output}></ChipView>
+        <ChipView chip={output} ></ChipView>
       </main>
       <footer
-        style={{
-          position: 'absolute',
-          width: '100%',
-          bottom: 0,
-          backgroundColor: '#444',
-        }}
-      >
-        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}><Typography
-          level='h4'
-          sx={{
-            color: '#fff',
-            padding: 1
+          style={{
+            position: 'fixed',
+            width: '100%',
+            bottom: 0,
+            backgroundColor: '#444',
           }}
-        >Chair for Design Automation<br />Technical University of Munich</Typography></a>
+      >
+        <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}>
+          <Typography
+              level='h4'
+              sx={{
+                color: '#fff',
+                padding: 1
+              }}
+          >
+            Chair for Design Automation<br />Technical University of Munich
+          </Typography>
+        </a>
       </footer>
     </div>
   );
@@ -190,6 +227,7 @@ function App() {
 function transformToInput(o: Output, waypoints_fixed = true) {
   const output = {
     timing: o.timing,
+    softCorners: o.softCorners,
     chip: {
       width: o.chip.width,
       height: o.chip.height
@@ -203,7 +241,9 @@ function transformToInput(o: Output, waypoints_fixed = true) {
         x: b.results.positionX,
         y: b.results.positionY
       },
-      orientation: b.results.orientation
+      orientation: b.results.orientation,
+      pinAmount: b.pinAmount,
+      placement: b.placement ? b.placement : 0
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -218,17 +258,38 @@ function transformToInput(o: Output, waypoints_fixed = true) {
       },
       maxSegments: c.maxSegments,
       maxLength: c.maxLength,
-      ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
-      length: c.results.length
+      exactLength: c.results.length,
+      channelLayer: c.channelLayer ? c.channelLayer : 0,
+      mandatoryWaypoints: c.results.waypoints.map(wp => ({
+        x: wp.x,
+        y: wp.y
+      })),
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
-      positionX: e.position.x,
-      positionY: e.position.y,
+    chipRoutingExclusions: o.chipRoutingExclusions.map(e => ({
+      position: {
+        x: e.position.x,
+        y: e.position.y
+      },
       width: e.width,
       height: e.height
-    }))
+    })),
+    moduleRoutingExclusions: o.moduleRoutingExclusions.map(e => ({
+      module: e.module,
+      position: {
+        x: e.results.positionX - o.modules[e.module].results.positionX,
+        y: e.results.positionY - o.modules[e.module].results.positionY
+      },
+      width: e.width,
+      height: e.height
+    })),
+    pins: o.pins.map(p => ({
+      module: p.module,
+      position: {
+        x: p.results.positionX,
+        y: p.results.positionY
+      }
+    })),
   }
-
   return output
 }
 
@@ -248,7 +309,9 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
         x: b.results.positionX,
         y: b.results.positionY
       },
-      orientation: b.results.orientation
+      orientation: b.results.orientation,
+      pinAmount: b.pinAmount,
+      placement: b.placement ? b.placement : 0
     })),
     channels: o.channels.map(c => ({
       width: c.width,
@@ -264,9 +327,10 @@ function transformToStaticInput(o: Output, waypoints_fixed = true) {
       maxSegments: c.maxSegments,
       maxLength: c.maxLength,
       ...(c.mandatoryWaypoints ? { mandatoryWaypoints: c.mandatoryWaypoints } : {}),
-      length: c.results.length
+      length: c.results.length,
+      channelLayer: c.channelLayer ? c.channelLayer : 0
     })),
-    routingExclusions: o.routingExclusions.map(e => ({
+    routingExclusions: o.chipRoutingExclusions.map(e => ({
       positionX: e.position.x,
       positionY: e.position.y,
       width: e.width,

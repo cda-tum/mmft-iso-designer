@@ -24,11 +24,13 @@
     "typescript": "^4.9.5",
     "v4-uuid": "^1.1.0",
     "web-vitals": "^2.1.4",
-    "z3-solver": "^4.12.2"
+    "z3-solver": "^4.13.3"
   },
   "scripts": {
-    "start": "cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts start",
+    "start": "cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts --max_old_space_size=4096 start ",
     "build": "cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts build",
+    "start:port1": "cross-env PORT=3001 cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts --max_old_space_size=4096 start",
+    "start:port2": "cross-env PORT=3002 cp node_modules/z3-solver/build/z3-built.js public/ && cp node_modules/z3-solver/build/z3-built.wasm public/ && cp node_modules/coi-serviceworker/coi-serviceworker.min.js public/ && cp node_modules/z3-solver/build/z3-built.worker.js public/ && react-scripts --max_old_space_size=4096 start",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -51,6 +53,7 @@
     ]
   },
   "devDependencies": {
-    "@types/d3": "^7.4.1"
+    "@types/d3": "^7.4.1",
+    "cross-env": "^7.0.3"
   }
 }
