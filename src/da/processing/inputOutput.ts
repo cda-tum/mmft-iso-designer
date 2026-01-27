@@ -250,6 +250,8 @@ class Output extends EncodedInput {
     moduleRoutingExclusions!: ResultDynamicModuleRoutingExclusion[]
 
     timing?: number //ms
+    totalWireLength?: number //micrometer
+    bendCount?: number //number of bends (change of direction in channels)
     success: true = true
 
     constructor(obj: Partial<Output>) {

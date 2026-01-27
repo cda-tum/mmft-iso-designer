@@ -1,5 +1,6 @@
 import {init, Z3_app, Z3_ast} from "z3-solver"
 import {Input} from "./inputOutput"
+import { bendCount, totalWireLength } from "../utils"
 
 
 export {design}
@@ -116,6 +117,9 @@ async function design(input: Input, onInputReadComplete?: () => void) {
                 })
                 console.log(pinPositions.slice(0, pinPositions.length - 1))
             }
+
+            result.totalWireLength = totalWireLength(result)
+            result.bendCount = bendCount(result)
 
             result.timing = timing
             return result

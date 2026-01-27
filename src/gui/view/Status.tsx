@@ -34,6 +34,8 @@ type ResultStatus = {
     success: boolean
     filename?: string
     unsatCores?: string[]
+    totalWireLength?: number
+    bendCount?: number
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -102,6 +104,18 @@ export function Status(props: StatusProps) {
                             <br />
                             Total runtime: {props.timing / 1000} s
                         </Typography>
+                        {props.totalWireLength !== undefined && (
+                            <>
+                                <br />
+                                <Typography>Total Wire Length: {props.totalWireLength / 1000} mm</Typography>
+                            </>
+                        )}
+                        {props.bendCount !== undefined && (
+                            <>
+                                <br />
+                                <Typography>Bend Count: {props.bendCount}</Typography>
+                            </>
+                        )}
                         {!props.success && (
                             <>
                                 <br />
