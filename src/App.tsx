@@ -33,43 +33,45 @@ function App() {
           filename: fileName,
         });
       })
-          .then(r => {
-        if (!r) {
-          throw 'An error occurred while designing. Please check the console output for further details.'
-        } else {
-          if (r.success) {
-            setStatus({
-              status: StatusType.Result,
-              success: true,
-              timing: r.timing!,
-              filename: fileName
-            })
-            if (r.timing) {
-              if (r.timing! < 1) {
-                setTiming(1)
-              } else {
-                setTiming(Math.trunc(r.timing!))
-              }
-            }
-            setOutput(r)
+        .then(r => {
+          if (!r) {
+            throw 'An error occurred while designing. Please check the console output for further details.'
           } else {
-            setStatus({
-              status: StatusType.Result,
-              success: false,
-              timing: r.timing!,
-              filename: fileName,
-              unsatCores: r.unsatCoreLabels
-            })
-            setOutput(undefined)
+            if (r.success) {
+              setStatus({
+                status: StatusType.Result,
+                success: true,
+                timing: r.timing!,
+                filename: fileName,
+                bendCount: r.bendCount,
+                totalWireLength: r.totalWireLength
+              })
+              if (r.timing) {
+                if (r.timing! < 1) {
+                  setTiming(1)
+                } else {
+                  setTiming(Math.trunc(r.timing!))
+                }
+              }
+              setOutput(r)
+            } else {
+              setStatus({
+                status: StatusType.Result,
+                success: false,
+                timing: r.timing!,
+                filename: fileName,
+                unsatCores: r.unsatCoreLabels
+              })
+              setOutput(undefined)
+            }
           }
-        }
 
-      }).catch((e) => {
-        setStatus({
-          status: StatusType.Error,
-          message: e.toString()
+        }).catch((e) => {
+          setStatus({
+            status: StatusType.Error,
+            message: e.toString()
+          })
         })
-      })
     } else {
       setOutput(undefined)
     }
@@ -201,20 +203,20 @@ function App() {
         <ChipView chip={output} ></ChipView>
       </main>
       <footer
-          style={{
-            position: 'fixed',
-            width: '100%',
-            bottom: 0,
-            backgroundColor: '#444',
-          }}
+        style={{
+          position: 'fixed',
+          width: '100%',
+          bottom: 0,
+          backgroundColor: '#444',
+        }}
       >
         <a href="https://www.cda.cit.tum.de/research/microfluidics/" style={{ textDecoration: 'none' }}>
           <Typography
-              level='h4'
-              sx={{
-                color: '#fff',
-                padding: 1
-              }}
+            level='h4'
+            sx={{
+              color: '#fff',
+              padding: 1
+            }}
           >
             Chair for Design Automation<br />Technical University of Munich
           </Typography>
@@ -362,7 +364,7 @@ function downloadSVG(exportString: string, exportName: string) {
 }
 
 export function createDXF(
-output: Output
+  output: Output
 ) {
   const channels = output.channels.map(c => {
     const points = c.results.waypoints.filter((w, i) => i === 0 || c.results.waypoints[i - 1].x !== w.x || c.results.waypoints[i - 1].y !== w.y).map(w => `${w.x} ${w.y}`).join(',')
@@ -384,7 +386,7 @@ output: Output
   models.forEach((m, i) => model.models![i] = m)
 
   console.log(model)
-  
+
   MakerJs.model.scale(model, 1e-3)
   return MakerJs.exporter.toDXF(model, { units: 'mm' })
 }
