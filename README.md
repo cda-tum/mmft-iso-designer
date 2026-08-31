@@ -4,11 +4,9 @@
 <img src="https://www.cda.cit.tum.de/research/microfluidics/logo-microfluidics-toolkit.png" style="margin:auto;width:60%"/>
 </p>
 
-The MMFT ISO Designer is a tool that validates and generates microfluidic chip designs following the ISO 22916 standard. It is developed as part of the [Munich Microfluidics Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/) by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the Technical University of Munich. Currently, it is able to place and route basic modules, two types of exclusion zones, and channels while validating a number of geometric constraints. For more details, please check out the relevant research paper:
+The MMFT ISO Designer is a tool that validates and generates microfluidic chip designs following the ISO 22916 standard. It is developed as part of the [Munich Microfluidics Toolkit (MMFT)](https://www.cda.cit.tum.de/research/microfluidics/munich-microfluidics-toolkit/) by the [Chair for Design Automation](https://www.cda.cit.tum.de/) at the Technical University of Munich. Currently, it is able to place and route basic modules, two types of exclusion zones, and channels while validating a number of geometric constraints. For more details, please check out the relevant [research paper](https://ieeexplore.ieee.org/document/11592466):
 
 > P. Ebner, T. Scholl and R. Wille, "Automatic Validation and Design Generation of Modular Microfluidic Devices Based on ISO 22916," in IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, doi: 10.1109/TCAD.2026.3709084.
-
-> https://ieeexplore.ieee.org/document/11592466
 
 ## Usage
 
